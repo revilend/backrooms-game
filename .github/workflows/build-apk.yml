@@ -2,3 +2,92 @@ name: Build ZULMAT Android APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'www/index.html'
+      - 'package.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/build-apk.yml'
+      - 'models/**'
+      - 'audio/**'
+      - 'video/**'
+
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository with Git LFS
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Pull Git LFS files
+        run: git lfs pull || true
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Bundle local 3D models, audio & video into www/
+        run: |
+          mkdir -p www/vendor www/models www/audio www/video
+          if [ -d "models" ]; then cp -r models/* www/models/ || true; fi
+          if [ -d "audio" ]; then cp -r audio/* www/audio/ || true; fi
+          if [ -d "video" ]; then cp -r video/* www/video/ || true; fi
+          curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js -o www/vendor/three.min.js
+          curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js -o www/vendor/GLTFLoader.js
+          curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js -o www/vendor/DRACOLoader.js
+          ls -lh www/vendor
+
+      - name: Install Capacitor & create Android project
+        run: |
+          npm install
+          npx cap add android
+
+      - name: Configure AndroidManifest (Landscape Lock + Mic/Internet for Co-op)
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          python3 - << 'PYEOF'
+          p = "android/app/src/main/AndroidManifest.xml"
+          with open(p, "r", encoding="utf-8") as f:
+              xml = f.read()
+          perms = [
+              '<uses-permission android:name="android.permission.INTERNET" />',
+              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
+              '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
+          ]
+          for perm in perms:
+              if perm not in xml:
+                  xml = xml.replace("<application", perm + "\n    <application", 1)
+          if 'android:screenOrientation' not in xml:
+              xml = xml.replace('android:name=".MainActivity"', 'android:name=".MainActivity"\n            android:screenOrientation="sensorLandscape"', 1)
+          with open(p, "w", encoding="utf-8") as f:
+              f.write(xml)
+          PYEOF
+          npx cap sync android
+
+      - name: Build Debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Rename and Upload APK Artifact
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk ZULMAT-Backrooms-v1.0.apk
+          ls -lh ZULMAT-Backrooms-v1.0.apk
+
+      - name: Upload ZULMAT-Backrooms-v1.0.apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZULMAT-Backrooms-v1.0-APK
+          path: ZULMAT-Backrooms-v1.0.apk
