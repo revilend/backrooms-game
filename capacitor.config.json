@@ -8,6 +8,7 @@
   },
   "android": {
     "allowMixedContent": true,
-    "backgroundColor": "#090b0f"
+    "backgroundColor": "#090b0f",
+    "fullscreen": true
   }
 }
