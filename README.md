@@ -9,7 +9,7 @@ Repozitoriyda kod yo'q — bu faqat asset kutubxonasi.
 models/           43 ta 3D model (.glb)
 audio/
   music/          11 ta level/atmosfera treki (.m4a)
-  sfx/            21 ta qisqa ovoz effekti (.m4a)
+  sfx/            6 ta qisqa ovoz effekti (.m4a)
 ```
 
 Barcha fayl nomlari kichik harflar va pastki chiziq (`snake_case`) bilan yozilgan.
@@ -25,7 +25,7 @@ Barcha fayl nomlari kichik harflar va pastki chiziq (`snake_case`) bilan yozilga
 | Tabiat | `palm_tree`, `coconut_palm`, `crystal` |
 | Personajlar | `butler`, `hound`, `kitty`, `wolf`, `partygoer`, `skinstealer`, `bacteria` |
 
-Eslatma: `keypad` modeli hali yo'q, faqat ovozi (`audio/sfx/keypad_beep.m4a`) mavjud.
+Eslatma: `keypad` modeli hali yo'q.
 Eng katta fayllar: `car.glb` (~19 MB), `london_tower.glb` (~15 MB), `wolf.glb` (~14 MB),
 `floppy.glb` (~10 MB), `hound.glb` (~10 MB), `partygoer.glb` (~10 MB), `barn.glb` (~9 MB).
 
@@ -45,21 +45,16 @@ Eng katta fayllar: `car.glb` (~19 MB), `london_tower.glb` (~15 MB), `wolf.glb` (
 | `industrial_dark.m4a` | Sanoat atmosferasi |
 | `metro_hub.m4a` | Metro bekati |
 
-**Bo'sh fayllar:** `level37_poolrooms.m4a`, `level61_snackrooms.m4a`,
-`level922_void.m4a`, `level_fun.m4a`, `industrial_dark.m4a` hozircha faqat
-bo'sh qator (2 bayt) — audio hali yozilmagan, ularni almashtirish kerak.
+Barcha treklar AAC (`.m4a`) formatida va o'ynaydi.
 
 ## Ovoz effektlari (`audio/sfx/`)
 
-- **Harakat:** `footstep_carpet`, `footstep_concrete`, `footstep_grass`, `wade_water`
-- **Muhit:** `desert_wind`, `steam_hiss`, `electric_zap`, `switch_breaker`
-- **Dahshat:** `monster_growl`, `monster_roar`, `no_clip_glitch`
-- **Buyum va interaksiya:** `pickup_item`, `glass_shatter`, `flashlight_click`, `locker_hide`, `keypad_beep`, `crt_boot`
-- **Metro:** `metro_arrive`, `metro_depart`
-- **Boshqa:** `almond_drink`, `splash_water`
+- **Harakat:** `footstep_concrete`, `footstep_grass`, `wade_water`
+- **Muhit:** `desert_wind`
+- **Buyum va interaksiya:** `flashlight_click`
+- **Suv:** `splash_water`
 
 ## Qo'shimcha
 
 - `.gitattributes` — `.glb` va `.m4a` fayllari binary sifatida belgilangan.
-- `models/1` va `audio/sfx/1` — bo'sh placeholder fayllar (1 bayt), o'chirilmadi; ularni xohlaganda olib tashlash mumkin.
 - Repozitoriya hajmi katta bo'lib bormoqda; kelajakda Git LFS ga o'tish tavsiya etiladi.
