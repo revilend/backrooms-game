@@ -1,0 +1,4 @@
+name: Build ZULMAT Android APK
+
+on:
+  workflow_dispatch:
