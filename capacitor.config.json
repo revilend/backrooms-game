@@ -1,0 +1,13 @@
+{
+  "appId": "uz.revilend.zulmatbackrooms",
+  "appName": "ZULMAT: Backrooms",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#090b0f"
+  }
+}
