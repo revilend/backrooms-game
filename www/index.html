@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>ZULMAT: Backrooms 3D — Horror Qochish</title>
   <script async src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
@@ -352,28 +352,31 @@
     .toast.danger { border-color: rgba(239, 68, 68, 0.75); color: #fca5a5; }
 
     /* Context Action Prompt (Hide in Locker / Open Exit) */
+    @keyframes grabHandPulse {
+      0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.92; }
+      50% { transform: scale(1.07) rotate(-3deg); opacity: 1; }
+    }
     .interact-btn {
       position: absolute;
-      top: 76px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 10px 18px;
-      border-radius: 999px;
-      border: 1.5px solid rgba(250, 204, 21, 0.8);
-      background: rgba(15, 23, 42, 0.9);
-      color: #fde047;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.03em;
-      cursor: pointer;
-      z-index: 28;
+      right: 112px;
+      bottom: 42%;
+      z-index: 32;
       display: none;
       align-items: center;
-      gap: 8px;
-      pointer-events: auto;
+      justify-content: center;
+      width: 78px;
+      height: 78px;
+      padding: 0;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      color: #ffffff;
+      cursor: pointer;
       touch-action: none;
-      box-shadow: 0 0 22px rgba(250, 204, 21, 0.35);
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.35)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.9));
+      animation: grabHandPulse 1.8s ease-in-out infinite;
     }
+    .interact-btn:active { transform: scale(0.88) rotate(-8deg) !important; animation: none; }
     .interact-btn.visible { display: inline-flex; }
 
     /* Touch Controls */
@@ -423,33 +426,57 @@
 
     .action-dock {
       position: absolute;
-      bottom: 24px;
-      right: 22px;
+      bottom: 20px;
+      right: 18px;
       display: flex;
-      align-items: flex-end;
-      gap: 12px;
+      flex-direction: column;
+      align-items: center;
+      gap: 11px;
       pointer-events: auto;
       z-index: 25;
     }
 
     .act-btn {
-      width: 60px;
-      height: 60px;
+      position: relative;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
-      border: 1.5px solid rgba(148, 163, 184, 0.45);
-      background: rgba(12, 15, 24, 0.84);
-      color: #f8fafc;
+      border: none !important;
+      background: rgba(6, 10, 16, 0.22) !important;
+      color: #ffffff;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
       cursor: pointer;
       touch-action: none;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+      box-shadow: none !important;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.78));
+      transition: transform 0.1s ease, opacity 0.15s ease;
+    }
+    .act-btn:active { transform: scale(0.92); }
+    .act-btn span { display: none !important; }
+    .act-ring-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      pointer-events: none;
+    }
+    .act-ring-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.22);
+      stroke-width: 3;
+    }
+    .act-ring-fg {
+      fill: none;
+      stroke: #22c55e;
+      stroke-width: 3.4;
+      stroke-linecap: round;
+      stroke-dasharray: 157;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.12s linear, stroke 0.2s ease;
+    }
       transition: transform 0.1s ease, border-color 0.15s ease;
     }
 
@@ -493,6 +520,96 @@
     body:not(.game-started) #vhs-rec {
       display: none !important;
     }
+
+    /* --- AAA Backrooms Horror Terminal UI Polish --- */
+    .modal, .card {
+      background: radial-gradient(circle at 50% 0%, rgba(28, 25, 16, 0.94), rgba(6, 8, 12, 0.97)) !important;
+      border: 1px solid rgba(250, 204, 21, 0.32) !important;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.88), 0 0 32px rgba(250, 204, 21, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+      backdrop-filter: blur(14px) !important;
+      -webkit-backdrop-filter: blur(14px) !important;
+    }
+    .modal h2, .card h2 {
+      letter-spacing: 0.08em;
+      text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
+    }
+    .set-card {
+      background: rgba(12, 16, 24, 0.82) !important;
+      border: 1px solid rgba(250, 204, 21, 0.18) !important;
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+    }
+    .set-card:hover {
+      border-color: rgba(250, 204, 21, 0.55) !important;
+      background: rgba(24, 28, 38, 0.92) !important;
+    }
+    .diff-btn {
+      background: rgba(12, 16, 24, 0.82) !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      transition: all 0.15s ease;
+    }
+    .diff-btn.selected, .diff-btn.active {
+      border-color: #fde047 !important;
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.24), rgba(20, 18, 10, 0.92)) !important;
+      color: #fef08a !important;
+      box-shadow: 0 0 16px rgba(250, 204, 21, 0.22);
+    }
+
+
+    /* --- Bottom Inventory Hotbar (Almond Water, Battery, Keys, Cassettes) --- */
+    body:not(.game-started) #inv-bar { display: none !important; }
+    #inv-bar {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 28;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(6, 10, 16, 0.56);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      pointer-events: auto;
+    }
+    .inv-slot {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.28);
+      background: rgba(12, 16, 24, 0.72);
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      transition: transform 0.1s ease, border-color 0.15s ease;
+    }
+    .inv-slot:active { transform: scale(0.92); border-color: #fde047; }
+    .inv-slot.empty { opacity: 0.45; }
+    .inv-cnt {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: #0f172a;
+      border: 1px solid rgba(250, 204, 21, 0.75);
+      color: #fef08a;
+      font-size: 10px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
     .hidden, .overlay.hidden, #story-video-overlay.hidden { display: none !important; }
 
     .modal, .card {
@@ -1143,10 +1260,10 @@
         <button class="icon-btn" id="btn-mark" type="button" title="Polga X belgisi qo'yish (Q)" style="width:auto;padding:0 9px;font-size:11px;font-weight:800;color:#fde047;border-color:rgba(250,204,21,0.55);">BELGI (X)</button>
         <button class="icon-btn" id="btn-test-station" type="button" title="Test: Istalgan darajani tanlash" style="width:auto;padding:0 10px;font-size:11px;font-weight:800;color:#93c5fd;border-color:rgba(56,189,248,0.6);">TEST BEKAT</button>
         <button class="icon-btn" id="btn-test-exit" type="button" title="Test: 8/8 Kalit + Exit Teleport" style="width:auto;padding:0 10px;font-size:11px;font-weight:800;color:#86efac;border-color:rgba(34,197,94,0.6);">TEST EXIT</button>
-        <button class="icon-btn" id="btn-sound" type="button" title="Ovoz">
+        <button class="icon-btn" id="btn-sound" type="button" title="Ovoz" style="display:none !important;">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
         </button>
-        <button class="icon-btn" id="btn-restart" type="button" title="Qayta boshlash">
+        <button class="icon-btn" id="btn-restart" type="button" title="Qayta boshlash" style="display:none !important;">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
         </button>
         <button class="icon-btn" id="btn-settings" type="button" title="Sozlamalar">
@@ -1157,29 +1274,60 @@
 
     <div class="toast" id="toast"></div>
 
-    <button class="interact-btn" id="btn-interact" type="button" aria-label="Olish / Harakat" style="width:62px;height:62px;padding:0;border-radius:50%;justify-content:center;align-items:center;box-shadow:0 0 22px rgba(250,204,21,0.38);">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+    <button class="interact-btn" id="btn-interact" type="button" aria-label="Olish / Harakat">
+      <svg width="72" height="72" viewBox="0 0 64 64" fill="none" stroke="#f8fafc" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M44 57 C41 49, 43 42, 46 35 C48 29, 48 22, 44 17 C41 13, 35 10, 29 10 C27 10, 26 12, 28 13 C33 14, 37 17, 39 21"/>
+        <path d="M39 21 C36 16, 30 13, 23 13 C20.5 13, 19.5 15.5, 22 16.8 C27 18.2, 32 21, 34 25"/>
+        <path d="M34 25 C30 20, 23 17, 17 18.5 C14.5 19.2, 14.5 22, 17.5 22.8 C23 23.5, 28 26, 30 30"/>
+        <path d="M30 30 C27 27, 21 25, 16.5 26.8 C14.5 27.6, 15 30.2, 17.8 30.8 C22 31.5, 26 33.5, 27.5 37"/>
+        <path d="M27.5 37 C24.5 38.5, 20 37.5, 16 34.5 C13.5 32.8, 11 35, 13.5 38 C17 42, 22.5 45.5, 28 48 C31.5 49.5, 34 53, 35.5 58"/>
+        <path d="M35.5 58 L44 57" stroke-opacity="0.7"/>
+        <path d="M38 28 C37 33, 35 37, 32 40" stroke-width="1.3" stroke-opacity="0.65"/>
+        <path d="M42 25 C41.5 31, 40 36, 37 41" stroke-width="1.2" stroke-opacity="0.55"/>
+      </svg>
       <span id="interact-lbl" style="display:none;"></span>
     </button>
 
     <!-- Touch Controls -->
+    <!-- Bottom Inventory Bar (Almond Water, Spare Battery, Keys, VHS) -->
+    <div id="inv-bar">
+      <button class="inv-slot" id="inv-slot-almond" type="button" title="Bodom suvi ichish (1)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v3l2 3v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9l2-3V3z"/><line x1="8" y1="13" x2="16" y2="13"/></svg>
+        <span class="inv-cnt" id="inv-cnt-almond">1</span>
+      </button>
+      <button class="inv-slot" id="inv-slot-battery" type="button" title="Batareya almashtirish (2)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fde047" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="12" height="16" rx="2"/><line x1="10" y1="2" x2="14" y2="2"/><polyline points="12 9 10 13 14 13 12 17"/></svg>
+        <span class="inv-cnt" id="inv-cnt-battery">1</span>
+      </button>
+      <div class="inv-slot" id="inv-slot-keys" title="Kalitlar" style="cursor:default;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3L22 7l-3-3"/></svg>
+        <span class="inv-cnt" id="inv-cnt-keys">0</span>
+      </div>
+      <div class="inv-slot" id="inv-slot-vhs" title="Kasetalar" style="cursor:default;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+        <span class="inv-cnt" id="inv-cnt-vhs">0</span>
+      </div>
+    </div>
+
     <div class="touch-controls" id="touch-controls">
       <div class="joy-touch-pad" id="joy-touch-pad"></div>
       <div class="joystick-zone" id="joystick-zone">
         <div class="joystick-knob" id="joystick-knob"></div>
       </div>
       <div class="action-dock">
-        <button class="act-btn on" id="btn-flash" type="button" title="Fonar (F)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6c0 2-2 2-2 4v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V10c0-2-2-2-2-4V2h12z"></path><line x1="6" y1="6" x2="18" y2="6"></line><line x1="12" y1="12" x2="12" y2="12"></line></svg>
-          <span>FONAR</span>
-        </button>
-      <button class="act-btn" id="btn-jump" type="button" style="display:none;background:rgba(14,116,144,0.82);border-color:rgba(56,189,248,0.75);">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><polyline points="5 12 12 5 19 12"></polyline></svg>
-        <span>SAKRASH</span>
-      </button>
         <button class="act-btn sprint-btn" id="btn-sprint" type="button" title="Yugurish (Shift)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-          <span>YUGUR</span>
+          <svg class="act-ring-svg" viewBox="0 0 58 58"><circle class="act-ring-bg" cx="29" cy="29" r="25"/><circle class="act-ring-fg" id="ring-stamina" cx="29" cy="29" r="25"/></svg>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><circle cx="15.5" cy="4.5" r="2.1"/><path d="M13.6 7.5l-2.9 1.6-2.5-.8-.7 1.8 3.2 1.1 1.7-.9-1.2 3.4-3.6 2.8 1.2 1.6 4.1-3.1 2.2 2.1-.9 3.9 2 .4 1.2-5.2-2.6-2.5 1.1-3 1.7 1.2 2.4-.7-.5-1.9-1.7.5-2.6-1.9c-.4-.3-1-.4-1.5-.3zM3 8h4v1.5H3V8zm-1 3h4.5v1.5H2V11zm1.5 3H7v1.5H3.5V14z"/></svg>
+        </button>
+        <button class="act-btn" id="btn-crouch" type="button" title="O'tirib yurish (C)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="4.5" r="2.2"/><path d="M9.5 8C8.2 8 7.2 9 7 10.3L6.2 15h2.2l.5-3.2.6 3.7L8 21h2.4l1.6-4.4 1.6 4.4H16l-1.5-5.5.6-3.7.5 3.2h2.2L17 10.3C16.8 9 15.8 8 14.5 8h-5z"/></svg>
+        </button>
+        <button class="act-btn" id="btn-jump" type="button" title="Sakrash (Space)" style="display:flex;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><polyline points="6 11 12 5 18 11"/></svg>
+        </button>
+        <button class="act-btn on" id="btn-flash" type="button" title="Fonar (F)">
+          <svg class="act-ring-svg" viewBox="0 0 58 58"><circle class="act-ring-bg" cx="29" cy="29" r="25"/><circle class="act-ring-fg" id="ring-battery" cx="29" cy="29" r="25"/></svg>
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="currentColor" style="transform:rotate(38deg);"><path d="M7 2h10v3.5l-2.5 3V21a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V8.5L7 5.5V2zm4.2 8.5v2.6h1.6v-2.6h-1.6z"/></svg>
         </button>
       </div>
     </div>
@@ -1191,6 +1339,24 @@
     </div>
 
     <!-- Start Overlay (Clean Static Hallway + Translucent Glass Buttons) -->
+    <!-- In-Game Co-op Chat Overlay (visible when connected in Co-op) -->
+    <div id="ingame-chat-wrap" class="hidden" style="position:fixed;left:14px;bottom:146px;z-index:45;width:min(270px,62vw);pointer-events:auto;">
+      <div id="ingame-chat-msgs" style="max-height:84px;overflow-y:auto;background:rgba(4,7,14,0.62);border:1px solid rgba(56,189,248,0.28);border-radius:8px;padding:5px 8px;font-size:11px;color:#e2e8f0;line-height:1.35;margin-bottom:4px;"></div>
+      <div style="display:flex;gap:4px;">
+        <input id="ingame-chat-inp" type="text" maxlength="100" placeholder="Do'stlarga yozish..." style="flex:1;padding:6px 8px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:rgba(10,14,22,0.82);color:#f8fafc;font-size:11.5px;outline:none;">
+        <button id="btn-ingame-chat-send" type="button" style="padding:6px 10px;border-radius:7px;border:1px solid rgba(56,189,248,0.45);background:rgba(14,116,144,0.75);color:#e0f2fe;font-size:11px;font-weight:800;cursor:pointer;">OK</button>
+      </div>
+    </div>
+    <!-- Level Loading Screen (waits for GLB models, shaders & SFX before gameplay) -->
+    <div id="level-loading-overlay" class="hidden" style="position:fixed;inset:0;z-index:9200;background:radial-gradient(circle at 50% 45%,#0f131c 0%,#030407 82%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;">
+      <div style="font-size:11px;font-weight:800;letter-spacing:0.26em;color:rgba(253,224,71,0.82);text-transform:uppercase;">M.E.G. TRANSPORT</div>
+      <div id="lvl-load-title" style="font-size:clamp(20px,4vw,30px);font-weight:900;letter-spacing:0.14em;color:#f8fafc;text-align:center;">BEKAT TAYYORLANMOQDA...</div>
+      <div style="width:min(280px,72vw);height:5px;border-radius:999px;background:rgba(255,255,255,0.1);overflow:hidden;">
+        <div id="lvl-load-bar" style="width:20%;height:100%;border-radius:999px;background:linear-gradient(90deg,#eab308,#fef08a);transition:width 0.2s ease;"></div>
+      </div>
+      <div id="lvl-load-sub" style="font-size:11px;font-weight:700;letter-spacing:0.12em;color:rgba(148,163,184,0.85);">3D MODELLAR VA OVOZLAR YUKLANMOQDA...</div>
+    </div>
+
     <!-- REVILEND STUDIO Splash & Loading Screen -->
     <div id="revilend-splash">
       <div class="splash-logo-wrap">
@@ -1253,7 +1419,7 @@
     <!-- Full-Screen Story Cutscene Video Overlay (Intro & Outro) -->
     <div id="story-video-overlay" class="hidden" style="position:fixed;inset:0;z-index:9999;background:#000;align-items:center;justify-content:center;">
       <div id="story-video-status" style="position:absolute;color:#fef08a;font-size:12px;font-weight:800;letter-spacing:0.16em;pointer-events:none;">VIDEO YUKLANMOQDA...</div>
-      <video id="story-video-el" playsinline webkit-playsinline preload="auto" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;"></video>
+      <video id="story-video-el" playsinline webkit-playsinline preload="auto" style="width:100%;height:100%;object-fit:cover;"></video>
       <button id="btn-skip-story-video" type="button" onclick="var o=document.getElementById('story-video-overlay');if(o)o.classList.add('hidden');" style="position:absolute;right:20px;bottom:20px;z-index:10000;padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,0.28);background:rgba(9,11,15,0.78);color:#f8fafc;font-size:13px;font-weight:700;letter-spacing:0.6px;cursor:pointer;">
         O'TKAZIB YUBORISH &gt;&gt;
       </button>
@@ -1297,6 +1463,10 @@
             </div>
             <input type="range" id="sens-slider" min="0.4" max="2.5" step="0.1" value="1.0" style="width:100%; accent-color:#38bdf8;" />
           </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-bottom:8px;">
+          <button class="diff-btn" id="btn-settings-sound" type="button" style="padding:10px;">Ovoz: YONIQ</button>
+          <button class="diff-btn" id="btn-settings-restart" type="button" style="padding:10px;border-color:rgba(248,113,113,0.45);color:#fca5a5;">Qayta Boshlash</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;">
           <button class="diff-btn" id="btn-open-credits" type="button" style="padding:11px;">Mualliflar (Credits)</button>
@@ -1349,18 +1519,37 @@
             <button class="diff-btn" id="btn-skin-hazmat" type="button" style="padding:7px 4px;font-size:11px;">Hazmat</button>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <button class="primary-btn" id="btn-coop-host" type="button" style="padding:11px 10px;font-size:13px;">XONA YARATISH</button>
-            <button class="diff-btn" id="btn-coop-mic" type="button" style="padding:11px 10px;font-size:13px;">MIKROFON: O'CHIQ</button>
+            <button class="primary-btn" id="btn-coop-host" type="button" style="padding:10px 10px;font-size:12.5px;">XONA YARATISH</button>
+            <button class="diff-btn" id="btn-coop-mic" type="button" style="padding:10px 10px;font-size:12.5px;">MIKROFON: O'CHIQ</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="coop-mode-select" style="flex:1;padding:9px 10px;border-radius:9px;border:1px solid rgba(255,255,255,0.18);background:rgba(15,23,42,0.9);color:#f8fafc;font-size:12.5px;outline:none;">
+              <option value="0">Syujet: Level 0 (Labirint)</option>
+              <option value="metro">Syujet: Metro Hub (31 Bekat)</option>
+              <option value="endless">Cheksiz Rejim (50KM)</option>
+              <option value="1">Level 1: Habitable Zone</option>
+              <option value="37">Level 37: Poolrooms</option>
+              <option value="fun">Level Fun =)</option>
+              <option value="run">Level !: Run For Your Life</option>
+            </select>
+            <button class="primary-btn" id="btn-coop-start" type="button" style="width:auto;padding:9px 14px;font-size:12px;background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;">BOSHLASH</button>
           </div>
           <div style="display:flex;gap:8px;">
-            <input id="coop-code-input" type="text" maxlength="6" placeholder="4 xonali kod (masalan 4821)" style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:rgba(15,23,42,0.85);color:#f8fafc;font-size:14px;outline:none;text-transform:uppercase;">
-            <button class="primary-btn" id="btn-coop-join" type="button" style="width:auto;padding:10px 16px;font-size:13px;">KIRISH</button>
+            <input id="coop-code-input" type="text" maxlength="6" placeholder="4 xonali kod (masalan 4821)" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:rgba(15,23,42,0.85);color:#f8fafc;font-size:13px;outline:none;text-transform:uppercase;">
+            <button class="primary-btn" id="btn-coop-join" type="button" style="width:auto;padding:9px 16px;font-size:12.5px;">KIRISH</button>
           </div>
-          <div id="coop-status" style="font-size:12px;color:#94a3b8;background:rgba(15,23,42,0.72);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;line-height:1.45;">
-            Holat: Oflayn (Yolg'iz rejim). Xona yarating yoki do'stingiz kodini kiriting.
+          <div id="coop-status" style="font-size:11.5px;color:#94a3b8;background:rgba(15,23,42,0.72);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 10px;line-height:1.4;">
+            Holat: Oflayn. Xona yarating, rejim tanlang va do'stlar bilan yig'iling.
+          </div>
+          <div id="coop-chat-log" style="height:68px;overflow-y:auto;background:rgba(2,6,14,0.78);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:6px 8px;font-size:11px;color:#e2e8f0;line-height:1.4;">
+            <div style="color:#64748b;">Xona chati shu yerda ko'rinadi...</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <input id="coop-chat-input" type="text" maxlength="120" placeholder="Xabar yozing..." style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.14);background:rgba(15,23,42,0.85);color:#f8fafc;font-size:12px;outline:none;">
+            <button class="diff-btn" id="btn-coop-send" type="button" style="padding:8px 12px;font-size:12px;">YUBORISH</button>
           </div>
         </div>
-        <button class="diff-btn" id="btn-close-coop" type="button" style="width:100%;padding:11px;">Yopish va O'yinga Qaytish</button>
+        <button class="diff-btn" id="btn-close-coop" type="button" style="width:100%;padding:10px;">Yopish</button>
       </div>
     </div>
 
@@ -1700,7 +1889,7 @@
             if (!triedFallback) { triedFallback = true; tryUrl(1); }
             else finish();
           }
-        }, 8500);
+        }, 4500);
         if (stLbl) stLbl.style.display = 'block';
         ov.classList.remove('hidden');
         tryUrl(0);
@@ -1720,19 +1909,19 @@
         noiseBuf: null,
         muted: false,
         bgm: null,
-        bgmUrl: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%206%20-%20Air.mp3',
-        // Real recorded Wikimedia Commons CC audio clips (ZERO buzzy sawtooth/square synth sounds!)
+        bgmUrl: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/music/level0_ambience.m4a',
+        // 100% Self-Hosted Commercial Audio Clips (zero Wikimedia/Incompetech external hotlinks!)
         realClips: {
-          trainBrake: 'https://commons.wikimedia.org/wiki/Special:FilePath/GO_Train_arrives_at_Guildwood_GO_Station_(Freesound).ogg',
-          doorOpen: 'https://commons.wikimedia.org/wiki/Special:FilePath/01A01_Door_Open.ogg',
-          doorClose: 'https://commons.wikimedia.org/wiki/Special:FilePath/01A01_Door_Close.ogg',
-          fireAlarm: 'https://commons.wikimedia.org/wiki/Special:FilePath/Activated_fire_alarm_(sound).ogg',
-          heartbeat: 'https://commons.wikimedia.org/wiki/Special:FilePath/Heartbeat.ogg',
-          musicBox: 'https://commons.wikimedia.org/wiki/Special:FilePath/Caja_musical_de_cuerda.ogg',
-          wind: 'https://commons.wikimedia.org/wiki/Special:FilePath/Howling_wind.ogg',
-          rain: 'https://commons.wikimedia.org/wiki/Special:FilePath/Sound_of_rain.ogg',
-          windchime: 'https://commons.wikimedia.org/wiki/Special:FilePath/Windchime.ogg',
-          breeze: 'https://commons.wikimedia.org/wiki/Special:FilePath/Gentle_breeze_and_birds_singing.ogg',
+          trainBrake: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/sfx/metro_arrive.m4a',
+          doorOpen: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/sfx/locker_hide.m4a',
+          doorClose: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/sfx/locker_hide.m4a',
+          fireAlarm: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/sfx/electric_zap.m4a',
+          heartbeat: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/sfx/monster_growl.m4a',
+          musicBox: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/music/level_fun_musicbox.m4a',
+          wind: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/sfx/desert_wind.m4a',
+          rain: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/sfx/wade_water.m4a',
+          windchime: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/music/level94_dreamcore.m4a',
+          breeze: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/sfx/desert_wind.m4a',
           metroHub: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/music/metro_hub.m4a'
         },
         clipCache: {},
@@ -1743,7 +1932,7 @@
           'pickup_item', 'switch_breaker', 'splash_water', 'wade_water',
           'flashlight_click', 'electric_zap', 'no_clip_glitch', 'locker_hide',
           'almond_drink', 'keypad_beep', 'steam_hiss', 'crt_boot',
-          'metro_arrive', 'metro_depart', 'desert_wind', 'glass_shatter'
+          'metro_arrive', 'metro_depart', 'desert_wind', 'glass_shatter', 'chair_throw_1', 'chair_throw_2', 'chair_throw_3'
         ],
         loadSfx(name) {
           if (!this.ctx || this.sfxBuffers[name] || this.sfxLoading[name]) return;
@@ -2569,9 +2758,52 @@
       scene.add(hemiLight);
       const ambientLight = new THREE.AmbientLight(0xdcd6b8, 0.28);
       scene.add(ambientLight);
-      const dirLight = new THREE.DirectionalLight(0xfffbe6, 0.20);
-      dirLight.position.set(14, 26, 9);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      const dirLight = new THREE.DirectionalLight(0xfffbe6, 0.24);
+      dirLight.position.set(10, 18, 7);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.set(1024, 1024);
+      dirLight.shadow.camera.near = 2;
+      dirLight.shadow.camera.far = 42;
+      dirLight.shadow.camera.left = -14;
+      dirLight.shadow.camera.right = 14;
+      dirLight.shadow.camera.top = 14;
+      dirLight.shadow.camera.bottom = -14;
+      dirLight.shadow.bias = -0.0008;
+      dirLight.shadow.normalBias = 0.04;
       scene.add(dirLight);
+      scene.add(dirLight.target);
+
+      // Fixed 4-light overhead ceiling pool (moves to nearest bright room cells across ALL levels — zero shader recompile!)
+      const roomLightPool = [];
+      for (let rli = 0; rli < 4; rli++) {
+        const rl = new THREE.PointLight(0xfff5d6, 0, 15, 1.7);
+        rl.position.set(0, 3.2, 0);
+        scene.add(rl);
+        roomLightPool.push(rl);
+      }
+
+      // Soft radial contact shadow material (darkens in bright areas, fades in dark areas)
+      const contactShadowMat = (function () {
+        const c = document.createElement('canvas');
+        c.width = 128; c.height = 128;
+        const g = c.getContext('2d');
+        const gr = g.createRadialGradient(64, 64, 6, 64, 64, 60);
+        gr.addColorStop(0, 'rgba(0,0,0,0.78)');
+        gr.addColorStop(0.55, 'rgba(0,0,0,0.34)');
+        gr.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = gr;
+        g.fillRect(0, 0, 128, 128);
+        const tex = new THREE.CanvasTexture(c);
+        return new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.45, depthWrite: false });
+      })();
+      function makeContactShadow(rx = 0.65, rz = 0.65) {
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(rx * 2, rz * 2), contactShadowMat);
+        m.rotation.x = -Math.PI / 2;
+        m.position.y = 0.025;
+        return m;
+      }
 
       const flashLight = new THREE.SpotLight(0xfff6d1, 2.85, 32, Math.PI / 4.2, 0.48, 1.45);
       flashLight.position.set(0, 0, 0);
@@ -2678,7 +2910,7 @@
         new THREE.PlaneGeometry(worldW, worldD),
         (() => { const ct = makeCarpetTex(); ct.anisotropy = maxAniso; return new THREE.MeshLambertMaterial({ map: ct }); })()
       );
-      floor.rotation.x = -Math.PI / 2;
+      floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
       level0Group.add(floor);
 
       const ceiling = new THREE.Mesh(
@@ -3126,40 +3358,124 @@
           level0Group.add(pane, trim);
           wallBoxes.push({ x: gp.x, z: gp.z, halfX: CELL * 0.46, halfZ: 0.16 });
         });
-        // --- SUSHI-STYLE LEVEL 0 UPGRADES: Climbable Ladders + Upper Crawlspace Lofts + Wall Graffiti ---
-        function makeGraffitiTex(txt) {
-          const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
+        // --- CHARCOAL BACKROOMS WALL GRAFFITI (Bacteria Entity Sketches & Uzbek Lore Warnings) ---
+        function makeGraffitiTex(kind) {
+          const cv = document.createElement('canvas'); cv.width = 512; cv.height = 512;
           const cx = cv.getContext('2d');
-          cx.clearRect(0, 0, 256, 256);
-          cx.strokeStyle = '#18181b'; cx.lineWidth = 10; cx.lineCap = 'round';
-          if (txt === ':)') {
-            cx.beginPath(); cx.arc(88, 92, 10, 0, Math.PI * 2); cx.fillStyle = '#18181b'; cx.fill();
-            cx.beginPath(); cx.arc(168, 92, 10, 0, Math.PI * 2); cx.fill();
-            cx.beginPath(); cx.arc(128, 118, 62, 0.25, Math.PI - 0.25); cx.stroke();
-          } else {
-            cx.fillStyle = '#27272a'; cx.font = 'bold 34px monospace'; cx.textAlign = 'center';
-            cx.fillText(txt, 128, 136);
+          cx.clearRect(0, 0, 512, 512);
+          cx.strokeStyle = '#0c0c0e'; cx.fillStyle = '#0c0c0e'; cx.lineCap = 'round'; cx.lineJoin = 'round';
+          function scribble(pts, lw) {
+            for (let pass = 0; pass < 3; pass++) {
+              cx.lineWidth = lw - pass * 2;
+              cx.beginPath();
+              pts.forEach(([x, y], idx) => {
+                const jx = x + (pass - 1) * 3.5;
+                const jy = y + (pass - 1) * 2.5;
+                if (idx === 0) cx.moveTo(jx, jy); else cx.lineTo(jx, jy);
+              });
+              cx.stroke();
+            }
           }
-          return new THREE.CanvasTexture(cv);
+          if (kind === 'bacteria') {
+            // Classic multi-armed black-ink Bacteria entity sketch
+            cx.beginPath(); cx.ellipse(256, 118, 28, 36, 0.08, 0, Math.PI * 2); cx.fill();
+            cx.fillStyle = '#d4c98a'; cx.beginPath(); cx.arc(246, 112, 4, 0, Math.PI * 2); cx.arc(266, 114, 4, 0, Math.PI * 2); cx.fill();
+            cx.fillStyle = '#0c0c0e';
+            scribble([[256, 150], [250, 235], [262, 310]], 14);
+            scribble([[252, 185], [185, 130], [120, 88]], 10);
+            scribble([[252, 205], [190, 195], [135, 225]], 9);
+            scribble([[258, 182], [328, 132], [392, 108]], 10);
+            scribble([[258, 208], [332, 198], [388, 226]], 9);
+            scribble([[254, 245], [175, 295], [105, 315]], 10);
+            scribble([[258, 248], [342, 285], [405, 275]], 10);
+            scribble([[254, 305], [225, 415]], 11);
+            scribble([[260, 305], [288, 420]], 11);
+            cx.font = 'bold 34px monospace'; cx.textAlign = 'center';
+            cx.fillText('U ESHITADI...', 256, 476);
+          } else if (kind === 'noexit') {
+            cx.font = 'bold 42px monospace'; cx.textAlign = 'center';
+            cx.fillText('BU YERDAN', 256, 150);
+            cx.fillText("CHIQISH YO'Q", 256, 205);
+            // Survivor tally marks
+            for (let g = 0; g < 3; g++) {
+              const bx = 110 + g * 115;
+              for (let k = 0; k < 4; k++) scribble([[bx + k * 18, 275], [bx + k * 18 - 4, 345]], 7);
+              scribble([[bx - 10, 332], [bx + 68, 288]], 7);
+            }
+          } else if (kind === 'lookback') {
+            cx.font = 'bold 44px monospace'; cx.textAlign = 'center';
+            cx.fillText('ORQANGA', 256, 165);
+            cx.fillText('QARAMA!', 256, 220);
+            // Creepy eye
+            scribble([[146, 325], [256, 270], [366, 325], [256, 380], [146, 325]], 9);
+            cx.beginPath(); cx.arc(256, 325, 26, 0, Math.PI * 2); cx.fill();
+          } else if (kind === 'hide') {
+            cx.font = 'bold 34px monospace'; cx.textAlign = 'center';
+            cx.fillText("CHIROQ O'CHSA", 256, 165);
+            cx.fillText('SHKAFGA YASHIRIN', 256, 215);
+            scribble([[120, 300], [375, 300]], 11);
+            scribble([[325, 255], [380, 300], [325, 345]], 11);
+          } else if (kind === 'meg') {
+            cx.font = 'bold 38px monospace'; cx.textAlign = 'center';
+            cx.fillText('M.E.G. // BEKAT 0', 256, 185);
+            cx.font = 'bold 30px monospace';
+            cx.fillText('BIZ BU YERDA EDIK', 256, 245);
+            cx.fillText("KALITLARNI TOPING", 256, 300);
+          } else {
+            cx.beginPath(); cx.arc(176, 184, 18, 0, Math.PI * 2); cx.fill();
+            cx.beginPath(); cx.arc(336, 184, 18, 0, Math.PI * 2); cx.fill();
+            cx.lineWidth = 16; cx.beginPath(); cx.arc(256, 236, 118, 0.25, Math.PI - 0.25); cx.stroke();
+            cx.font = 'bold 32px monospace'; cx.textAlign = 'center';
+            cx.fillText('XUSH KELIBSIZ', 256, 420);
+          }
+          const tex = new THREE.CanvasTexture(cv);
+          tex.needsUpdate = true;
+          return tex;
         }
-        const grafTexSmile = makeGraffitiTex(':)');
-        const grafTexWarn = makeGraffitiTex("ORQAGA QARAMA");
-        [
-          { r: 10, c: 24, tex: grafTexSmile, ry: 0 },
-          { r: 22, c: 12, tex: grafTexWarn, ry: Math.PI / 2 },
-          { r: 36, c: 30, tex: grafTexSmile, ry: Math.PI },
-          { r: 16, c: 42, tex: grafTexWarn, ry: -Math.PI / 2 }
-        ].forEach((gf) => {
-          if (!MAZE_MAP[gf.r] || MAZE_MAP[gf.r][gf.c] === '#') return;
-          const gp = gridToWorld(gf.r, gf.c);
-          const dec = new THREE.Mesh(
-            new THREE.PlaneGeometry(2.1, 2.1),
-            new THREE.MeshBasicMaterial({ map: gf.tex, transparent: true, opacity: 0.85, depthWrite: false })
-          );
-          dec.position.set(gp.x + Math.sin(gf.ry) * 1.6, 1.75, gp.z + Math.cos(gf.ry) * 1.6);
-          dec.rotation.y = gf.ry + Math.PI;
-          level0Group.add(dec);
-        });
+        window.__zulmatMakeGraffitiTex = makeGraffitiTex;
+        const grafTexPool = [
+          makeGraffitiTex('bacteria'),
+          makeGraffitiTex('noexit'),
+          makeGraffitiTex('lookback'),
+          makeGraffitiTex('hide'),
+          makeGraffitiTex('meg'),
+          makeGraffitiTex('smile')
+        ];
+        // Scan real maze corridor walls and attach 16 graffiti decals flush against solid # walls!
+        (function placeLevel0Graffiti() {
+          const halfC = CELL * 0.5;
+          const dirs = [
+            { dr: -1, dc: 0, ox: 0, oz: -halfC + 0.04, ry: 0 },
+            { dr: 1, dc: 0, ox: 0, oz: halfC - 0.04, ry: Math.PI },
+            { dr: 0, dc: -1, ox: -halfC + 0.04, oz: 0, ry: Math.PI / 2 },
+            { dr: 0, dc: 1, ox: halfC - 0.04, oz: 0, ry: -Math.PI / 2 }
+          ];
+          const spots = [];
+          for (let r = 2; r < MAZE_MAP.length - 2; r += 3) {
+            for (let c = 2; c < MAZE_MAP[0].length - 2; c += 4) {
+              if (MAZE_MAP[r][c] === '#') continue;
+              for (let d = 0; d < dirs.length; d++) {
+                const nr = r + dirs[d].dr, nc = c + dirs[d].dc;
+                if (MAZE_MAP[nr] && MAZE_MAP[nr][nc] === '#') {
+                  spots.push({ r, c, dir: dirs[d] });
+                  break;
+                }
+              }
+            }
+          }
+          const count = Math.min(16, spots.length);
+          for (let i = 0; i < count; i++) {
+            const pick = spots[Math.floor((i * spots.length) / count)];
+            const gp = gridToWorld(pick.r, pick.c);
+            const dec = new THREE.Mesh(
+              new THREE.PlaneGeometry(2.35, 2.35),
+              new THREE.MeshBasicMaterial({ map: grafTexPool[i % grafTexPool.length], transparent: true, opacity: 0.88, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 })
+            );
+            dec.position.set(gp.x + pick.dir.ox, 1.75, gp.z + pick.dir.oz);
+            dec.rotation.y = pick.dir.ry;
+            level0Group.add(dec);
+          }
+        })();
 
         window.l0Ladders = [];
         const woodMat = new THREE.MeshLambertMaterial({ color: 0x784b2a });
@@ -3217,7 +3533,54 @@
       lampInst.instanceMatrix.needsUpdate = true;
       level0Group.add(lampInst);
 
+
+      const walkPlatforms = [];
+      function spawnVentDuct(parentGrp, boxes, x, z, len = 6.5, rotY = 0) {
+        const vg = new THREE.Group();
+        vg.position.set(x, 0, z);
+        vg.rotation.y = rotY;
+        const ductMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
+        const grateMat = new THREE.MeshBasicMaterial({ color: 0x1e293b });
+        const top = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.14, len), ductMat);
+        top.position.y = 1.24;
+        const wallL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.24, len), ductMat);
+        wallL.position.set(-0.82, 0.62, 0);
+        const wallR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.24, len), ductMat);
+        wallR.position.set(0.82, 0.62, 0);
+        const trim = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.10, 0.14), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+        trim.position.set(0, 1.28, len * 0.48);
+        const trim2 = trim.clone(); trim2.position.z = -len * 0.48;
+        const gPlate = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.04, len - 0.2), grateMat);
+        gPlate.position.y = 0.02;
+        vg.add(top, wallL, wallR, trim, trim2, gPlate);
+        parentGrp.add(vg);
+        const isX = Math.abs(Math.sin(rotY)) > 0.7;
+        boxes.push({ x, z, halfX: isX ? len / 2 : 0.72, halfZ: isX ? 0.72 : len / 2, ventCeil: 1.24 });
+      }
+      function spawnJumpLedge(parentGrp, zoneTag, x, z, w = 2.6, d = 2.6, topY = 0.95) {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w, topY, d), new THREE.MeshLambertMaterial({ color: 0x52525b }));
+        m.position.set(x, topY / 2, z);
+        const rim = new THREE.Mesh(new THREE.BoxGeometry(w + 0.05, 0.06, d + 0.05), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+        rim.position.set(x, topY + 0.01, z);
+        parentGrp.add(m, rim);
+        walkPlatforms.push({ zone: zoneTag, minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, topY });
+      }
+
       function spawnGroundPedestal(parentGrp, x, z, rotY = 0) {
+        if (parentGrp === level0Group && typeof wallBoxes !== 'undefined') {
+          const pTmp = { x, z };
+          for (let i = 0; i < wallBoxes.length; i++) {
+            const w = wallBoxes[i];
+            const hx = (w.halfX !== undefined ? w.halfX : w.half) + 0.9;
+            const hz = (w.halfZ !== undefined ? w.halfZ : w.half) + 0.9;
+            if (Math.abs(pTmp.x - w.x) < hx && Math.abs(pTmp.z - w.z) < hz) {
+              const dx = pTmp.x - w.x, dz = pTmp.z - w.z;
+              if (Math.abs(dx) > Math.abs(dz)) pTmp.x = w.x + (dx >= 0 ? hx : -hx);
+              else pTmp.z = w.z + (dz >= 0 ? hz : -hz);
+            }
+          }
+          x = pTmp.x; z = pTmp.z;
+        }
         if (typeof loadGlbIntoGroup === 'function') {
           loadGlbIntoGroup('cabinet.glb', parentGrp, { x, y: 0, z, rotY, targetH: 0.92 });
         } else {
@@ -3225,10 +3588,11 @@
           box.position.set(x, 0.46, z);
           parentGrp.add(box);
         }
+        return { x, z };
       }
 
       function spawnKeyAt(x, z) {
-        spawnGroundPedestal(level0Group, x, z, (keysList.length % 4) * (Math.PI / 2));
+        const _pk = spawnGroundPedestal(level0Group, x, z, (keysList.length % 4) * (Math.PI / 2)); x = _pk.x; z = _pk.z;
         const g = new THREE.Group();
         const core = new THREE.Mesh(
           new THREE.BoxGeometry(0.32, 0.08, 0.14),
@@ -3247,7 +3611,7 @@
       }
 
       function spawnBatteryAt(x, z) {
-        spawnGroundPedestal(level0Group, x, z, (batteries.length % 4) * (Math.PI / 2));
+        const _pb = spawnGroundPedestal(level0Group, x, z, (batteries.length % 4) * (Math.PI / 2)); x = _pb.x; z = _pb.z;
         const g = new THREE.Group();
         const cyl = new THREE.Mesh(
           new THREE.CylinderGeometry(0.11, 0.11, 0.34, 12),
@@ -3286,6 +3650,7 @@
       // --- Terrifying 3D Backrooms Nightmare Creature ("YIRTQICH") with Snapping Jaw, 14 Fangs & Razor Claws ---
       const monsterGroup = new THREE.Group();
       monsterGroup.position.copy(monsterSpawn);
+      monsterGroup.add(makeContactShadow(0.95, 0.95));
       level0Group.add(monsterGroup);
 
       function makeWolfFurTex() {
@@ -3989,6 +4354,7 @@
         gltfLoader.__wrapped = true;
         const origLoad = gltfLoader.load.bind(gltfLoader);
         let total = 0, done = 0, hideTimer = null;
+        window.__zulmatPendingGlbs = 0;
         const elBox = document.getElementById('asset-loading');
         const elTxt = document.getElementById('asset-loading-txt');
         const elFill = document.getElementById('asset-loading-fill');
@@ -4009,9 +4375,10 @@
         }
         gltfLoader.load = function (url, onLoad, onProg, onErr) {
           total++;
+          window.__zulmatPendingGlbs++;
           sync();
           let settled = false;
-          const finish = () => { if (!settled) { settled = true; done++; sync(); } };
+          const finish = () => { if (!settled) { settled = true; done++; window.__zulmatPendingGlbs = Math.max(0, (window.__zulmatPendingGlbs || 1) - 1); sync(); } };
           return origLoad(
             url,
             (res) => { finish(); if (onLoad) onLoad(res); },
@@ -4144,12 +4511,12 @@
       let loadedMonsterModel = null;
       const monBones = { spine: null, head: null, armL: null, armR: null, legL: null, legR: null };
       const REAL_MONSTER_URLS = []; const _DISABLED_MONSTER_URLS = [
-        'https://cdn.jsdelivr.net/gh/dashhuang/wok-ing-dead@main/public/assets/zombies/parasite.glb',
-        'https://cdn.jsdelivr.net/gh/dashhuang/wok-ing-dead@main/public/assets/zombies/mutant.glb',
-        'https://cdn.jsdelivr.net/gh/dashhuang/wok-ing-dead@main/public/assets/zombies/skeletonzombie.glb',
-        'https://cdn.jsdelivr.net/gh/BabylonJS/MeshesLibrary@master/alien.glb',
-        'https://models.babylonjs.com/alien.glb',
-        'https://cdn.jsdelivr.net/gh/LeoOpenBotDevelopment/Three.js-3D-FPS-Game@main/Zombie.glb'
+        REPO_GLB_BASE + 'bacteria.glb',
+        REPO_GLB_BASE + 'skinstealer.glb',
+        REPO_GLB_BASE + 'butler.glb',
+        REPO_GLB_BASE + 'bacteria.glb',
+        REPO_GLB_BASE + 'skinstealer.glb',
+        REPO_GLB_BASE + 'wolf.glb'
       ];
 
       function loadRealMonsterGLB(idx) {
@@ -4222,14 +4589,14 @@
       loadRealMonsterGLB(0);
 
       // --- Load Real Internet 3D Backrooms Furniture & Abandoned Office Props (KhronosGroup + Webaverse via jsDelivr!) ---
-      const KHR_BASE = 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/';
+      const KHR_BASE = REPO_GLB_BASE;
       const PROP_CATALOG = [
-        { url: KHR_BASE + 'SheenChair/glTF-Binary/SheenChair.glb', h: 1.05 },
-        { url: KHR_BASE + 'GlamVelvetSofa/glTF-Binary/GlamVelvetSofa.glb', h: 1.0 },
-        { url: KHR_BASE + 'CommercialRefrigerator/glTF-Binary/CommercialRefrigerator.glb', h: 2.05 },
-        { url: KHR_BASE + 'AnisotropyBarnLamp/glTF-Binary/AnisotropyBarnLamp.glb', h: 0.75, ceiling: true },
-        { url: KHR_BASE + 'BoomBox/glTF-Binary/BoomBox.glb', h: 0.45 },
-        { url: 'https://cdn.jsdelivr.net/gh/webaverse/assets/chest.glb', h: 0.85 }
+        { url: REPO_GLB_BASE + 'bench.glb', h: 1.05 },
+        { url: REPO_GLB_BASE + 'bench.glb', h: 1.0 },
+        { url: REPO_GLB_BASE + 'vending_machine.glb', h: 2.05 },
+        { url: REPO_GLB_BASE + 'streetlamp.glb', h: 0.75, ceiling: true },
+        { url: REPO_GLB_BASE + 'crt_pc.glb', h: 0.45 },
+        { url: REPO_GLB_BASE + 'chest.glb', h: 0.85 }
       ];
 
       // Replace ALL Hiding Lockers ("Shkaf") with real internet 3D metal cabinet GLB model (dark-steel industrial finish)!
@@ -4501,10 +4868,10 @@
           metroLobbyGroup.add(endW);
           // Dark arched tunnel portal mouth over the tracks
           const tunnelMouth = new THREE.Mesh(
-            new THREE.BoxGeometry(0.4, 4.2, 4.6),
+            new THREE.BoxGeometry(0.5, 4.9, 5.6),
             new THREE.MeshBasicMaterial({ color: 0x050608 })
           );
-          tunnelMouth.position.set(wx + (wx < 0 ? 0.15 : -0.15), 1.0, -4.2);
+          tunnelMouth.position.set(wx + (wx < 0 ? 0.15 : -0.15), 1.35, -4.4);
           metroLobbyGroup.add(tunnelMouth);
         });
 
@@ -4572,7 +4939,7 @@
 
         // Hyper-Detailed 3D Abandoned Metro Subway Carriage on the rails (z = -4.2)
         const trainGroup = new THREE.Group();
-        trainGroup.position.set(0, -0.92, -4.2);
+        trainGroup.position.set(0, -0.92, -4.55);
 
         // Corrugated weathered stainless-steel subway siding texture with grime, rust & blue-amber stripe
         const trc = document.createElement('canvas');
@@ -4648,7 +5015,7 @@
             const tb2 = new THREE.Box3().setFromObject(tm);
             const tsz2 = new THREE.Vector3(); tb2.getSize(tsz2);
             // Scale by real subway car height (3.55m), NOT total multi-car length!
-            const sc = 3.55 / Math.max(0.1, tsz2.y);
+            const sc = 3.05 / Math.max(0.1, tsz2.y);
             tm.scale.setScalar(sc);
             tm.updateMatrixWorld(true);
             const tb3 = new THREE.Box3().setFromObject(tm);
@@ -4783,6 +5150,19 @@
         stairLight.position.set(0, 3.1, 7.6);
         stairGrp.add(stairLight);
         metroLobbyGroup.add(stairGrp);
+        if (window.__zulmatMakeGraffitiTex) {
+          const mg1 = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.0, 2.0),
+            new THREE.MeshBasicMaterial({ map: window.__zulmatMakeGraffitiTex('bacteria'), transparent: true, opacity: 0.72, depthWrite: false })
+          );
+          mg1.position.set(-7.6, 1.85, 6.53); mg1.rotation.y = Math.PI;
+          const mg2 = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.0, 2.0),
+            new THREE.MeshBasicMaterial({ map: window.__zulmatMakeGraffitiTex('noexit'), transparent: true, opacity: 0.72, depthWrite: false })
+          );
+          mg2.position.set(7.6, 1.85, 6.53); mg2.rotation.y = Math.PI;
+          metroLobbyGroup.add(mg1, mg2);
+        }
 
         // Platform Boundary Collisions (keep player safely on the 28m x 8.4m platform!)
         metroBoxes.push({ x: 0, z: 6.85, halfX: 14.5, halfZ: 0.45 });     // Back wall
@@ -4793,21 +5173,21 @@
         // --- Load REAL Internet 3D Metro Station Props (KhronosGroup glTF-Sample-Assets + Webaverse via jsDelivr!) ---
         const METRO_PROPS = [
           // Vintage standing station street lanterns flanking the platform
-          { url: KHR_BASE + 'Lantern/glTF-Binary/Lantern.glb', h: 3.1, spots: [{ x: -11.4, z: 0.2, rot: 0.4 }, { x: 11.4, z: 0.2, rot: -0.4 }], solid: true },
+          { url: REPO_GLB_BASE + 'streetlamp.glb', h: 3.1, spots: [{ x: -11.4, z: 0.2, rot: 0.4 }, { x: 11.4, z: 0.2, rot: -0.4 }], solid: true },
           // Abandoned metro drinks vending coolers along back tiled wall
-          { url: KHR_BASE + 'CommercialRefrigerator/glTF-Binary/CommercialRefrigerator.glb', h: 2.15, spots: [{ x: -9.8, z: 5.75, rot: 0 }, { x: 9.8, z: 5.75, rot: 0 }], solid: true },
+          { url: REPO_GLB_BASE + 'vending_machine.glb', h: 2.15, spots: [{ x: -9.8, z: 5.75, rot: 0 }, { x: 9.8, z: 5.75, rot: 0 }], solid: true },
           // Industrial hanging metal station lamps above platform
-          { url: KHR_BASE + 'AnisotropyBarnLamp/glTF-Binary/AnisotropyBarnLamp.glb', h: 0.85, ceiling: true, spots: [{ x: -9, z: 2.2, rot: 0 }, { x: -3, z: 2.2, rot: 0 }, { x: 3, z: 2.2, rot: 0 }, { x: 9, z: 2.2, rot: 0 }] },
+          { url: REPO_GLB_BASE + 'streetlamp.glb', h: 0.85, ceiling: true, spots: [{ x: -9, z: 2.2, rot: 0 }, { x: -3, z: 2.2, rot: 0 }, { x: 3, z: 2.2, rot: 0 }, { x: 9, z: 2.2, rot: 0 }] },
           // Abandoned explorer tripod camera left on the platform
-          { url: KHR_BASE + 'AntiqueCamera/glTF-Binary/AntiqueCamera.glb', h: 1.55, spots: [{ x: -4.2, z: 0.6, rot: 2.4 }], solid: true },
+          { url: REPO_GLB_BASE + 'crt_pc.glb', h: 1.55, spots: [{ x: -4.2, z: 0.6, rot: 2.4 }], solid: true },
           // Abandoned supply chest & retro boombox near benches
-          { url: 'https://cdn.jsdelivr.net/gh/webaverse/assets/chest.glb', h: 0.85, spots: [{ x: 4.1, z: 5.5, rot: 2.9 }, { x: -11.8, z: 4.6, rot: 1.2 }], solid: true },
-          { url: KHR_BASE + 'BoomBox/glTF-Binary/BoomBox.glb', h: 0.42, yOffset: 0.56, spots: [{ x: -5.4, z: 4.78, rot: 0.2 }] },
+          { url: REPO_GLB_BASE + 'chest.glb', h: 0.85, spots: [{ x: 4.1, z: 5.5, rot: 2.9 }, { x: -11.8, z: 4.6, rot: 1.2 }], solid: true },
+          { url: REPO_GLB_BASE + 'crt_pc.glb', h: 0.42, yOffset: 0.56, spots: [{ x: -5.4, z: 4.78, rot: 0.2 }] },
           // Damaged explorer helmet & metal water bottle on the right metro bench
-          { url: KHR_BASE + 'DamagedHelmet/glTF-Binary/DamagedHelmet.glb', h: 0.36, yOffset: 0.58, spots: [{ x: 5.1, z: 4.78, rot: 0.5 }] },
-          { url: KHR_BASE + 'WaterBottle/glTF-Binary/WaterBottle.glb', h: 0.28, yOffset: 0.56, spots: [{ x: 5.7, z: 4.75, rot: 0 }] },
+          { url: REPO_GLB_BASE + 'cabinet.glb', h: 0.36, yOffset: 0.58, spots: [{ x: 5.1, z: 4.78, rot: 0.5 }] },
+          { url: REPO_GLB_BASE + 'almond_water.glb', h: 0.28, yOffset: 0.56, spots: [{ x: 5.7, z: 4.75, rot: 0 }] },
           // Abandoned waiting chair near left station wall
-          { url: KHR_BASE + 'SheenChair/glTF-Binary/SheenChair.glb', h: 1.05, spots: [{ x: -7.5, z: 5.65, rot: 0.3 }, { x: 7.4, z: 5.65, rot: -0.35 }], solid: true }
+          { url: REPO_GLB_BASE + 'bench.glb', h: 1.05, spots: [{ x: -7.5, z: 5.65, rot: 0.3 }, { x: 7.4, z: 5.65, rot: -0.35 }], solid: true }
         ];
 
         METRO_PROPS.forEach((item) => {
@@ -4863,6 +5243,7 @@
       const l1MonsterSpawn = new THREE.Vector3(44, 0, -6);
 
       function buildLevel1HabitableZone() {
+        setTimeout(() => { spawnVentDuct(level1Group, l1Boxes, -12, 14, 6.2, 0); spawnJumpLedge(level1Group, 'level1', 12, -16, 2.8, 2.8, 1.05); }, 0);
         l1Boxes.length = 0; l1FuelCans.length = 0; l1Generators.length = 0; l1Lockers.length = 0;
         const H = 4.6;
         const l1WallMat = new THREE.MeshLambertMaterial({ map: l1WallTex });
@@ -5277,22 +5658,41 @@
             }
           }
         }
-        // Carve 3-4 Open Pillared Halls so mazes have distinct chambers & sightlines (never boring 1-cell tunnels!)
+        // Carve varied Backrooms room sizes: huge 7x7 pillar halls, 5x5 rooms, 3x5 offices & long narrow corridors!
         if (rows >= 25 && cols >= 25) {
-          const roomSpecs = [
-            { r0: 4, c0: 4, h: 5, w: 5 },
-            { r0: 4, c0: cols - 10, h: 5, w: 5 },
-            { r0: Math.floor(rows / 2) - 2, c0: Math.floor(cols / 2) - 2, h: 5, w: 5 },
-            { r0: rows - 10, c0: 4, h: 5, w: 5 }
+          const numRooms = Math.min(18, Math.max(6, Math.floor((rows * cols) / 260)));
+          const archetypes = [
+            { h: 7, w: 7, pillars: [[2, 2], [2, 4], [4, 2], [4, 4]] },
+            { h: 7, w: 5, pillars: [[3, 2]] },
+            { h: 5, w: 7, pillars: [[2, 3]] },
+            { h: 5, w: 5, pillars: [[2, 2]] },
+            { h: 3, w: 6, pillars: [] },
+            { h: 6, w: 3, pillars: [] },
+            { h: 4, w: 4, pillars: [] }
           ];
-          roomSpecs.forEach((rm) => {
-            for (let r = rm.r0; r < rm.r0 + rm.h && r < rows - 1; r++) {
-              for (let c = rm.c0; c < rm.c0 + rm.w && c < cols - 1; c++) {
-                const isCol = (r === rm.r0 + 2 && c === rm.c0 + 2);
-                g[r][c] = isCol ? '#' : '.';
+          for (let i = 0; i < numRooms; i++) {
+            const arch = archetypes[i % archetypes.length];
+            const r0 = 2 + Math.floor(rNext() * Math.max(1, rows - arch.h - 4));
+            const c0 = 2 + Math.floor(rNext() * Math.max(1, cols - arch.w - 4));
+            for (let r = r0; r < r0 + arch.h && r < rows - 1; r++) {
+              for (let c = c0; c < c0 + arch.w && c < cols - 1; c++) {
+                const isPillar = arch.pillars.some(([pr, pc]) => (r === r0 + pr && c === c0 + pc));
+                g[r][c] = isPillar ? '#' : '.';
               }
             }
-          });
+          }
+          // Carve 3 long straight narrow corridor shafts for deep perspective sightlines
+          for (let sIdx = 0; sIdx < 3; sIdx++) {
+            const horiz = (sIdx % 2 === 0);
+            const rS = 3 + Math.floor(rNext() * (rows - 6));
+            const cS = 3 + Math.floor(rNext() * (cols - 6));
+            const lenS = 7 + Math.floor(rNext() * 8);
+            for (let k = 0; k < lenS; k++) {
+              const rr = horiz ? rS : Math.min(rows - 2, rS + k);
+              const cc = horiz ? Math.min(cols - 2, cS + k) : cS;
+              g[rr][cc] = '.';
+            }
+          }
         }
         return g;
       }
@@ -5311,6 +5711,7 @@
       const L2_SEQ_COLORS = [0xef4444, 0xfacc15, 0x38bdf8, 0x22c55e, 0xa855f7, 0xf8fafc, 0x06b6d4];
 
       function buildLevel2PipeDreams() {
+        setTimeout(() => { spawnVentDuct(level2Group, l2Boxes, 0, 12, 6.0, Math.PI / 2); spawnJumpLedge(level2Group, 'level2', 0, -14, 2.6, 2.6, 0.95); }, 0);
         l2Boxes.length = 0; l2Breakers.length = 0; l2Lockers.length = 0; l2OpenCells.length = 0; l2SteamVents.length = 0;
         const ROWS = 101, COLS = 101, C = 8.0, H = 4.4;
         const maze = generateWindingMaze(ROWS, COLS, 22291, 0.13);
@@ -5336,7 +5737,7 @@
         const W = COLS * C, D = ROWS * C;
         const flTex = l1FloorTex.clone(); flTex.needsUpdate = true; flTex.repeat.set(ROWS, COLS);
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshLambertMaterial({ map: flTex }));
-        fl.rotation.x = -Math.PI / 2; level2Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level2Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshLambertMaterial({ color: 0x241f1b }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H; level2Group.add(cl);
 
@@ -5467,7 +5868,7 @@
         const hCeilMat = new THREE.MeshLambertMaterial({ color: 0x332224 });
 
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(W, LEN), hFloorMat);
-        fl.rotation.x = -Math.PI / 2;
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true;
         fl.position.set(0, 0, -298);
         levelRunGroup.add(fl);
 
@@ -6478,8 +6879,8 @@
       // Reusable real internet 3D .glb prop spawner (strips embedded glTF lights!)
       function spawnGltfProp(parentGroup, relPath, x, y, z, targetH, rotY = 0) {
         if (typeof gltfLoader === 'undefined') return;
-        const propBase = 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Assets@main/Models/';
-        gltfLoader.load(propBase + relPath, (gltf) => {
+        const propBase = REPO_GLB_BASE;
+        gltfLoader.load(REPO_GLB_BASE + 'streetlamp.glb', (gltf) => {
           const obj = gltf.scene;
           stripGltfLights(obj);
           const box = new THREE.Box3().setFromObject(obj);
@@ -6828,7 +7229,7 @@
         const l11FloorMat = new THREE.MeshLambertMaterial({ color: 0x475569 });
         [[-16, 22, 0], [16, -22, Math.PI], [-16, -52, 0]].forEach(([ox, oz, rotY]) => {
           const fl = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 8.4), l11FloorMat);
-          fl.rotation.x = -Math.PI / 2; fl.position.set(ox, 0.04, oz); level11Group.add(fl);
+          fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; fl.position.set(ox, 0.04, oz); level11Group.add(fl);
           const rf = new THREE.Mesh(new THREE.BoxGeometry(10.0, 0.4, 8.8), l11WallMat);
           rf.position.set(ox, 4.2, oz); level11Group.add(rf);
           // Back, Left, Right walls + Front walls with 3.0m wide open doorway
@@ -6914,7 +7315,7 @@
         lEndBoxes.length = 0; lEndDisks.length = 0;
         const S = 32;
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(S * 2 + 4, S * 2 + 4), new THREE.MeshLambertMaterial({ color: 0x3b2618 }));
-        floor.rotation.x = -Math.PI / 2; levelEndGroup.add(floor);
+        floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; levelEndGroup.add(floor);
         const ceil = new THREE.Mesh(new THREE.PlaneGeometry(S * 2 + 4, S * 2 + 4), new THREE.MeshLambertMaterial({ color: 0x291a10 }));
         ceil.rotation.x = Math.PI / 2; ceil.position.y = 5.4; levelEndGroup.add(ceil);
 
@@ -6999,7 +7400,7 @@
           new THREE.PlaneGeometry(S * 2, S * 2),
           new THREE.MeshLambertMaterial({ map: makeCheckerRugTex('#f8fafc', '#18181b') })
         );
-        floor.rotation.x = -Math.PI / 2; level61Group.add(floor);
+        floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; level61Group.add(floor);
         const ceil = new THREE.Mesh(new THREE.PlaneGeometry(S * 2, S * 2), new THREE.MeshLambertMaterial({ color: 0x1e1b2e }));
         ceil.rotation.x = Math.PI / 2; ceil.position.y = 4.8; level61Group.add(ceil);
 
@@ -7100,7 +7501,7 @@
         const cellP = (r, c) => ({ x: c * C - half + C / 2, z: r * C - half + C / 2 });
 
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(R * C + 4, R * C + 4), new THREE.MeshLambertMaterial({ color: 0x262626 }));
-        fl.rotation.x = -Math.PI / 2; level3Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level3Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(R * C + 4, R * C + 4), new THREE.MeshLambertMaterial({ color: 0x1a1716 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H; level3Group.add(cl);
 
@@ -7203,7 +7604,7 @@
         const cellP = (r, c) => ({ x: c * C - half + C / 2, z: r * C - half + C / 2 });
 
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(R * C + 4, R * C + 4), new THREE.MeshLambertMaterial({ color: 0x9ca3af }));
-        fl.rotation.x = -Math.PI / 2; level4Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level4Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(R * C + 4, R * C + 4), new THREE.MeshLambertMaterial({ color: 0xf1f5f9 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H; level4Group.add(cl);
 
@@ -7339,7 +7740,7 @@
 
         // Floor & Ornate Dark Ceiling (110m x 110m Grand Hotel Wing)
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ map: makeHotelCarpetTex() }));
-        fl.rotation.x = -Math.PI / 2; level5Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level5Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0x26120c }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H; level5Group.add(cl);
 
@@ -7706,6 +8107,12 @@
               (opts.z || 0) - (opts.flatZ ? ctr.z : ctr.z)
             );
             if (opts.rotY) obj.rotation.y += opts.rotY;
+            obj.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+            if (filename === 'cabinet.glb' || filename === 'bench.glb' || filename === 'vending_machine.glb') {
+              const cs = makeContactShadow(filename === 'bench.glb' ? 1.15 : 0.65, 0.55);
+              cs.position.set(opts.x || 0, 0.022, opts.z || 0);
+              parentGroup.add(cs);
+            }
             parentGroup.add(obj);
           } catch (e) {}
         }, undefined, () => {});
@@ -7725,7 +8132,7 @@
         const darkMat = new THREE.MeshLambertMaterial({ color: 0x18181b, map: l1WallTex });
         const pipeMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.45, metalness: 0.65 });
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(cols * CELL6, rows * CELL6), new THREE.MeshLambertMaterial({ color: 0x09090b }));
-        fl.rotation.x = -Math.PI / 2; level6Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level6Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(cols * CELL6, rows * CELL6), new THREE.MeshLambertMaterial({ color: 0x050507 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H6; level6Group.add(cl);
         const wGeo = new THREE.BoxGeometry(CELL6, H6, CELL6);
@@ -7830,7 +8237,7 @@
         const rows = maze.length, cols = maze[0].length;
         const rockMat = new THREE.MeshLambertMaterial({ color: 0x2e2a38, map: l1WallTex });
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(cols * CELL8, rows * CELL8), new THREE.MeshLambertMaterial({ color: 0x181620 }));
-        fl.rotation.x = -Math.PI / 2; level8Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level8Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(cols * CELL8, rows * CELL8), new THREE.MeshLambertMaterial({ color: 0x100e16 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H8; level8Group.add(cl);
         const wGeo = new THREE.BoxGeometry(CELL8, H8, CELL8);
@@ -7886,7 +8293,7 @@
         l188Boxes.length = 0; l188Tvs.length = 0;
         const W188 = 46, H188 = 16;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(W188, W188), new THREE.MeshLambertMaterial({ color: 0x334155, map: l1FloorTex }));
-        fl.rotation.x = -Math.PI / 2; level188Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level188Group.add(fl);
         const sky = new THREE.Mesh(new THREE.PlaneGeometry(W188, W188), new THREE.MeshBasicMaterial({ color: 0x1e293b }));
         sky.rotation.x = Math.PI / 2; sky.position.y = H188; level188Group.add(sky);
         const wallM = new THREE.MeshLambertMaterial({ color: 0x64748b });
@@ -7947,7 +8354,7 @@
         l974Boxes.length = 0; l974Items.length = 0;
         const W974 = 42, H974 = 4.4;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(W974, W974), new THREE.MeshLambertMaterial({ color: 0xfce7f3 }));
-        fl.rotation.x = -Math.PI / 2; level974Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level974Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(W974, W974), new THREE.MeshLambertMaterial({ color: 0xfdf2f8 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H974; level974Group.add(cl);
         const pinkWall = new THREE.MeshLambertMaterial({ color: 0xf9a8d4 });
@@ -7986,7 +8393,7 @@
         l3999Boxes.length = 0; l3999Tasks.length = 0;
         const W3999 = 800, H3999 = 6.8;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(W3999, W3999), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
-        fl.rotation.x = -Math.PI / 2; level3999Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level3999Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(W3999, W3999), new THREE.MeshLambertMaterial({ color: 0x020617 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H3999; level3999Group.add(cl);
         const wallM = new THREE.MeshLambertMaterial({ color: 0x1e1b4b });
@@ -8034,7 +8441,7 @@
         l33Boxes.length = 0; l33Nodes.length = 0;
         const W = 800, H = 6.8;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(W, W), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
-        fl.rotation.x = -Math.PI / 2; level33Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level33Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(W, W), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H; level33Group.add(cl);
         const wallM = new THREE.MeshLambertMaterial({ color: 0x134e4a });
@@ -8070,6 +8477,28 @@
         l33Exit.light = new THREE.PointLight(0xef4444, 1.6, 12); l33Exit.light.position.set(0, 2.5, 1.2);
         eg.add(s, l33Exit.light); level33Group.add(eg);
         loadGlbIntoGroup('double_door.glb', eg, { x: 0, y: 0, z: 0.2, rotY: 0, targetH: 2.9, flatZ: true });
+
+        // Real-Time 3D Player Reflection inside Mirrors (uses selected player skin GLB!)
+        window.__zulmatMirrorRef = { group: new THREE.Group(), mixer: null, coords: [[-18, 0], [18, 0], [-32, -24], [32, -24], [0, -16], [-14, -36], [14, -36]] };
+        const refLight = new THREE.PointLight(0xe9d5ff, 1.4, 7);
+        refLight.position.set(0, 2.1, 0.8);
+        window.__zulmatMirrorRef.group.add(refLight);
+        window.__zulmatMirrorRef.group.visible = false;
+        levelMirrorGroup.add(window.__zulmatMirrorRef.group);
+        if (typeof gltfLoader !== 'undefined') {
+          const sk = localStorage.getItem('zulmat_player_skin') || 'businessman';
+          const skFile = ({ businessman: 'player_businessman.glb', tvman: 'player_tvman.glb', casual: 'player_casual.glb', man: 'player_man.glb', girl: 'player_girl.glb', hazmat: 'player_hazmat.glb' })[sk] || 'player_businessman.glb';
+          gltfLoader.load(REPO_GLB_BASE + skFile, (gltf) => {
+            if (!window.__zulmatMirrorRef) return;
+            const m = gltf.scene;
+            if (window.__zulmatNormalizeRigged) window.__zulmatNormalizeRigged(m, 1.72);
+            window.__zulmatMirrorRef.group.add(m);
+            if (gltf.animations && gltf.animations.length) {
+              window.__zulmatMirrorRef.mixer = new THREE.AnimationMixer(m);
+              window.__zulmatMirrorRef.mixer.clipAction(gltf.animations[0]).play();
+            }
+          }, undefined, () => {});
+        }
       }
 
       let l36Spawn = new THREE.Vector3(0, 1.65, 22), l36MonsterSpawn = new THREE.Vector3(16, 0, -16);
@@ -8078,7 +8507,7 @@
         l36Boxes.length = 0; l36Tickets.length = 0;
         const W = 800, H = 7.2;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(W, W), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
-        fl.rotation.x = -Math.PI / 2; level36Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level36Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(W, W), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H; level36Group.add(cl);
         const wallM = new THREE.MeshLambertMaterial({ color: 0x334155 });
@@ -8122,7 +8551,7 @@
         const rows = maze.length, cols = maze[0].length;
         const greyMat = new THREE.MeshLambertMaterial({ color: 0x3f3f46, map: l1WallTex });
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(cols * CELL, rows * CELL), new THREE.MeshLambertMaterial({ color: 0x18181b }));
-        fl.rotation.x = -Math.PI / 2; levelShadyGroup.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; levelShadyGroup.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(cols * CELL, rows * CELL), new THREE.MeshLambertMaterial({ color: 0x09090b }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H; levelShadyGroup.add(cl);
         const wGeo = new THREE.BoxGeometry(CELL, H, CELL);
@@ -8170,7 +8599,7 @@
       function buildLevel14() {
         l14Boxes.length = 0; l14Nodes.length = 0;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0x26080b }));
-        fl.rotation.x = -Math.PI / 2; level14Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level14Group.add(fl);
         const rim = new THREE.MeshLambertMaterial({ color: 0x450a0a });
         [[-22, 0], [22, 0], [-40, -30], [40, -30], [0, -18]].forEach(([px, pz]) => {
           const p = new THREE.Mesh(new THREE.BoxGeometry(3.2, 6.5, 3.2), rim); p.position.set(px, 3.25, pz); level14Group.add(p);
@@ -8202,7 +8631,7 @@
         const rows = maze.length, cols = maze[0].length;
         const sciMat = new THREE.MeshLambertMaterial({ color: 0xe0f2fe });
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(808, 808), new THREE.MeshLambertMaterial({ color: 0x0c4a6e }));
-        fl.rotation.x = -Math.PI / 2; level15Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level15Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(808, 808), new THREE.MeshLambertMaterial({ color: 0x082f49 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = H; level15Group.add(cl);
         const wGeo = new THREE.BoxGeometry(CELL, H, CELL), wPos = [];
@@ -8240,7 +8669,7 @@
       function buildLevel22() {
         l22Boxes.length = 0; l22Switches.length = 0;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
-        fl.rotation.x = -Math.PI / 2; level22Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level22Group.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
         cl.rotation.x = Math.PI / 2; cl.position.y = 4.6; level22Group.add(cl);
         const pilMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
@@ -8273,7 +8702,7 @@
       function buildLevel46() {
         l46Boxes.length = 0; l46Obelisks.length = 0;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0xd97706 }));
-        fl.rotation.x = -Math.PI / 2; level46Group.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; level46Group.add(fl);
         const stoneM = new THREE.MeshLambertMaterial({ color: 0xb45309 });
         [[-16, 18], [16, 18], [-28, -14], [28, -14], [-14, -56], [14, -56]].forEach(([px, pz], idx) => {
           loadGlbIntoGroup(idx % 2 === 0 ? 'palm_tree.glb' : 'coconut_palm.glb', level46Group, { x: px, y: 0, z: pz, rotY: idx * 0.9, targetH: 6.8 });
@@ -8301,7 +8730,7 @@
       function buildLevelManila() {
         lManilaBoxes.length = 0; lManilaFiles.length = 0;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0x451a03, map: l0FloorTex }));
-        fl.rotation.x = -Math.PI / 2; levelManilaGroup.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; levelManilaGroup.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshLambertMaterial({ color: 0x292524 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = 4.2; levelManilaGroup.add(cl);
         const wM = new THREE.MeshLambertMaterial({ color: 0xa8a06c, map: backWallTex });
@@ -8330,10 +8759,10 @@
       function buildLevelMirror() {
         lMirrorBoxes.length = 0; lMirrorShards.length = 0;
         const fl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshStandardMaterial({ color: 0x090414, roughness: 0.08, metalness: 0.85 }));
-        fl.rotation.x = -Math.PI / 2; levelMirrorGroup.add(fl);
+        fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; levelMirrorGroup.add(fl);
         const cl = new THREE.Mesh(new THREE.PlaneGeometry(800, 800), new THREE.MeshBasicMaterial({ color: 0x020617 }));
         cl.rotation.x = Math.PI / 2; cl.position.y = 5.4; levelMirrorGroup.add(cl);
-        const mirMat = new THREE.MeshStandardMaterial({ color: 0xc4b5fd, roughness: 0.05, metalness: 0.92 });
+        const mirMat = new THREE.MeshStandardMaterial({ color: 0xc4b5fd, roughness: 0.06, metalness: 0.88, transparent: true, opacity: 0.42 });
         [[-18, 0], [18, 0], [-32, -24], [32, -24], [0, -16], [-14, -36], [14, -36]].forEach(([mx, mz], idx) => {
           const m = new THREE.Mesh(new THREE.BoxGeometry(4.2, 5.4, 0.4), mirMat); m.position.set(mx, 2.7, mz); levelMirrorGroup.add(m);
           loadGlbIntoGroup('mirror_frame.glb', levelMirrorGroup, { x: mx, y: 0.2, z: mz + 0.35, rotY: idx % 2 === 0 ? 0 : Math.PI, targetH: 3.8 });
@@ -8360,7 +8789,7 @@
       const bonusPickups = [];
       function spawnBonusItem(group, zoneName, x, y, z, type) {
         if (typeof spawnGroundPedestal === 'function' && zoneName !== 'level7' && zoneName !== 'level37' && zoneName !== 'level922') {
-          spawnGroundPedestal(group, x, z, (bonusPickups.length % 4) * (Math.PI / 2));
+          const _px = spawnGroundPedestal(group, x, z, (bonusPickups.length % 4) * (Math.PI / 2)); x = _px.x; z = _px.z;
         }
         const g = new THREE.Group();
         const restY = (zoneName === 'level7' || zoneName === 'level37' || zoneName === 'level922') ? 0.35 : 0.95;
@@ -8374,6 +8803,7 @@
           g.add(bottle, pt);
           if (typeof loadGlbIntoGroup === 'function') {
             loadGlbIntoGroup('almond_water.glb', g, { x: 0, y: -0.22, z: 0, rotY: 0, targetH: 0.48 });
+            bottle.visible = false;
           }
         } else {
           const tape = new THREE.Mesh(
@@ -8411,6 +8841,17 @@
         levelshady: 'cas_shady', level922: 'cas_922', level3999: 'cas_3999'
       };
       if (openCells && openCells.length > 20) {
+        const v1 = openCells[Math.floor(openCells.length * 0.14)];
+        const v2 = openCells[Math.floor(openCells.length * 0.48)];
+        if (v1) spawnVentDuct(level0Group, wallBoxes, v1.x, v1.z, 5.6, 0);
+        if (v2) spawnVentDuct(level0Group, wallBoxes, v2.x, v2.z, 5.6, Math.PI / 2);
+        const j1 = openCells[Math.floor(openCells.length * 0.28)];
+        const j2 = openCells[Math.floor(openCells.length * 0.62)];
+        if (j1) {
+          spawnJumpLedge(level0Group, 'level0', j1.x - 1.7, j1.z, 2.2, 2.2, 0.85);
+          spawnJumpLedge(level0Group, 'level0', j1.x + 1.7, j1.z, 2.2, 2.2, 1.35);
+        }
+        if (j2) spawnJumpLedge(level0Group, 'level0', j2.x, j2.z, 2.6, 2.6, 1.05);
         const cCas0 = openCells[Math.floor(openCells.length * 0.22)];
         if (cCas0) spawnBonusItem(level0Group, 'level0', cCas0.x, 1.05, cCas0.z, 'vhs');
         [0.33, 0.55, 0.72].forEach((f) => {
@@ -8561,30 +9002,30 @@
       }
 
       // --- Load REAL Internet 3D GLB Props across Level 1      // --- Load REAL Internet 3D GLB Props across Level 1, Level 2, Level 37 (DON'T SPLASH), and Level ! ---
-      (function loadExtraLevelGLBs() {
+            function loadExtraPropsForLevel(targetLvl) {
         const EXTRA_GLBS = [
           // Level 1 (Habitable Zone): abandoned supply chests, hanging barn lamps, damaged helmets & coolers
-          { group: level1Group, boxes: l1Boxes, url: 'https://cdn.jsdelivr.net/gh/webaverse/assets/chest.glb', h: 0.9, solid: true, spots: [{ x: -18, z: 22, rot: 0.4 }, { x: 46, z: 14, rot: 1.5 }, { x: -18, z: -42, rot: 2.6 }] },
-          { group: level1Group, boxes: l1Boxes, url: KHR_BASE + 'CommercialRefrigerator/glTF-Binary/CommercialRefrigerator.glb', h: 2.15, solid: true, spots: [{ x: 26, z: 24, rot: Math.PI }, { x: 62, z: 4, rot: -Math.PI / 2 }] },
-          { group: level1Group, boxes: l1Boxes, url: KHR_BASE + 'AnisotropyBarnLamp/glTF-Binary/AnisotropyBarnLamp.glb', h: 0.85, ceilingY: 4.5, spots: [{ x: 0, z: 10 }, { x: 0, z: -12 }, { x: 0, z: -48 }, { x: 48, z: 0 }] },
-          { group: level1Group, boxes: l1Boxes, url: KHR_BASE + 'DamagedHelmet/glTF-Binary/DamagedHelmet.glb', h: 0.42, yOff: 1.38, spots: [{ x: -16, z: 14, rot: 0.7 }, { x: 24, z: -42, rot: 2.1 }] },
+          { lvl: 1, group: level1Group, boxes: l1Boxes, url: REPO_GLB_BASE + 'chest.glb', h: 0.9, solid: true, spots: [{ x: -18, z: 22, rot: 0.4 }, { x: 46, z: 14, rot: 1.5 }, { x: -18, z: -42, rot: 2.6 }] },
+          { lvl: 1, group: level1Group, boxes: l1Boxes, url: REPO_GLB_BASE + 'vending_machine.glb', h: 2.15, solid: true, spots: [{ x: 26, z: 24, rot: Math.PI }, { x: 62, z: 4, rot: -Math.PI / 2 }] },
+          { lvl: 1, group: level1Group, boxes: l1Boxes, url: REPO_GLB_BASE + 'streetlamp.glb', h: 0.85, ceilingY: 4.5, spots: [{ x: 0, z: 10 }, { x: 0, z: -12 }, { x: 0, z: -48 }, { x: 48, z: 0 }] },
+          { lvl: 1, group: level1Group, boxes: l1Boxes, url: REPO_GLB_BASE + 'cabinet.glb', h: 0.42, yOff: 1.38, spots: [{ x: -16, z: 14, rot: 0.7 }, { x: 24, z: -42, rot: 2.1 }] },
 
           // Level 2 (Pipe Dreams): industrial lanterns, supply chests & vintage boomboxes in tunnel corners
-          { group: level2Group, boxes: l2Boxes, url: KHR_BASE + 'Lantern/glTF-Binary/Lantern.glb', h: 2.6, solid: true, spots: [{ x: -75, z: 75, rot: 0.4 }, { x: 0, z: 26, rot: 0 }, { x: 52, z: -52, rot: 2.2 }] },
-          { group: level2Group, boxes: l2Boxes, url: 'https://cdn.jsdelivr.net/gh/webaverse/assets/chest.glb', h: 0.85, solid: true, spots: [{ x: -52, z: 26, rot: 0.5 }, { x: 26, z: -26, rot: 1.8 }] },
-          { group: level2Group, boxes: l2Boxes, url: KHR_BASE + 'AnisotropyBarnLamp/glTF-Binary/AnisotropyBarnLamp.glb', h: 0.75, ceilingY: 3.85, spots: [{ x: -52, z: 52 }, { x: 0, z: 0 }, { x: 52, z: -26 }] },
+          { lvl: 2, group: level2Group, boxes: l2Boxes, url: REPO_GLB_BASE + 'streetlamp.glb', h: 2.6, solid: true, spots: [{ x: -75, z: 75, rot: 0.4 }, { x: 0, z: 26, rot: 0 }, { x: 52, z: -52, rot: 2.2 }] },
+          { lvl: 2, group: level2Group, boxes: l2Boxes, url: REPO_GLB_BASE + 'chest.glb', h: 0.85, solid: true, spots: [{ x: -52, z: 26, rot: 0.5 }, { x: 26, z: -26, rot: 1.8 }] },
+          { lvl: 2, group: level2Group, boxes: l2Boxes, url: REPO_GLB_BASE + 'streetlamp.glb', h: 0.75, ceilingY: 3.85, spots: [{ x: -52, z: 52 }, { x: 0, z: 0 }, { x: 52, z: -26 }] },
 
           // Level 37 (DON'T SPLASH): Poolrooms explorer gear on Dry Safe Islands (lanterns, water bottles, tripod camera, damaged helmet!)
-          { group: level37Group, boxes: l37Boxes, url: KHR_BASE + 'Lantern/glTF-Binary/Lantern.glb', h: 2.8, yOff: 0.9, spots: [{ x: -3.5, z: 16.5, rot: 0.3 }, { x: 3.5, z: 16.5, rot: -0.3 }, { x: -3.6, z: -164.5, rot: 0.2 }, { x: 3.6, z: -164.5, rot: -0.2 }] },
-          { group: level37Group, boxes: l37Boxes, url: KHR_BASE + 'AntiqueCamera/glTF-Binary/AntiqueCamera.glb', h: 1.4, yOff: 0.9, spots: [{ x: 2.8, z: -18.5, rot: 2.6 }] },
-          { group: level37Group, boxes: l37Boxes, url: KHR_BASE + 'WaterBottle/glTF-Binary/WaterBottle.glb', h: 0.34, yOff: 0.9, spots: [{ x: -2.4, z: -41.5, rot: 0 }, { x: 2.4, z: -68.5, rot: 1.1 }] },
-          { group: level37Group, boxes: l37Boxes, url: KHR_BASE + 'DamagedHelmet/glTF-Binary/DamagedHelmet.glb', h: 0.38, yOff: 0.9, spots: [{ x: -2.5, z: -94.0, rot: 0.8 }] },
+          { lvl: 37, group: level37Group, boxes: l37Boxes, url: REPO_GLB_BASE + 'streetlamp.glb', h: 2.8, yOff: 0.9, spots: [{ x: -3.5, z: 16.5, rot: 0.3 }, { x: 3.5, z: 16.5, rot: -0.3 }, { x: -3.6, z: -164.5, rot: 0.2 }, { x: 3.6, z: -164.5, rot: -0.2 }] },
+          { lvl: 37, group: level37Group, boxes: l37Boxes, url: REPO_GLB_BASE + 'crt_pc.glb', h: 1.4, yOff: 0.9, spots: [{ x: 2.8, z: -18.5, rot: 2.6 }] },
+          { lvl: 37, group: level37Group, boxes: l37Boxes, url: REPO_GLB_BASE + 'almond_water.glb', h: 0.34, yOff: 0.9, spots: [{ x: -2.4, z: -41.5, rot: 0 }, { x: 2.4, z: -68.5, rot: 1.1 }] },
+          { lvl: 37, group: level37Group, boxes: l37Boxes, url: REPO_GLB_BASE + 'cabinet.glb', h: 0.38, yOff: 0.9, spots: [{ x: -2.5, z: -94.0, rot: 0.8 }] },
 
           // Level ! (Run For Your Life!): overturned hospital chairs along walls
-          { group: levelRunGroup, boxes: lRunBoxes, url: KHR_BASE + 'SheenChair/glTF-Binary/SheenChair.glb', h: 1.0, spots: [{ x: -3.1, z: -36, rot: 1.2 }, { x: 3.1, z: -92, rot: -1.4 }, { x: -3.1, z: -180, rot: 0.9 }, { x: 3.1, z: -290, rot: -1.1 }] }
+          { lvl: 'run', group: levelRunGroup, boxes: lRunBoxes, url: REPO_GLB_BASE + 'bench.glb', h: 1.0, spots: [{ x: -3.1, z: -36, rot: 1.2 }, { x: 3.1, z: -92, rot: -1.4 }, { x: -3.1, z: -180, rot: 0.9 }, { x: 3.1, z: -290, rot: -1.1 }] }
         ];
 
-        EXTRA_GLBS.forEach((item) => {
+        EXTRA_GLBS.filter((item) => item.lvl === targetLvl).forEach((item) => {
           try {
             gltfLoader.load(
               item.url,
@@ -8624,7 +9065,7 @@
             );
           } catch (e) {}
         });
-      })();
+      }
 
 
       // --- Lazy-Build & GPU Dispose Registry (30 Extra Levels) ---
@@ -8678,6 +9119,10 @@
         });
         entry.group.clear();
         entry.arrays.forEach((arr) => { if (arr) arr.length = 0; });
+        const zTag = typeof lvl === 'string' ? 'level' + lvl : 'level' + String(lvl);
+        for (let wi = walkPlatforms.length - 1; wi >= 0; wi--) {
+          if (walkPlatforms[wi].zone === zTag) walkPlatforms.splice(wi, 1);
+        }
         entry.built = false;
       }
       function ensureLevelBuilt(lvl) {
@@ -8689,6 +9134,7 @@
         if (entry && !entry.built) {
           entry.build();
           entry.built = true;
+          if (typeof loadExtraPropsForLevel === 'function') loadExtraPropsForLevel(lvl);
           if (typeof spawnZoneBonusItems === 'function') {
             const zKey = typeof lvl === 'string' ? 'level' + lvl : 'level' + String(lvl);
             spawnZoneBonusItems(zKey);
@@ -8698,9 +9144,9 @@
 
       // --- Game State ---
       const DIFFS = {
-        easy: { mSpeed: 3.1, chaseSpeed: 4.9, sight: 11.5, batDrain: 1.5 },
-        normal: { mSpeed: 3.7, chaseSpeed: 5.9, sight: 14.5, batDrain: 2.1 },
-        hard: { mSpeed: 4.3, chaseSpeed: 6.7, sight: 18.0, batDrain: 2.8 }
+        easy: { mSpeed: 3.1, chaseSpeed: 4.9, sight: 11.5, batDrain: 0.85 },
+        normal: { mSpeed: 3.7, chaseSpeed: 5.9, sight: 14.5, batDrain: 1.15 },
+        hard: { mSpeed: 4.3, chaseSpeed: 6.7, sight: 18.0, batDrain: 1.55 }
       };
 
       const state = {
@@ -8765,6 +9211,9 @@
         lRunAlarmTimer: 0,
         velY: 0,
         onGround: true,
+        crouching: false,
+        invAlmond: 1,
+        invBattery: 1,
         pebbles: 1,
         splashAlertTimer: 0,
         lastSplashPos: new THREE.Vector3(0, 0, -28),
@@ -8954,7 +9403,7 @@
           const h = hash2(cx, cz);
 
           const fl = new THREE.Mesh(floorGeo, getMat(bm.floor, 0.85, 0.05));
-          fl.rotation.x = -Math.PI / 2;
+          fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true;
           grp.add(fl);
 
           const cl = new THREE.Mesh(ceilGeo, getMat(bm.ceil, 0.9, 0.05));
@@ -9055,9 +9504,7 @@
           const dx = state.pos.x - state.monsterPos.x, dz = state.pos.z - state.monsterPos.z;
           const len = Math.hypot(dx, dz) || 1;
           const spd = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * (1 + Math.min(0.45, window.__zulmatEndlessStreak * 0.05));
-          state.monsterPos.x += (dx / len) * spd * dt;
-          state.monsterPos.z += (dz / len) * spd * dt;
-          resolveWallCollision(state.monsterPos, 0.55);
+          steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx), state.monsterPos.z + (dz), spd, dt);
           monsterGroup.visible = true;
           monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
           monsterGroup.rotation.y = Math.atan2(dx, dz);
@@ -9101,6 +9548,35 @@
         state.started = true;
         state.paused = false;
         state.ended = false;
+        state.invAlmond = Math.max(1, state.invAlmond || 1);
+        state.invBattery = Math.max(1, state.invBattery || 1);
+        (function waitLevelAssetsReady() {
+          const ov = document.getElementById('level-loading-overlay');
+          const ttl = document.getElementById('lvl-load-title');
+          const bar = document.getElementById('lvl-load-bar');
+          const sub = document.getElementById('lvl-load-sub');
+          if (!ov) return;
+          if (ttl) ttl.textContent = (th && th.title ? th.title : 'BEKAT ' + cur);
+          if (bar) bar.style.width = '30%';
+          if (sub) sub.textContent = '3D MODELLAR VA OVOZLAR YUKLANMOQDA...';
+          ov.classList.remove('hidden');
+          const wasPaused = state.paused;
+          state.paused = true;
+          const t0 = Date.now();
+          const poll = setInterval(() => {
+            const pend = window.__zulmatPendingGlbs || 0;
+            const elapsed = Date.now() - t0;
+            const pct = pend === 0 ? 100 : Math.min(92, 30 + Math.floor(elapsed / 45));
+            if (bar) bar.style.width = pct + '%';
+            if ((pend === 0 && elapsed >= 320) || elapsed >= 3800) {
+              clearInterval(poll);
+              if (bar) bar.style.width = '100%';
+              try { renderer.compile(scene, camera); } catch (e) {}
+              ov.classList.add('hidden');
+              state.paused = wasPaused;
+            }
+          }, 90);
+        })();
         state.killing = false;
         state.currentLevel = 'endless50k';
         state.zone = 'levelendless';
@@ -9176,7 +9652,7 @@
             window.__zulmatTrainIntroPlayed = true;
             setTimeout(() => Sound.playVoice('vox_train_arrive', 0.96, 20000), 650);
           } else {
-            setTimeout(() => Sound.playVoice('metro_welcome', 0.9, 15000), 900);
+            setTimeout(() => Sound.playVoice('metro_arrive_vox', 0.92, 12000), 900);
           }
         }
 
@@ -9222,15 +9698,15 @@
         levelShadyGroup.visible = false;
         [level14Group, level15Group, level22Group, level46Group, levelManilaGroup, levelMirrorGroup, levelEndlessGroup].forEach((g) => { g.visible = false; });
         metroLobbyGroup.visible = true;
-        if (btnJump) btnJump.style.display = 'none';
+        if (btnJump) btnJump.style.display = 'flex';
         scene.background.setHex(0x13171b);
         scene.fog.color.setHex(0x13171b);
         scene.fog.density = 0.032;
         camera.far = 75; camera.updateProjectionMatrix();
         hemiLight.color.setHex(0xcfe0dc);
         hemiLight.groundColor.setHex(0x2d3238);
-        hemiLight.intensity = 0.18;
-        ambientLight.intensity = 0.05;
+        hemiLight.intensity = 0.44;
+        ambientLight.intensity = 0.16;
 
         // Roll the metro train dramatically into the station from the left dark tunnel!
         state.trainAnim = 'arriving';
@@ -9330,7 +9806,7 @@
         state.trainTimer = 0;
         elInteractBtn.classList.remove('visible');
         Sound.trainDoor();
-        setTimeout(() => Sound.trainDepart(), 520);
+        setTimeout(() => { Sound.trainDepart(); Sound.playVoice('metro_depart_vox', 0.92, 9000); }, 520);
         const th = LEVEL_THEMES[lvl] || LEVEL_THEMES[0];
         showToast("Eshiklar yopilmoqda! Keyingi bekat: " + th.title);
       }
@@ -9371,7 +9847,7 @@
         levelShadyGroup.visible = (cur === 'shady');
         level14Group.visible = (cur === 14); level15Group.visible = (cur === 15); level22Group.visible = (cur === 22); level46Group.visible = (cur === 46); levelManilaGroup.visible = (cur === 'manila'); levelMirrorGroup.visible = (cur === 'mirror'); levelEndlessGroup.visible = (cur === 'endless50k');
 
-        if (btnJump) btnJump.style.display = (cur === 37 || cur === 922) ? 'flex' : 'none';
+        if (btnJump) btnJump.style.display = 'flex';
         setMonsterVariant(cur);
         if (cur === 0) { level0Group.add(monsterGroup); monsterGroup.visible = true; }
         else if (cur === 1) { level1Group.add(monsterGroup); monsterGroup.visible = true; }
@@ -10336,6 +10812,21 @@
         btnJump.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); triggerJump(); }, { passive: false });
         btnJump.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); triggerJump(); });
       }
+      const btnCrouch = document.getElementById('btn-crouch');
+      function toggleCrouch(forceState) {
+        state.crouching = (forceState !== undefined) ? !!forceState : !state.crouching;
+        if (btnCrouch) {
+          btnCrouch.classList.toggle('on', state.crouching);
+          btnCrouch.style.borderColor = state.crouching ? '#fde047' : 'rgba(148,163,184,0.55)';
+        }
+      }
+      if (btnCrouch) {
+        btnCrouch.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); toggleCrouch(); }, { passive: false });
+        btnCrouch.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); toggleCrouch(); });
+      }
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyC' || e.code === 'ControlLeft') toggleCrouch();
+      });
 
       btnSprint.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); state.sprinting = true; btnSprint.classList.add('on'); }, { passive: false });
       btnSprint.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); state.sprinting = false; btnSprint.classList.remove('on'); }, { passive: false });
@@ -10604,6 +11095,9 @@
         enterLandscapeFullscreen();
       });
       window.__zulmatEnterFullscreen = enterLandscapeFullscreen;
+      ['pointerdown', 'touchend', 'click'].forEach((ev) => {
+        document.addEventListener(ev, () => { enterLandscapeFullscreen(); }, { once: true, passive: true });
+      });
 
       // --- Start Menu Ambient Audio + Personajlar Button ---
 
@@ -10882,23 +11376,7 @@
             if (curSkinKey !== key) return;
             const m = gltf.scene;
             if (!gltf.__normalized) {
-              m.traverse((o) => {
-                if (o.isMesh || o.isSkinnedMesh) {
-                  o.frustumCulled = false;
-                  if (o.geometry && !o.geometry.boundingBox) o.geometry.computeBoundingBox();
-                }
-              });
-              m.updateMatrixWorld(true);
-              const box = new THREE.Box3().setFromObject(m);
-              const sz = box.getSize(new THREE.Vector3());
-              const sc = (isFinite(sz.y) && sz.y > 0.01) ? 1.65 / sz.y : 1;
-              m.scale.multiplyScalar(sc);
-              m.updateMatrixWorld(true);
-              const b2 = new THREE.Box3().setFromObject(m);
-              const ctr = b2.getCenter(new THREE.Vector3());
-              if (isFinite(ctr.x) && isFinite(b2.min.y) && isFinite(ctr.z)) {
-                m.position.set(-ctr.x, -b2.min.y, -ctr.z);
-              }
+              if (window.__zulmatNormalizeRigged) window.__zulmatNormalizeRigged(m, 1.65);
               gltf.__normalized = true;
             }
             pRoot.add(m);
@@ -11436,14 +11914,17 @@
         const dpr = window.devicePixelRatio || 1;
         if (state.gfxQuality === 'low') {
           renderer.setPixelRatio(1);
+          renderer.shadowMap.enabled = false;
           renderer.toneMappingExposure = 0.90;
           if (gfxLbl) gfxLbl.textContent = 'Past (Tez FPS)';
         } else if (state.gfxQuality === 'high') {
           renderer.setPixelRatio(Math.min(dpr, 2));
+          renderer.shadowMap.enabled = true;
           renderer.toneMappingExposure = 1.0;
           if (gfxLbl) gfxLbl.textContent = 'Yuqori (HD)';
         } else {
           renderer.setPixelRatio(Math.min(dpr, 1.5));
+          renderer.shadowMap.enabled = true;
           renderer.toneMappingExposure = 0.95;
           if (gfxLbl) gfxLbl.textContent = "O'rta (Balans)";
         }
@@ -11480,6 +11961,104 @@
         try { localStorage.setItem('zulmat_sens', v.toFixed(1)); } catch (e) {}
       });
 
+
+      // --- Inventory Hotbar & Settings Sound/Restart Controls ---
+      (function initInvAndSettingsExtras() {
+        const cAlm = document.getElementById('inv-cnt-almond');
+        const cBat = document.getElementById('inv-cnt-battery');
+        const cKey = document.getElementById('inv-cnt-keys');
+        const cVhs = document.getElementById('inv-cnt-vhs');
+        const sAlm = document.getElementById('inv-slot-almond');
+        const sBat = document.getElementById('inv-slot-battery');
+
+        function syncInv() {
+          if (cAlm) cAlm.textContent = String(state.invAlmond || 0);
+          if (cBat) cBat.textContent = String(state.invBattery || 0);
+          if (cKey) cKey.textContent = String(state.keysCollected || 0);
+          if (cVhs) cVhs.textContent = String(state.vhsTapes || 0);
+          if (sAlm) sAlm.classList.toggle('empty', !(state.invAlmond > 0));
+          if (sBat) sBat.classList.toggle('empty', !(state.invBattery > 0));
+        }
+        window.__zulmatSyncInv = syncInv;
+        setInterval(syncInv, 450);
+
+        function useAlmond() {
+          if (!state.started || state.ended || !(state.invAlmond > 0)) return;
+          state.invAlmond--;
+          state.stamina = 100;
+          state.sanity = 100;
+          state.battery = Math.min(100, state.battery + 35);
+          Sound.almondDrink();
+          setTimeout(() => Sound.playVoice('vox_almond', 0.9, 12000), 850);
+          showToast("Bodom suvi ichildi! Kuch va aql-idrok 100% tiklandi!");
+          syncInv();
+        }
+        function useBattery() {
+          if (!state.started || state.ended || !(state.invBattery > 0)) return;
+          if (state.battery >= 98) { showToast("Fonar quvvati allaqachon to'liq!"); return; }
+          state.invBattery--;
+          state.battery = Math.min(100, state.battery + 50);
+          Sound.pickup();
+          showToast("Yangi batareya qo'yildi! (+50% Fonar)");
+          syncInv();
+        }
+        if (sAlm) sAlm.addEventListener('click', useAlmond);
+        if (sBat) sBat.addEventListener('click', useBattery);
+        window.addEventListener('keydown', (e) => {
+          if (e.code === 'Digit1') useAlmond();
+          if (e.code === 'Digit2') useBattery();
+        });
+
+        const bSetSnd = document.getElementById('btn-settings-sound');
+        const bSetRes = document.getElementById('btn-settings-restart');
+        if (bSetSnd) {
+          bSetSnd.addEventListener('click', () => {
+            Sound.muted = !Sound.muted;
+            Sound.syncMute();
+            bSetSnd.textContent = Sound.muted ? "Ovoz: O'CHIQ" : 'Ovoz: YONIQ';
+          });
+        }
+        if (bSetRes) {
+          bSetRes.addEventListener('click', () => {
+            const ov = document.getElementById('settings-overlay');
+            if (ov) ov.classList.add('hidden');
+            state.paused = false;
+            resetGame(state.currentLevel);
+          });
+        }
+      })();
+
+      // --- Smart Monster AI: Line-of-Sight + Hearing + Wall-Corner Steering ---
+      function canMonsterDetect(dist, sightRange, wantsSprintNow) {
+        if (state.hiding) return false;
+        const hearR = wantsSprintNow ? 14.0 : (state.crouching ? 3.2 : 6.2);
+        if (dist < hearR) return true;
+        if (dist < sightRange && hasLineOfSight(state.monsterPos.x, state.monsterPos.z, state.pos.x, state.pos.z)) return true;
+        return false;
+      }
+      function steerMonsterStep(mPos, tx, tz, spd, dt) {
+        const dx = tx - mPos.x, dz = tz - mPos.z;
+        const dd = Math.hypot(dx, dz) || 1;
+        const ux = dx / dd, uz = dz / dd;
+        const px = mPos.x, pz = mPos.z;
+        mPos.x += ux * spd * dt;
+        mPos.z += uz * spd * dt;
+        resolveWallCollision(mPos, 0.55);
+        const moved = Math.hypot(mPos.x - px, mPos.z - pz);
+        if (moved < spd * dt * 0.35) {
+          // Blocked by wall corner -> test perpendicular slide left & right
+          const pL = { x: px - uz * spd * dt, z: pz + ux * spd * dt };
+          const pR = { x: px + uz * spd * dt, z: pz - ux * spd * dt };
+          resolveWallCollision(pL, 0.55);
+          resolveWallCollision(pR, 0.55);
+          const dL = Math.hypot(tx - pL.x, tz - pL.z);
+          const dR = Math.hypot(tx - pR.x, tz - pR.z);
+          const pick = dL < dR ? pL : pR;
+          mPos.x = pick.x;
+          mPos.z = pick.z;
+        }
+      }
+
       // --- Collision & Line-of-Sight Helpers ---
       const ZONE_BOXES_MAP = {
         metro_lobby: metroBoxes, level1: l1Boxes, level2: l2Boxes, level37: l37Boxes,
@@ -11501,6 +12080,7 @@
           const b = boxes[i];
           if ((Math.abs(pos.x - b.x) > 8.5 || Math.abs(pos.z - b.z) > 8.5) && b.halfX === undefined && b.halfZ === undefined) continue;
           if (b.lockerRef && state.hiding && state.hideLocker === b.lockerRef) continue;
+          if (b.ventCeil && state.crouching) continue;
           const hx = b.halfX !== undefined ? b.halfX : b.half;
           const hz = b.halfZ !== undefined ? b.halfZ : b.half;
           const minX = b.x - hx - radius;
@@ -11597,6 +12177,9 @@
 
       // --- Tactical Corner Radar Drawing ---
       function drawRadar(monsterDist) {
+        const rc = document.getElementById('radar-canvas');
+        if (rc) rc.style.opacity = state.radarOn ? '1' : '0';
+        if (!state.radarOn) return;
         const w = 84, h = 84, cx = 42, cy = 42;
         radarCtx.clearRect(0, 0, w, h);
         radarCtx.fillStyle = 'rgba(6, 10, 16, 0.9)';
@@ -11980,7 +12563,7 @@
             }
             if (typeof showToast === 'function') showToast("Do'stingiz Co-op xonaga qo'shildi!", 3500);
           });
-          conn.on('data', (d) => {
+          conn.on('data', (d) => { if (d && (d.t === 'chat' || d.t === 'start') && window.__zulmatOnCoopMsg) { window.__zulmatOnCoopMsg(d); return; }
             const p = peers[pid];
             if (!p || !d) return;
             if (d.t === 'hello' && d.name) {
@@ -12047,6 +12630,8 @@
         }
 
         function updatePeerCount() {
+          const igW = document.getElementById('ingame-chat-wrap');
+          if (igW) igW.classList.toggle('hidden', Object.keys(conns).length === 0);
           const names = Object.values(peers).map((p) => p.name);
           if (isHost) {
             setStatus("Xona kodi: " + roomCode + " • Ulanganlar (" + names.length + "): " + (names.length ? names.join(', ') : "Do'stingiz kutilmoqda..."), "#4ade80");
@@ -12061,7 +12646,7 @@
             roomCode = String(Math.floor(1000 + Math.random() * 9000));
             isHost = true;
             setStatus("Xona yaratilmoqda (" + roomCode + ")...", "#facc15");
-            peer = new window.Peer('zulmat-br-' + roomCode);
+            peer = new window.Peer('zulmat-br-' + roomCode, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
             peer.on('open', () => {
               updatePeerCount();
               if (navigator.clipboard) navigator.clipboard.writeText(roomCode).catch(() => {});
@@ -12083,7 +12668,7 @@
             roomCode = clean;
             isHost = false;
             setStatus("Xona " + clean + " ga ulanilmoqda...", "#facc15");
-            peer = new window.Peer();
+            peer = new window.Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
             peer.on('open', () => {
               const conn = peer.connect('zulmat-br-' + clean, { reliable: false });
               setupConn(conn);
@@ -12092,7 +12677,21 @@
               call.answer(localStream || undefined);
               attachCall(call.peer, call);
             });
-            peer.on('error', (err) => setStatus("Ulanib bo'lmadi (" + (err.type || 'kod xato') + ")", "#f87171"));
+            let retried = false;
+            peer.on('error', (err) => {
+              if (!retried && err && err.type === 'peer-unavailable') {
+                retried = true;
+                setStatus("Xona izlanmoqda (" + clean + ")...", "#facc15");
+                setTimeout(() => {
+                  try {
+                    const c2 = peer.connect('zulmat-br-' + clean, { reliable: false });
+                    setupConn(c2);
+                  } catch (e) {}
+                }, 1200);
+                return;
+              }
+              setStatus("Ulanib bo'lmadi (" + (err.type || 'kod xato') + ")", "#f87171");
+            });
           });
         }
 
@@ -12223,6 +12822,75 @@
           });
         });
 
+        const chatLog = document.getElementById('coop-chat-log');
+        const chatInp = document.getElementById('coop-chat-input');
+        const btnSend = document.getElementById('btn-coop-send');
+        const btnStartCoop = document.getElementById('btn-coop-start');
+        const modeSel = document.getElementById('coop-mode-select');
+        const igWrap = document.getElementById('ingame-chat-wrap');
+        const igMsgs = document.getElementById('ingame-chat-msgs');
+        const igInp = document.getElementById('ingame-chat-inp');
+        const igBtn = document.getElementById('btn-ingame-chat-send');
+        function appendChat(sender, text) {
+          if (!chatLog || !text) return;
+          const row = document.createElement('div');
+          row.innerHTML = '<strong style="color:#fde047;">' + String(sender).replace(/</g, '&lt;') + ':</strong> ' + String(text).replace(/</g, '&lt;');
+          chatLog.appendChild(row);
+          chatLog.scrollTop = chatLog.scrollHeight;
+          if (igMsgs) {
+            const r2 = document.createElement('div');
+            r2.innerHTML = '<strong style="color:#7dd3fc;">' + String(sender).replace(/</g, '&lt;') + ':</strong> ' + String(text).replace(/</g, '&lt;');
+            igMsgs.appendChild(r2);
+            igMsgs.scrollTop = igMsgs.scrollHeight;
+          }
+        }
+        function sendInGameChat() {
+          if (!igInp) return;
+          const txt = igInp.value.trim();
+          if (!txt) return;
+          igInp.value = '';
+          const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
+          appendChat(myN, txt);
+          Object.values(conns).forEach((c) => { if (c && c.open) { try { c.send({ t: 'chat', name: myN, text: txt }); } catch (e) {} } });
+        }
+        if (igBtn) igBtn.addEventListener('click', sendInGameChat);
+        if (igInp) igInp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') sendInGameChat(); });
+        function sendChatMsg() {
+          if (!chatInp) return;
+          const txt = chatInp.value.trim();
+          if (!txt) return;
+          chatInp.value = '';
+          const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
+          appendChat(myN, txt);
+          Object.values(conns).forEach((c) => { if (c && c.open) { try { c.send({ t: 'chat', name: myN, text: txt }); } catch (e) {} } });
+        }
+        if (btnSend) btnSend.addEventListener('click', sendChatMsg);
+        if (chatInp) chatInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMsg(); });
+
+        function launchCoopMode(modeVal) {
+          const co = document.getElementById('coop-overlay');
+          const st = document.getElementById('start-overlay');
+          if (co) co.classList.add('hidden');
+          if (st) st.classList.add('hidden');
+          if (window.__zulmatStopStartMenuBgm) window.__zulmatStopStartMenuBgm();
+          document.body.classList.add('game-started');
+          state.started = true;
+          state.paused = false;
+          if (modeVal === 'endless' && window.__zulmatStartEndless) { window.__zulmatStartEndless(); return; }
+          if (modeVal === 'metro') { enterMetroLobby(false); return; }
+          const lvlKey = isNaN(modeVal) ? modeVal : Number(modeVal);
+          resetGame(lvlKey);
+        }
+        if (btnStartCoop) btnStartCoop.addEventListener('click', () => {
+          const mv = modeSel ? modeSel.value : '0';
+          Object.values(conns).forEach((c) => { if (c && c.open) { try { c.send({ t: 'start', mode: mv }); } catch (e) {} } });
+          launchCoopMode(mv);
+        });
+        window.__zulmatOnCoopMsg = (d) => {
+          if (!d) return;
+          if (d.t === 'chat') appendChat(d.name || "Do'st", d.text || '');
+          if (d.t === 'start') launchCoopMode(d.mode || '0');
+        };
         return { tick };
       })();
 
@@ -12232,48 +12900,210 @@
       // ============================================================
       const fpBody = (function() {
         const root = new THREE.Group();
-        const suitMat = new THREE.MeshLambertMaterial({ color: 0x4b5563 });
-        const shirtMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
-        const shoeMat = new THREE.MeshLambertMaterial({ color: 0x111827 });
+        const suitMat = new THREE.MeshLambertMaterial({ color: 0x2c3340 });
+        const pantsMat = new THREE.MeshLambertMaterial({ color: 0x1e2430 });
+        const skinMat = new THREE.MeshLambertMaterial({ color: 0xd9a88c });
+        const shoeMat = new THREE.MeshLambertMaterial({ color: 0x0f1116 });
 
-        const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.48, 0.22), suitMat);
-        torso.position.set(0, 1.06, 0.16);
-        const tie = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.32, 0.23), shirtMat);
-        tie.position.set(0, 1.12, 0.16);
+        // Rounded torso & shoulders positioned below camera so forward vision is 100% clear
+        const chest = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.20, 0.56, 12), suitMat);
+        chest.scale.set(1.18, 1.0, 0.68);
+        chest.position.set(0, 1.08, 0.06);
 
-        const legL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.78, 0.18), suitMat);
-        legL.position.set(-0.12, 0.44, 0.14);
-        const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.12, 0.30), shoeMat);
-        shoeL.position.set(0, -0.37, -0.07);
-        legL.add(shoeL);
+        // Left & Right Arms + Hands (visible at bottom-left & bottom-right when looking down)
+        const armL = new THREE.Group();
+        armL.position.set(-0.27, 1.28, 0.02);
+        const sleeveL = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.055, 0.54, 10), suitMat);
+        sleeveL.position.set(-0.04, -0.26, -0.06);
+        sleeveL.rotation.x = 0.28;
+        sleeveL.rotation.z = -0.14;
+        const handL = new THREE.Mesh(new THREE.SphereGeometry(0.056, 10, 8), skinMat);
+        handL.scale.set(0.85, 1.15, 1.0);
+        handL.position.set(-0.08, -0.52, -0.15);
+        armL.add(sleeveL, handL);
 
-        const legR = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.78, 0.18), suitMat);
-        legR.position.set(0.12, 0.44, 0.14);
-        const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.12, 0.30), shoeMat);
-        shoeR.position.set(0, -0.37, -0.07);
-        legR.add(shoeR);
+        const armR = new THREE.Group();
+        armR.position.set(0.27, 1.28, 0.02);
+        const sleeveR = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.055, 0.54, 10), suitMat);
+        sleeveR.position.set(0.04, -0.26, -0.06);
+        sleeveR.rotation.x = 0.28;
+        sleeveR.rotation.z = 0.14;
+        const handR = new THREE.Mesh(new THREE.SphereGeometry(0.056, 10, 8), skinMat);
+        handR.scale.set(0.85, 1.15, 1.0);
+        handR.position.set(0.08, -0.52, -0.15);
+        armR.add(sleeveR, handR);
 
-        torso.visible = false;
-        tie.visible = false;
-        root.add(torso, tie, legL, legR);
+        // Tapered Legs + Shoes
+        const legL = new THREE.Group();
+        legL.position.set(-0.125, 0.80, 0.02);
+        const thighL = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.072, 0.78, 10), pantsMat);
+        thighL.position.set(0, -0.39, -0.03);
+        thighL.castShadow = true;
+        const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.10, 0.31), shoeMat);
+        shoeL.position.set(0, -0.75, -0.13);
+        legL.add(thighL, shoeL);
+
+        const legR = new THREE.Group();
+        legR.position.set(0.125, 0.80, 0.02);
+        const thighR = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.072, 0.78, 10), pantsMat);
+        thighR.position.set(0, -0.39, -0.03);
+        thighR.castShadow = true;
+        const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.10, 0.31), shoeMat);
+        shoeR.position.set(0, -0.75, -0.13);
+        legR.add(thighR, shoeR);
+
+        const fpShadow = makeContactShadow(0.56, 0.56);
+        fpShadow.position.set(0, 0.025, -0.02);
+
+        root.add(chest, armL, armR, legL, legR, fpShadow);
         root.visible = false;
         scene.add(root);
 
-        let phase = 0;
+        let phase = 0, prevX = 0, prevZ = 0, hasPrev = false;
         function update(dt) {
-          root.visible = state.started && !state.hiding && !state.ended && state.zone !== 'levelendless_hide' && state.pitch < -0.25;
-          if (!root.visible) return;
-          root.position.set(state.pos.x, Math.max(0, state.pos.y - 1.65), state.pos.z);
+          root.visible = state.started && !state.hiding && !state.ended && state.zone !== 'levelendless_hide';
+          if (!root.visible) { hasPrev = false; return; }
+          const vx = hasPrev && dt > 0.0005 ? (state.pos.x - prevX) / dt : 0;
+          const vz = hasPrev && dt > 0.0005 ? (state.pos.z - prevZ) / dt : 0;
+          prevX = state.pos.x; prevZ = state.pos.z; hasPrev = true;
+          state.vel = { x: vx, z: vz };
+
+          const groundY = Math.max(0, state.pos.y - (state.crouching ? 0.92 : 1.65));
+          root.position.set(state.pos.x, groundY, state.pos.z);
           root.rotation.y = state.yaw;
-          const spd = Math.hypot(state.vel ? state.vel.x : 0, state.vel ? state.vel.z : 0);
+          const spd = Math.hypot(vx, vz);
+          const isRunning = spd > 5.0 && !state.crouching;
+
+          chest.position.y = state.crouching ? 0.68 : 1.08;
+          chest.position.z = state.crouching ? 0.12 : (isRunning ? 0.03 : 0.06);
+          chest.rotation.x = isRunning ? -0.12 : 0;
+          armL.position.y = state.crouching ? 0.82 : 1.28;
+          armR.position.y = state.crouching ? 0.82 : 1.28;
+          legL.position.y = state.crouching ? 0.56 : 0.80;
+          legR.position.y = state.crouching ? 0.56 : 0.80;
+
           if (spd > 0.25) {
-            phase += dt * (spd > 5.0 ? 11.5 : 7.5);
-            const sw = Math.sin(phase) * 0.42;
-            legL.rotation.x = sw;
-            legR.rotation.x = -sw;
+            phase += dt * (isRunning ? 13.5 : (state.crouching ? 5.8 : 8.2));
+            const amp = isRunning ? 0.68 : (state.crouching ? 0.28 : 0.44);
+            const sw = Math.sin(phase) * amp;
+            legL.rotation.x = (state.crouching ? -0.45 : 0) + sw;
+            legR.rotation.x = (state.crouching ? -0.15 : 0) - sw;
+            armL.rotation.x = -sw * (isRunning ? 0.82 : 0.50);
+            armR.rotation.x = sw * (isRunning ? 0.82 : 0.50);
           } else {
-            legL.rotation.x *= 0.82;
-            legR.rotation.x *= 0.82;
+            const cBaseL = state.crouching ? -0.55 : 0;
+            const cBaseR = state.crouching ? -0.18 : 0;
+            legL.rotation.x += (cBaseL - legL.rotation.x) * Math.min(1, dt * 10);
+            legR.rotation.x += (cBaseR - legR.rotation.x) * Math.min(1, dt * 10);
+            armL.rotation.x *= 0.85;
+            armR.rotation.x *= 0.85;
+          }
+        }
+        return { update };
+      })();
+
+
+      // ============================================================
+      // POLTERGEIST FLYING CHAIR SCREAMER (Sudden toppled/flung chair!)
+      // ============================================================
+      const poltergeistChair = (function () {
+        const g = new THREE.Group();
+        const woodM = new THREE.MeshLambertMaterial({ color: 0x7c5338 });
+        const darkWoodM = new THREE.MeshLambertMaterial({ color: 0x5c3a24 });
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.06, 0.52), woodM);
+        seat.position.y = 0.48;
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.52, 0.06), darkWoodM);
+        back.position.set(0, 0.76, -0.23);
+        const legGeo = new THREE.BoxGeometry(0.06, 0.48, 0.06);
+        [[-0.21, -0.21], [0.21, -0.21], [-0.21, 0.21], [0.21, 0.21]].forEach(([lx, lz]) => {
+          const leg = new THREE.Mesh(legGeo, darkWoodM);
+          leg.position.set(lx, 0.24, lz);
+          leg.castShadow = true;
+          g.add(leg);
+        });
+        seat.castShadow = true;
+        back.castShadow = true;
+        g.add(seat, back);
+        g.visible = false;
+        scene.add(g);
+
+        let active = false, life = 0, nextCD = 32 + Math.random() * 24;
+        let vx = 0, vy = 0, vz = 0, rvx = 0, rvy = 0, rvz = 0, bounced = false;
+        const SAFE_ZONES = { metro_lobby: 1, level61: 1, level3999: 1, levelmanila: 1, level37: 1, level7: 1, level922: 1 };
+
+        function trigger() {
+          const sinY = Math.sin(state.yaw), cosY = Math.cos(state.yaw);
+          const fwdX = -sinY, fwdZ = -cosY;
+          const rightX = cosY, rightZ = -sinY;
+          const side = Math.random() < 0.5 ? -1 : 1;
+          // Spawn 6.5m ahead & 2.2m to the side, then fling violently across player's view!
+          g.position.set(state.pos.x + fwdX * 6.8 + rightX * side * 2.4, 0.45, state.pos.z + fwdZ * 6.8 + rightZ * side * 2.4);
+          g.rotation.set(0, Math.random() * Math.PI * 2, 0);
+          vx = -rightX * side * 7.8 - fwdX * 1.4;
+          vy = 3.2;
+          vz = -rightZ * side * 7.8 - fwdZ * 1.4;
+          rvx = (Math.random() > 0.5 ? 1 : -1) * 7.5;
+          rvy = (Math.random() - 0.5) * 6.0;
+          rvz = side * 6.8;
+          active = true;
+          bounced = false;
+          life = 0;
+          g.visible = true;
+          if (typeof Sound !== 'undefined') {
+            const cSfx = 'chair_throw_' + (1 + Math.floor(Math.random() * 3));
+            if (!Sound.playSfx(cSfx, 0.95)) {
+              Sound.playSfx('locker_hide', 0.92);
+              setTimeout(() => Sound.playSfx('locker_hide', 0.65, { rate: 0.78 }), 260);
+            }
+          }
+          state.sanity = Math.max(0, state.sanity - 6);
+          if (typeof elDangerVig !== 'undefined' && elDangerVig) {
+            elDangerVig.style.opacity = '0.55';
+            setTimeout(() => { if (!state.killing) elDangerVig.style.opacity = '0'; }, 280);
+          }
+        }
+
+        function update(dt) {
+          if (!state.started || state.paused || state.ended || state.hiding || SAFE_ZONES[state.zone]) {
+            if (active && SAFE_ZONES[state.zone]) { active = false; g.visible = false; }
+            return;
+          }
+          if (!active) {
+            nextCD -= dt;
+            if (nextCD <= 0) {
+              nextCD = 38 + Math.random() * 28;
+              trigger();
+            }
+            return;
+          }
+          life += dt;
+          if (life < 2.2) {
+            vy -= 14.5 * dt;
+            g.position.x += vx * dt;
+            g.position.y += vy * dt;
+            g.position.z += vz * dt;
+            g.rotation.x += rvx * dt;
+            g.rotation.y += rvy * dt;
+            g.rotation.z += rvz * dt;
+            if (g.position.y <= 0.28) {
+              g.position.y = 0.28;
+              if (!bounced) {
+                bounced = true;
+                vy = Math.abs(vy) * 0.36;
+                vx *= 0.58; vz *= 0.58;
+                rvx *= 0.45; rvy *= 0.45; rvz *= 0.45;
+              } else {
+                vy = 0;
+                vx *= Math.pow(0.08, dt);
+                vz *= Math.pow(0.08, dt);
+                rvx *= Math.pow(0.05, dt);
+                rvy *= Math.pow(0.05, dt);
+                rvz *= Math.pow(0.05, dt);
+              }
+            }
+          } else if (life > 18.0) {
+            active = false;
+            g.visible = false;
           }
         }
         return { update };
@@ -12318,20 +13148,15 @@
               m.updateMatrixWorld(true);
               let box = new THREE.Box3().setFromObject(m);
               let sz = box.getSize(new THREE.Vector3());
-              if (!isFinite(sz.y) || sz.y < 0.001 || sz.y > 500) {
-                box = new THREE.Box3();
-                m.traverse((o) => {
-                  if ((o.isMesh || o.isSkinnedMesh) && o.geometry && o.geometry.boundingBox) {
-                    const bb = o.geometry.boundingBox.clone();
-                    bb.applyMatrix4(o.matrixWorld);
-                    box.union(bb);
-                  }
-                });
-                sz = box.getSize(new THREE.Vector3());
-              }
-              const safeH = (isFinite(sz.y) && sz.y > 0.01) ? sz.y : 1.7;
-              const sc = targetH / safeH;
-              m.scale.multiplyScalar(sc);
+              // Handle Mixamo/Blender 100x cm Armature where SkinnedMesh bounds read 100x smaller than world
+              let armScale = 1;
+              m.traverse((o) => {
+                if (o !== m && o.scale && o.scale.y > 50) armScale = Math.max(armScale, o.scale.y);
+              });
+              let effH = (isFinite(sz.y) && sz.y > 0.001) ? sz.y : 1.7;
+              if (armScale > 50) effH = effH * armScale;
+              const sc = Math.min(2.5, Math.max(0.002, targetH / effH));
+              m.scale.setScalar(sc);
               m.updateMatrixWorld(true);
               const b2 = new THREE.Box3().setFromObject(m);
               const ctr = b2.getCenter(new THREE.Vector3());
@@ -12343,7 +13168,7 @@
           if (!window.__zulmatMenuHero) {
             window.__zulmatMenuHero = { loading: true, ready: false, group: new THREE.Group(), mixer: null };
             const hg = window.__zulmatMenuHero.group;
-            hg.position.set(spawnPos.x + 1.15, 0, spawnPos.z - 3.8);
+            hg.position.set(spawnPos.x + 1.35, 0, spawnPos.z - 5.6);
             hg.rotation.y = -0.45;
             const rimL = new THREE.PointLight(0xfef08a, 1.5, 9);
             rimL.position.set(0.6, 2.2, 1.2);
@@ -12452,6 +13277,33 @@
           const cfg = DIFFS[state.diff] || DIFFS.normal;
           state.elapsed += dt;
           elHudTime.textContent = formatTime(state.elapsed);
+          const brightF = Math.min(1, Math.max(0, (hemiLight.intensity - 0.10) / 0.36));
+          contactShadowMat.opacity = 0.08 + brightF * 0.56;
+          dirLight.intensity = brightF * 0.34;
+          const sx = Math.round(state.pos.x * 2) * 0.5;
+          const sz = Math.round(state.pos.z * 2) * 0.5;
+          dirLight.position.set(sx + 8, 16, sz + 6);
+          dirLight.target.position.set(sx, 0, sz);
+          if (state.hiding) {
+            state.hideTimer = (state.hideTimer || 0) + dt;
+            if (state.hideTimer > 14.0 && !state._hideWarned) {
+              state._hideWarned = true;
+              showToast("Nafas yetishmayapti! Tezroq shkafdan chiqing!", true);
+            }
+            if (state.hideTimer >= 19.0) {
+              state.hiding = false;
+              state.hideTimer = 0;
+              state._hideWarned = false;
+              if (state.hideLocker && state.hideLocker.mesh) state.hideLocker.mesh.visible = true;
+              state.hideLocker = null;
+              elLockerOv.classList.remove('active');
+              Sound.playSfx('locker_hide', 0.8);
+              showToast("Shkafdan chiqishga majbur bo'ldingiz!", true);
+            }
+          } else {
+            state.hideTimer = 0;
+            state._hideWarned = false;
+          }
           if (state.sanity < 50 && !state.hiding) {
             const sanFactor = (50 - state.sanity) / 50;
             camera.rotation.z = Math.sin(animT * 2.6) * 0.035 * sanFactor;
@@ -12486,7 +13338,7 @@
             state.stamina = Math.min(100, state.stamina + 15 * dt);
           }
 
-          const moveSpeed = wantsSprint ? 6.8 : 4.15;
+          const moveSpeed = state.crouching ? 2.65 : (wantsSprint ? 6.8 : 4.15);
           if (len > 0.05) {
             const sinY = Math.sin(state.yaw);
             const cosY = Math.cos(state.yaw);
@@ -12524,6 +13376,16 @@
           // Update HUD bars
           elBatPct.textContent = Math.ceil(state.battery) + '%';
           elBatFill.style.width = state.battery + '%';
+          const _rBat = document.getElementById('ring-battery');
+          if (_rBat) {
+            _rBat.style.strokeDashoffset = String(157 * (1 - Math.max(0, Math.min(100, state.battery)) / 100));
+            _rBat.style.stroke = state.battery < 22 ? '#ef4444' : (state.battery < 50 ? '#facc15' : '#22c55e');
+          }
+          const _rStam = document.getElementById('ring-stamina');
+          if (_rStam) {
+            _rStam.style.strokeDashoffset = String(157 * (1 - Math.max(0, Math.min(100, state.stamina)) / 100));
+            _rStam.style.stroke = state.stamina < 25 ? '#f97316' : '#22c55e';
+          }
           elStamPct.textContent = Math.ceil(state.stamina) + '%';
           elStamFill.style.width = state.stamina + '%';
           if (state.battery < 20 && !state._lowBatSpoken) {
@@ -12532,8 +13394,68 @@
           } else if (state.battery > 55) {
             state._lowBatSpoken = false;
           }
+          if (state.zone !== 'level37' && state.zone !== 'level922' && state.zone !== 'level94') {
+            let floorY = 0;
+            for (let pi = 0; pi < walkPlatforms.length; pi++) {
+              const wp = walkPlatforms[pi];
+              if (wp.zone === state.zone && state.pos.x >= wp.minX && state.pos.x <= wp.maxX && state.pos.z >= wp.minZ && state.pos.z <= wp.maxZ) {
+                if (wp.topY > floorY) floorY = wp.topY;
+              }
+            }
+            const eyeH = state.crouching ? 0.92 : 1.65;
+            const tgtY = floorY + eyeH;
+            if (!state.onGround || state.velY > 0 || state.pos.y > tgtY + 0.08) {
+              state.velY -= 19.5 * dt;
+              state.pos.y += state.velY * dt;
+              if (state.pos.y <= tgtY) {
+                state.pos.y = tgtY;
+                state.velY = 0;
+                state.onGround = true;
+              }
+            } else {
+              state.pos.y += (tgtY - state.pos.y) * Math.min(1, dt * 12);
+              state.onGround = true;
+            }
+          }
           if (state.zone === 'level0' && !state._wakeSpoken && state.elapsed > 1.2) {
-            state._wakeSpoken = true;
+
+          if (state.zone !== 'metro_lobby' && state.zone !== 'level61' && state.zone !== 'level3999' && state.zone !== 'level94') {
+            const curTh = LEVEL_THEMES[state.currentLevel] || LEVEL_THEMES[0];
+            const baseHemi = (state.currentLevel === 6 || state.currentLevel === 8) ? 0.08 : Math.min(0.42, (curTh.hemiInt || 0.45) * 0.72);
+            const baseFog = curTh.fogDens || 0.036;
+            const pocket = Math.sin(state.pos.x * 0.075) * Math.cos(state.pos.z * 0.075) + 0.42 * Math.sin(state.pos.x * 0.15 + state.pos.z * 0.11);
+            const inPit = state.zone === 'level0' && state.pos.y < 1.35;
+            const isDarkRoom = inPit || pocket < -0.35;
+            const isBrightHall = !inPit && pocket > 0.38;
+            const tgtHemi = isDarkRoom ? baseHemi * 0.28 : (isBrightHall ? Math.min(0.54, baseHemi * 1.48) : baseHemi);
+            const tgtAmb = isDarkRoom ? 0.025 : (isBrightHall ? 0.19 : 0.09);
+            const tgtFog = isDarkRoom ? Math.min(0.085, baseFog * 1.62) : (isBrightHall ? Math.max(0.020, baseFog * 0.76) : baseFog);
+            hemiLight.intensity += (tgtHemi - hemiLight.intensity) * Math.min(1, dt * 2.8);
+            ambientLight.intensity += (tgtAmb - ambientLight.intensity) * Math.min(1, dt * 2.8);
+            scene.fog.density += (tgtFog - scene.fog.density) * Math.min(1, dt * 2.8);
+
+            // Snap 4 localized overhead room lights to nearby bright ceiling pockets (dark rooms stay pitch black!)
+            const cellStep = 14;
+            const gx = Math.round(state.pos.x / cellStep);
+            const gz = Math.round(state.pos.z / cellStep);
+            const offsets = [[0, 0], [1, 0], [0, 1], [-1, 0]];
+            for (let li = 0; li < roomLightPool.length; li++) {
+              const lx = (gx + offsets[li][0]) * cellStep;
+              const lz = (gz + offsets[li][1]) * cellStep;
+              const lp = Math.sin(lx * 0.075) * Math.cos(lz * 0.075) + 0.42 * Math.sin(lx * 0.15 + lz * 0.11);
+              const rl = roomLightPool[li];
+              rl.color.setHex(curTh.hemiSky || 0xfff5d6);
+              rl.position.set(lx, 3.1, lz);
+              if (lp > -0.10 && state.currentLevel !== 6) {
+                const flick = (Math.sin(animT * 11 + lx + lz) > 0.94) ? 0.35 : 1.0;
+                rl.intensity = (lp > 0.35 ? 1.15 : 0.62) * flick;
+              } else {
+                rl.intensity = 0;
+              }
+            }
+          } else {
+            for (let li = 0; li < roomLightPool.length; li++) roomLightPool[li].intensity = 0;
+          }            state._wakeSpoken = true;
             Sound.playVoice('vox_wake', 0.92, 60000);
           }
           if (state.monsterChasing && !state._monsterSpoken) {
@@ -12543,7 +13465,7 @@
             state._monsterSpoken = false;
           }
 
-          updatePsychologicalHorror(dt, animT); if (typeof CoopSystem !== 'undefined') CoopSystem.tick(dt); if (typeof fpBody !== 'undefined') fpBody.update(dt);
+          updatePsychologicalHorror(dt, animT); if (typeof CoopSystem !== 'undefined') CoopSystem.tick(dt); if (typeof fpBody !== 'undefined') fpBody.update(dt); if (typeof poltergeistChair !== 'undefined') poltergeistChair.update(dt);
           if (state.zone === 'levelendless') { Endless50K.tick(dt, animT, cfg); renderer.render(scene, camera); return; }
           for (let bi = 0; bi < bonusPickups.length; bi++) {
             const bp = bonusPickups[bi];
@@ -12553,10 +13475,10 @@
               bp.taken = true;
               bp.mesh.visible = false;
               if (bp.type === 'almond') {
-                state.stamina = 100; state.battery = 100; state.sanity = 100;
-                Sound.almondDrink();
-                setTimeout(() => Sound.playVoice('vox_almond', 0.9, 12000), 900);
-                showToast("Bodom suvi ichildi! Kuch, fonar va aql-idrok 100% tiklandi!");
+                state.invAlmond = (state.invAlmond || 0) + 1;
+                Sound.pickup();
+                if (window.__zulmatSyncInv) window.__zulmatSyncInv();
+                showToast("Bodom suvi sumkaga olindi! Ichish uchun pastdagi ikonni bosing (1).");
               } else {
                 state.vhsTapes++;
                 Sound.pickup();
@@ -12724,21 +13646,19 @@
             // Warehouse Stalker AI (becomes hyper-aggressive during Blackouts!)
             const dMon1 = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
             const aggroRange = state.l1Blackout ? 34.0 : 16.0;
-            state.monsterChasing = !state.hiding && dMon1 < aggroRange;
+            state.monsterChasing = canMonsterDetect(dMon1, aggroRange, wantsSprint);
             if (state.monsterChasing) {
-              state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
             } else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 1.5) {
               const wp = [[-20, 12], [20, 12], [48, 18], [56, -16], [-18, -52], [18, -52], [0, -18]];
               const pick = wp[Math.floor(Math.random() * wp.length)];
-              state.monsterTarget = new THREE.Vector3(pick[0], 0, pick[1]);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(pick[0], 0, pick[1]); }
             }
             const mDx1 = state.monsterTarget.x - state.monsterPos.x;
             const mDz1 = state.monsterTarget.z - state.monsterPos.z;
             const mDist1 = Math.hypot(mDx1, mDz1) || 1;
             const mSpd1 = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * (state.l1Blackout ? 1.14 : 1.05);
-            state.monsterPos.x += (mDx1 / mDist1) * mSpd1 * dt;
-            state.monsterPos.z += (mDz1 / mDist1) * mSpd1 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (mDx1), state.monsterPos.z + (mDz1), mSpd1, dt);
             state.monsterYaw = Math.atan2(mDx1, mDz1);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
             monsterGroup.rotation.y = state.monsterYaw;
@@ -12803,17 +13723,16 @@
             else elInteractBtn.classList.remove('visible');
 
             const dM3 = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
-            state.monsterChasing = !state.hiding && dM3 < 22;
-            if (state.monsterChasing) state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+            state.monsterChasing = canMonsterDetect(dM3, 22, wantsSprint);
+            if (state.monsterChasing) { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
             else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 2.0) {
               const p = l3OpenCells[Math.floor(Math.random() * l3OpenCells.length)];
-              state.monsterTarget = new THREE.Vector3(p.x, 0, p.z);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(p.x, 0, p.z); }
             }
             const dx3 = state.monsterTarget.x - state.monsterPos.x, dz3 = state.monsterTarget.z - state.monsterPos.z;
             const dd3 = Math.hypot(dx3, dz3) || 1;
             const spd3 = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.16;
-            state.monsterPos.x += (dx3 / dd3) * spd3 * dt; state.monsterPos.z += (dz3 / dd3) * spd3 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx3), state.monsterPos.z + (dz3), spd3, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
             monsterGroup.rotation.y = Math.atan2(dx3, dz3);
             const df3 = Math.max(0, Math.min(1, 1 - (dM3 - 2) / 14));
@@ -12886,17 +13805,16 @@
             else elInteractBtn.classList.remove('visible');
 
             const dM5 = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
-            state.monsterChasing = !state.hiding && dM5 < 20;
-            if (state.monsterChasing) state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+            state.monsterChasing = canMonsterDetect(dM5, 20, wantsSprint);
+            if (state.monsterChasing) { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
             else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 2.0) {
               const p = l5OpenCells[Math.floor(Math.random() * l5OpenCells.length)];
-              state.monsterTarget = new THREE.Vector3(p.x, 0, p.z);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(p.x, 0, p.z); }
             }
             const dx5 = state.monsterTarget.x - state.monsterPos.x, dz5 = state.monsterTarget.z - state.monsterPos.z;
             const dd5 = Math.hypot(dx5, dz5) || 1;
             const spd5 = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.12;
-            state.monsterPos.x += (dx5 / dd5) * spd5 * dt; state.monsterPos.z += (dz5 / dd5) * spd5 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx5), state.monsterPos.z + (dz5), spd5, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
             monsterGroup.rotation.y = Math.atan2(dx5, dz5);
             const df5 = Math.max(0, Math.min(1, 1 - (dM5 - 2) / 14));
@@ -12922,17 +13840,16 @@
             else elInteractBtn.classList.remove('visible');
 
             const dM6 = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
-            state.monsterChasing = (dM6 < (state.sprinting ? 26 : 16));
-            if (state.monsterChasing) state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+            state.monsterChasing = canMonsterDetect(dM6, state.sprinting ? 24 : 15, wantsSprint);
+            if (state.monsterChasing) { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
             else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 2.0) {
               const p = l6OpenCells[Math.floor(Math.random() * l6OpenCells.length)];
-              state.monsterTarget = new THREE.Vector3(p.x, 0, p.z);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(p.x, 0, p.z); }
             }
             const dx6 = state.monsterTarget.x - state.monsterPos.x, dz6 = state.monsterTarget.z - state.monsterPos.z;
             const dd6 = Math.hypot(dx6, dz6) || 1;
             const spd6 = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.15;
-            state.monsterPos.x += (dx6 / dd6) * spd6 * dt; state.monsterPos.z += (dz6 / dd6) * spd6 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx6), state.monsterPos.z + (dz6), spd6, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
             monsterGroup.rotation.y = Math.atan2(dx6, dz6);
             const df6 = Math.max(0, Math.min(1, 1 - (dM6 - 2) / 14));
@@ -12998,17 +13915,16 @@
             else elInteractBtn.classList.remove('visible');
 
             const dM8 = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
-            state.monsterChasing = (dM8 < 22);
-            if (state.monsterChasing) state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+            state.monsterChasing = canMonsterDetect(dM8, 22, wantsSprint);
+            if (state.monsterChasing) { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
             else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 2.0) {
               const p = l8OpenCells[Math.floor(Math.random() * l8OpenCells.length)];
-              state.monsterTarget = new THREE.Vector3(p.x, 0, p.z);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(p.x, 0, p.z); }
             }
             const dx8 = state.monsterTarget.x - state.monsterPos.x, dz8 = state.monsterTarget.z - state.monsterPos.z;
             const dd8 = Math.hypot(dx8, dz8) || 1;
             const spd8 = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.12;
-            state.monsterPos.x += (dx8 / dd8) * spd8 * dt; state.monsterPos.z += (dz8 / dd8) * spd8 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx8), state.monsterPos.z + (dz8), spd8, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
             monsterGroup.rotation.y = Math.atan2(dx8, dz8);
             const df8 = Math.max(0, Math.min(1, 1 - (dM8 - 2) / 14));
@@ -13039,8 +13955,7 @@
             const dx188 = tx188 - state.monsterPos.x, dz188 = tz188 - state.monsterPos.z;
             const dd188 = Math.hypot(dx188, dz188) || 1;
             const spd188 = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.1;
-            state.monsterPos.x += (dx188 / dd188) * spd188 * dt; state.monsterPos.z += (dz188 / dd188) * spd188 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx188), state.monsterPos.z + (dz188), spd188, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
             monsterGroup.rotation.y = Math.atan2(dx188, dz188);
             const df188 = Math.max(0, Math.min(1, 1 - (dM188 - 2) / 14));
@@ -13072,8 +13987,7 @@
             const dx974 = tx974 - state.monsterPos.x, dz974 = tz974 - state.monsterPos.z;
             const dd974 = Math.hypot(dx974, dz974) || 1;
             const spd974 = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.05;
-            state.monsterPos.x += (dx974 / dd974) * spd974 * dt; state.monsterPos.z += (dz974 / dd974) * spd974 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx974), state.monsterPos.z + (dz974), spd974, dt);
             monsterGroup.position.set(state.monsterPos.x, Math.sin(animT * 1.8) * 0.06, state.monsterPos.z);
             monsterGroup.rotation.y = Math.atan2(dx974, dz974);
             monsterGroup.rotation.z = Math.sin(animT * 2.1) * 0.035;
@@ -13123,12 +14037,30 @@
             const tz = state.monsterChasing ? state.pos.z : Math.cos(animT * 0.35) * 16;
             const dx = tx - state.monsterPos.x, dz = tz - state.monsterPos.z, dd = Math.hypot(dx, dz) || 1;
             const spd = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.1;
-            state.monsterPos.x += (dx / dd) * spd * dt; state.monsterPos.z += (dz / dd) * spd * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx), state.monsterPos.z + (dz), spd, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z); monsterGroup.rotation.y = Math.atan2(dx, dz);
             const df = Math.max(0, Math.min(1, 1 - (dM - 2) / 14)); elDangerVig.style.opacity = String(df * 0.85);
             if (dM < 1.5) { startKillAnimation(); return; }
             elHudObj.textContent = 'Level 33 • Terminallar: ' + state.l33NodesDone + ' / 6' + (l33Exit.unlocked ? ' • CHIQISH OCHILDI!' : '');
+            if (state.zone === 'levelmirror' && window.__zulmatMirrorRef && window.__zulmatMirrorRef.group) {
+              const mr = window.__zulmatMirrorRef;
+              let bestM = null, bestD = 14.0;
+              for (let mi = 0; mi < mr.coords.length; mi++) {
+                const [mx, mz] = mr.coords[mi];
+                const md = Math.hypot(state.pos.x - mx, state.pos.z - mz);
+                if (md < bestD) { bestD = md; bestM = [mx, mz]; }
+              }
+              if (bestM && Math.abs(state.pos.x - bestM[0]) < 4.5) {
+                const [mx, mz] = bestM;
+                const dz = state.pos.z - mz;
+                mr.group.visible = true;
+                mr.group.position.set(state.pos.x, 0, mz - dz);
+                mr.group.rotation.y = Math.PI - state.yaw;
+                if (mr.mixer) mr.mixer.update(dt * (len > 0.05 ? 1.35 : 0.5));
+              } else {
+                mr.group.visible = false;
+              }
+            }
             const bob = Math.sin(state.bobPhase) * (len > 0.05 ? 0.045 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
@@ -13152,8 +14084,7 @@
             const tz = state.monsterChasing ? state.pos.z : Math.sin(animT * 0.38) * 18;
             const dx = tx - state.monsterPos.x, dz = tz - state.monsterPos.z, dd = Math.hypot(dx, dz) || 1;
             const spd = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.12;
-            state.monsterPos.x += (dx / dd) * spd * dt; state.monsterPos.z += (dz / dd) * spd * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx), state.monsterPos.z + (dz), spd, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z); monsterGroup.rotation.y = Math.atan2(dx, dz);
             const df = Math.max(0, Math.min(1, 1 - (dM - 2) / 14)); elDangerVig.style.opacity = String(df * 0.85);
             if (dM < 1.5) { startKillAnimation(); return; }
@@ -13177,15 +14108,14 @@
             else elInteractBtn.classList.remove('visible');
             const dM = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
             state.monsterChasing = dM < 22;
-            if (state.monsterChasing) state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+            if (state.monsterChasing) { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
             else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 2.0) {
               const p = lShadyOpenCells[Math.floor(Math.random() * lShadyOpenCells.length)];
-              state.monsterTarget = new THREE.Vector3(p.x, 0, p.z);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(p.x, 0, p.z); }
             }
             const dx = state.monsterTarget.x - state.monsterPos.x, dz = state.monsterTarget.z - state.monsterPos.z, dd = Math.hypot(dx, dz) || 1;
             const spd = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.15;
-            state.monsterPos.x += (dx / dd) * spd * dt; state.monsterPos.z += (dz / dd) * spd * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx), state.monsterPos.z + (dz), spd, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z); monsterGroup.rotation.y = Math.atan2(dx, dz);
             const df = Math.max(0, Math.min(1, 1 - (dM - 2) / 14)); elDangerVig.style.opacity = String(df * 0.88);
             if (dM < 1.5) { startKillAnimation(); return; }
@@ -13221,8 +14151,7 @@
               const tz = state.monsterChasing ? state.pos.z : Math.cos(animT * 0.35) * 22;
               const dx = tx - state.monsterPos.x, dz = tz - state.monsterPos.z, dd = Math.hypot(dx, dz) || 1;
               const spd = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.12;
-              state.monsterPos.x += (dx / dd) * spd * dt; state.monsterPos.z += (dz / dd) * spd * dt;
-              resolveWallCollision(state.monsterPos, 0.55);
+              steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx), state.monsterPos.z + (dz), spd, dt);
               monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z); monsterGroup.rotation.y = Math.atan2(dx, dz);
               if (dM < 1.5) { startKillAnimation(); return; }
             }
@@ -13313,9 +14242,7 @@
             const mDz11 = (ch11 ? state.pos.z : Math.cos(animT * 0.14) * 70) - state.monsterPos.z;
             const mD11 = Math.hypot(mDx11, mDz11) || 1;
             const spd11 = (ch11 ? cfg.chaseSpeed : cfg.mSpeed) * 1.05;
-            state.monsterPos.x += (mDx11 / mD11) * spd11 * dt;
-            state.monsterPos.z += (mDz11 / mD11) * spd11 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (mDx11), state.monsterPos.z + (mDz11), spd11, dt);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
             monsterGroup.rotation.y = Math.atan2(mDx11, mDz11);
             const df11 = Math.max(0, Math.min(1, 1 - (dM11 - 2.0) / 16.0));
@@ -13581,7 +14508,7 @@
               dMon94 = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
               state.monsterChasing = !insideHouse;
               if (state.monsterChasing) {
-                state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+                { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
               } else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 3.0) {
                 state.monsterTarget = new THREE.Vector3((Math.random() - 0.5) * 420, 0, (Math.random() - 0.5) * 420);
               }
@@ -13676,18 +14603,16 @@
 
             // Yellow Partygoer =) Stalker AI
             const dMonF = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
-            state.monsterChasing = !state.hiding && dMonF < 20.0;
-            if (state.monsterChasing) state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+            state.monsterChasing = canMonsterDetect(dMonF, 20.0, wantsSprint);
+            if (state.monsterChasing) { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
             else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 2.0) {
               const p = lFunOpenCells[Math.floor(Math.random() * lFunOpenCells.length)];
-              state.monsterTarget = new THREE.Vector3(p.x, 0, p.z);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(p.x, 0, p.z); }
             }
             const mDxF = state.monsterTarget.x - state.monsterPos.x, mDzF = state.monsterTarget.z - state.monsterPos.z;
             const mDistF = Math.hypot(mDxF, mDzF) || 1;
             const mSpdF = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.15;
-            state.monsterPos.x += (mDxF / mDistF) * mSpdF * dt;
-            state.monsterPos.z += (mDzF / mDistF) * mSpdF * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (mDxF), state.monsterPos.z + (mDzF), mSpdF, dt);
             partygoerGroup.position.set(state.monsterPos.x, partygoerLoaded ? 0 : Math.abs(Math.sin(animT * 7)) * 0.08, state.monsterPos.z);
             partygoerGroup.rotation.y = Math.atan2(mDxF, mDzF); updateActiveMonsterMixers(dt, dMonF < 16);
             const dfF = Math.max(0, Math.min(1, 1 - (dMonF - 2.0) / 14.0));
@@ -13752,18 +14677,16 @@
             else { elInteractBtn.classList.remove('visible'); }
 
             const dMon2 = Math.hypot(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
-            state.monsterChasing = !state.hiding && dMon2 < 22.0;
-            if (state.monsterChasing) state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+            state.monsterChasing = canMonsterDetect(dMon2, 22.0, wantsSprint);
+            if (state.monsterChasing) { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
             else if (!state.monsterTarget || Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z) < 2.0) {
               const p = l2OpenCells[Math.floor(Math.random() * l2OpenCells.length)];
-              state.monsterTarget = new THREE.Vector3(p.x, 0, p.z);
+              { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(p.x, 0, p.z); }
             }
             const mDx2 = state.monsterTarget.x - state.monsterPos.x, mDz2 = state.monsterTarget.z - state.monsterPos.z;
             const mDist2 = Math.hypot(mDx2, mDz2) || 1;
             const mSpd2 = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.18;
-            state.monsterPos.x += (mDx2 / mDist2) * mSpd2 * dt;
-            state.monsterPos.z += (mDz2 / mDist2) * mSpd2 * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterPos.x + (mDx2), state.monsterPos.z + (mDz2), mSpd2, dt);
             state.monsterYaw = Math.atan2(mDx2, mDz2);
             monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
             monsterGroup.rotation.y = state.monsterYaw;
@@ -14050,9 +14973,10 @@
             if (Math.hypot(state.pos.x - b.x, state.pos.z - b.z) < 1.25) {
               b.collected = true;
               b.mesh.visible = false;
-              state.battery = Math.min(100, state.battery + 45);
+              state.invBattery = (state.invBattery || 0) + 1;
               Sound.pickup();
-              showToast('Fonar batareyasi +45% to\'ldirildi!');
+              if (window.__zulmatSyncInv) window.__zulmatSyncInv();
+              showToast("Batareya sumkaga olindi! Almashtirish uchun pastdagi ikonni bosing (2).");
             }
           });
 
@@ -14111,7 +15035,7 @@
                 monsterRunAct.play();
               }
             }
-            state.monsterTarget = new THREE.Vector3(state.pos.x, 0, state.pos.z);
+            { if (!state.monsterTarget) state.monsterTarget = new THREE.Vector3(); state.monsterTarget.set(state.pos.x, 0, state.pos.z); }
           } else if (state.monsterChasing) {
             const dT = Math.hypot(state.monsterTarget.x - state.monsterPos.x, state.monsterTarget.z - state.monsterPos.z);
             if (dT < 1.3 || state.hiding) {
@@ -14134,9 +15058,7 @@
             const lvlMult = (LEVEL_THEMES[state.currentLevel] ? LEVEL_THEMES[state.currentLevel].speedMult : 1.0);
             const mSpd = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * lvlMult;
             const prevMX = state.monsterPos.x, prevMZ = state.monsterPos.z;
-            state.monsterPos.x += (mDx / mDistT) * mSpd * dt;
-            state.monsterPos.z += (mDz / mDistT) * mSpd * dt;
-            resolveWallCollision(state.monsterPos, 0.55);
+            steerMonsterStep(state.monsterPos, state.monsterTarget.x, state.monsterTarget.z, mSpd, dt);
             // If stuck on corner while patrolling, pick a new corridor waypoint
             if (!state.monsterChasing && Math.hypot(state.monsterPos.x - prevMX, state.monsterPos.z - prevMZ) < mSpd * dt * 0.25) {
               pickMonsterPatrolTarget();
