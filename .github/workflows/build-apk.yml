@@ -46,43 +46,58 @@ jobs:
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js -o www/vendor/three.min.js
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js -o www/vendor/GLTFLoader.js
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js -o www/vendor/DRACOLoader.js
-          ls -lh www/vendor
 
       - name: Install Capacitor & create Android project
         run: |
           npm install
           npx cap add android
 
-      - name: Configure AndroidManifest (Landscape Lock + Mic/Internet for Co-op)
+      - name: Configure AndroidManifest, styles and MainActivity fullscreen
         run: |
-          python3 - << 'PYEOF'
-          p = "android/app/src/main/AndroidManifest.xml"
-          with open(p, "r", encoding="utf-8") as f:
-              xml = f.read()
+          node -e '
+          const fs = require("fs");
+          const path = require("path");
 
-          perms = [
-              '<uses-permission android:name="android.permission.INTERNET" />',
-              '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-              '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
-          ]
-          for perm in perms:
-              if perm not in xml:
-                  xml = xml.replace("<application", perm + "\n    <application", 1)
+          const manifestPath = "android/app/src/main/AndroidManifest.xml";
+          if (fs.existsSync(manifestPath)) {
+            let xml = fs.readFileSync(manifestPath, "utf8");
+            const perms = [
+              "<uses-permission android:name=\"android.permission.INTERNET\" />",
+              "<uses-permission android:name=\"android.permission.RECORD_AUDIO\" />",
+              "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />"
+            ];
+            for (const p of perms) {
+              if (!xml.includes(p)) {
+                xml = xml.replace("<application", p + "\n    <application");
+              }
+            }
+            if (!xml.includes("android:screenOrientation")) {
+              xml = xml.replace("android:name=\".MainActivity\"", "android:name=\".MainActivity\"\n            android:screenOrientation=\"sensorLandscape\"");
+            }
+            fs.writeFileSync(manifestPath, xml, "utf8");
+          }
 
-          if 'android:screenOrientation' not in xml:
-              xml = xml.replace('android:name=".MainActivity"', 'android:name=".MainActivity"\n            android:screenOrientation="sensorLandscape"', 1)
+          function walk(dir, out = []) {
+            if (!fs.existsSync(dir)) return out;
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) walk(full, out);
+              else out.push(full);
+            }
+            return out;
+          }
 
-          with open(p, "w", encoding="utf-8") as f:
-              f.write(xml)
-          PYEOF
-          npx cap sync android
+          for (const sp of walk("android/app/src/main/res").filter(f => f.endsWith("styles.xml"))) {
+            let sxml = fs.readFileSync(sp, "utf8");
+            if (!sxml.includes("android:windowFullscreen") && sxml.includes("</style>")) {
+              const items = "        <item name=\"android:windowFullscreen\">true</item>\n        <item name=\"android:windowNoTitle\">true</item>\n        <item name=\"android:windowLayoutInDisplayCutoutMode\">shortEdges</item>\n";
+              sxml = sxml.replace("</style>", items + "    </style>");
+              fs.writeFileSync(sp, sxml, "utf8");
+            }
+          }
 
-      - name: Enable Immersive Fullscreen in MainActivity
-        run: |
-          python3 - << 'PYEOF'
-          import glob
-
-          immersive_code = """  private void applyImmersiveMode() {
+          const helper = `
+  private void hideSystemBars() {
     android.view.Window w = getWindow();
     if (w == null) return;
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
@@ -104,22 +119,26 @@ jobs:
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
     if (hasFocus) {
-      applyImmersiveMode();
+      hideSystemBars();
     }
   }
-}"""
+`;
 
-          for jf in glob.glob("android/app/src/main/**/MainActivity.java", recursive=True):
-              with open(jf, "r", encoding="utf-8") as f:
-                  txt = f.read()
-              if "applyImmersiveMode" not in txt and "public class MainActivity extends BridgeActivity {" in txt:
-                  txt = txt.replace("public class MainActivity extends BridgeActivity {", "public class MainActivity extends BridgeActivity {", 1)
-                  idx = txt.rfind("}")
-                  if idx != -1:
-                      txt = txt[:idx] + "\n" + immersive_code + "\n"
-                  with open(jf, "w", encoding="utf-8") as f:
-                      f.write(txt)
-          PYEOF
+          for (const jf of walk("android/app/src/main/java").filter(f => f.endsWith("MainActivity.java"))) {
+            let src = fs.readFileSync(jf, "utf8");
+            if (!src.includes("hideSystemBars")) {
+              if (src.includes("super.onCreate(savedInstanceState);")) {
+                src = src.replace("super.onCreate(savedInstanceState);", "super.onCreate(savedInstanceState);\n    hideSystemBars();");
+              }
+              const idx = src.lastIndexOf("}");
+              if (idx !== -1) {
+                src = src.slice(0, idx) + helper + "}\n";
+                fs.writeFileSync(jf, src, "utf8");
+              }
+            }
+          }
+          '
+          npx cap sync android
 
       - name: Build Debug APK
         working-directory: android
