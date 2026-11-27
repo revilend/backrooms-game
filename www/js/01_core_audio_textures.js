@@ -396,50 +396,225 @@
         _voiceCache: {},
         _subTimer: null,
         _voiceSubtitles: {
+          cas_shady: {
+            uz: "Bu yerda barcha ranglar o'chib ketgan... Faqat kulrang tuman, kulrang devorlar va sukunat. Qancha uzoq qolsangiz, atrof shuncha xiralashib, xotirangiz ham o'chib boradi. O'zingizni butunlay yo'qotmasdan oldin chiqish portalini topishingiz shart.",
+            en: "All color has faded from this place... Only gray fog, gray walls, and silence. The longer you stay, the blurrier the world becomes and the faster your memory fades. You must find the exit portal before losing yourself completely.",
+            ru: "Здесь исчезли все краски... Только серый туман, серые стены и тишина. Чем дольше вы остаётесь, тем сильнее всё расплывается и стирается ваша память. Вы обязаны найти портал выхода, пока не потеряли себя."
+          },
+          metro_welcome: {
+            uz: "[E'lon]: Diqqat! Yerosti bekatiga xush kelibsiz. Iltimos, sariq chiziqdan o'tmang. Bu yerda vaqt o'lchanmaydi.",
+            en: "[PA System]: Attention! Welcome to the Underground Station. Please do not cross the yellow line. Time is not measured here.",
+            ru: "[Объявление]: Внимание! Добро пожаловать на подземную станцию. Пожалуйста, не переступайте жёлтую линию. Время здесь не измеряется."
+          },
+          vox_exit_open: {
+            uz: "Nihoyat! Chiqish eshigi ochildi! Tezroq o'sha yerga!",
+            en: "At last! The exit door is open! Hurry over there!",
+            ru: "Наконец-то! Выход открыт! Быстрее туда!"
+          },
+          vox_intro_walk: {
+            uz: "Har kun bir xil... Ish, muammolar, charchoq... Hech narsaga ulgurmayapman. Qaniydi bir zumga hamma narsadan uzoqlashib, tinch joyga ketib qolsam... To'xta, men qayoqqa burildim? Orqamdagi yo'l qani?!",
+            en: "Every day is the same... Work, problems, exhaustion... I can't keep up with anything. If only I could get away from it all to a quiet place... Wait—where did I turn? Where is the road behind me?!",
+            ru: "Каждый день одно и то же... Работа, проблемы, усталость... Ничего не успеваю. Хоть бы на миг уйти от всего в тихое место... Постой, куда я свернул? Где дорога позади меня?!"
+          },
+          cas_8: {
+            uz: "Chuqur tosh g'orlar... Devorlardagi moviy kristallar xira nur sochib yo'lni ko'rsatyapti. Bu yerda har bir tosh qadam sadosini yuz metrga tarqatadi. Shiftga qarang: g'or devorlariga yopishib turgan o'rgimchaksifat maxluqlar ovozga qarab tashlanadi.",
+            en: "Deep stone caves... Blue crystals on the walls cast a faint glow to light the path. Every rock carries footsteps a hundred meters. Look at the ceiling: spider-like creatures clinging to the cave walls lunge at any sound.",
+            ru: "Глубокие каменные пещеры... Голубые кристаллы на стенах слабо освещают путь. Здесь каждый камень разносит эхо шагов на сто метров. Смотрите на потолок: паукообразные твари на стенах пещеры бросаются на любой звук."
+          },
+          cas_9: {
+            uz: "Tungi tashlandiq mahalla... Ko'cha chiroqlari miltillab turibdi, uylar esa bo'm-bo'sh. Asfaltda yurish xavfli, chunki ko'chalarda to'rt oyoqli itga o'xshash maxluqlar ov qilyapti. Ularning uvillashi yaqinlashsa, darhol uylar orasiga yoki ichkariga yashirining.",
+            en: "An abandoned neighborhood at night... Streetlights flicker and the houses stand empty. Walking the asphalt is dangerous—four-legged hound-like creatures prowl the streets. If their howling draws near, hide between or inside the houses at once.",
+            ru: "Ночной заброшенный квартал... Уличные фонари мигают, дома пусты. Идти по асфальту опасно — по улицам рыщут четвероногие твари, похожие на псов. Если их вой приближается, немедленно прячьтесь между домами или внутри."
+          },
+          cas_922: {
+            uz: "Cheksiz qorong'u bo'shliq ustida osilib turgan ulkan zinapoya... Pastga qarasangiz, tubsizlikdan boshingiz aylanadi. Har bir qavatda maxluqlar yo'lni to'sishi mumkin. Pastga tushishni xayolingizga ham keltirmang — faqat yuqoriga, cho'qqidagi nurga qarab ko'tariling.",
+            en: "A colossal staircase suspended over an endless dark void... Looking down makes your head spin from the abyss. Creatures can block the path on every landing. Never even think about going down—climb only upward toward the light at the summit.",
+            ru: "Гигантская лестница, парящая над бездонной тьмой... Посмотрите вниз — от пропасти закружится голова. На каждом пролёте путь могут преградить твари. Даже не думайте спускаться — поднимайтесь только вверх, к свету на вершине."
+          },
+          cas_94: {
+            uz: "Multfilmdagidek yashil tepaliklar va oppoq uylar... Kunduzi bu yer tinch va g'alati darajada go'zal ko'rinadi. Ammo osmon qorayishi bilan tepaliklar orasidan g'alati maxluqlar chiqadi. Uylarning eshigini yoping va tunda tashqarida qolib ketmang.",
+            en: "Cartoon-like green hills and snow-white houses... By day it looks peaceful and uncannily beautiful. Yet the moment the sky darkens, strange creatures emerge from the hills. Shut the doors and never get caught outside at night.",
+            ru: "Зелёные холмы и белоснежные дома, как в мультфильме... Днём здесь тихо и пугающе красиво. Но как только небо темнеет, из-за холмов выходят странные существа. Закрывайте двери и не оставайтесь снаружи ночью."
+          },
+          cas_974: {
+            uz: "Pushti devorlar, yumshoq gilam va hamma joyda o'yinchoqlar — bu Kitty uyi. Tashqaridan juda begunoh ko'rinsa ham, ichkarida bo'yi uch metrdan oshadigan qop-qora yuzsiz mavjudot yashaydi. U shirinlik izlaydi; unga yaqinlashmang, tezda chiqish eshigini oching.",
+            en: "Pink walls, soft carpet, and toys everywhere—this is Kitty's House. Innocent as it looks from outside, a pitch-black faceless entity over three meters tall lives within. It wants something sweet; keep your distance and open the exit door fast.",
+            ru: "Розовые стены, мягкий ковёр и повсюду игрушки — это Дом Китти. Каким бы безобидным он ни казался снаружи, внутри обитает чёрное безликое существо выше трёх метров. Оно ищет сладости — не приближайтесь и скорее открывайте выход."
+          },
+          cas_end: {
+            uz: "Ulkan kutubxona... Javonlarda millionlab bo'sh kitoblar turibdi va devorda 'THE END' deb yozilgan. Lekin aldanmang: bu haqiqiy oxir emas, shunchaki tuzoq. Chiqish uchun zaldagi eski kompyuterni topib, maxfiy qayta yuklash kodini ishga tushiring.",
+            en: "A massive library... Millions of blank books line the shelves, and 'THE END' is written on the wall. Do not be fooled: this isn't the real ending, just a trap. Find the old computer in the hall and run the secret reboot code to escape.",
+            ru: "Огромная библиотека... На полках миллионы пустых книг, а на стене написано 'THE END'. Но не обманывайтесь: это не настоящий финал, а ловушка. Найдите старый компьютер в зале и запустите секретный код перезагрузки."
+          },
+          cas_fun: {
+            uz: "Rang-barang devorlar, sharlar va bayram musiqasi... Lekin bu yerdagi kulgi chinakam emas. Sariq rangli, doim tabassum qilib turadigan maxluqlar sizni ziyofatga chaqiradi. Ularga qo'lingizni tekkizmang — bir teksa tamom, chiqish eshigiga qoching.",
+            en: "Colorful walls, balloons, and party music... Yet the laughter here isn't real. Yellow, endlessly smiling creatures invite you to their party. Never let them touch you—one touch and it's over. Run for the exit door!",
+            ru: "Разноцветные стены, шары и праздничная музыка... Но смех здесь фальшивый. Жёлтые существа с вечной улыбкой зовут вас на праздник. Не прикасайтесь к ним — одно касание и всё кончено. Бегите к выходу!"
+          },
+          cas_manila: {
+            uz: "Manilla xonasiga yetib keldim... Nihoyat chiroqlar miltillamayapti va havosi sokin. Stol ustida eski qog'ozlar bilan xaritalar qoldirilgan ekan, ularni diqqat bilan o'qing. Ammo eshik ortidan g'alati nafas eshitilsa, shu zahoti bu yerdan chiqib keting.",
+            en: "I've reached the Manila Room... Finally the lights aren't flickering and the air is calm. Old papers and maps were left on the table—read them carefully. But if you hear strange breathing behind the door, get out immediately.",
+            ru: "Я добрался до комнаты Манила... Наконец-то свет не мигает, и воздух спокоен. На столе оставлены старые бумаги и карты — внимательно прочтите их. Но если за дверью послышится странное дыхание, немедленно уходите."
+          },
+          cas_mirror: {
+            uz: "Hamma joy oynadan yasalgan cheksiz labirint... Qaysi yo'lak haqiqiy, qaysi biri aks ekanini ajratish qiyin. Ko'zgularda ba'zan o'zingizdan boshqa soya ham ko'rinadi. Agar birorta oyna to'satdan sinib ketsa, orqangizga qaramay yuguring!",
+            en: "An endless labyrinth made entirely of mirrors... It's hard to tell which corridor is real and which is a reflection. Sometimes another shadow appears in the glass beside you. If a mirror suddenly shatters, run without looking back!",
+            ru: "Бесконечный лабиринт из зеркал... Трудно отличить настоящий коридор от отражения. Иногда в зеркалах мелькает чужая тень рядом с вами. Если стекло внезапно разобьётся — бегите не оглядываясь!"
+          },
+          cas_run: {
+            uz: "Qizil favqulodda chiroqlar! Kasalxona yo'lagi oxirsizdek ko'rinadi, orqamda esa o'nlab maxluqlar yugurib kelyapti. Hozir o'ylashga ham, orqaga qarashga ham vaqt yo'q. To'siqlar va g'ildirakli karavotlardan sakrab, oldinga qarab yuguring!",
+            en: "Red emergency lights! The hospital corridor seems endless, and dozens of creatures are sprinting behind me. There's no time to think or look back. Vault the obstacles and wheeled hospital beds—just keep running forward!",
+            ru: "Красные аварийные огни! Больничный коридор кажется бесконечным, а позади бегут десятки тварей. Нет времени думать или оглядываться. Перепрыгивайте через препятствия и каталки — бегите только вперёд!"
+          },
+          cas_33: {
+            uz: "Cheksiz tashlandiq savdo markazi... Bo'sh do'konlar, singan vitrinalar va eski aravachalar. Shiftdagi karnaylardan hali ham sekin, buzilgan musiqa yangrayapti. Lekin sotuvchilar o'rnida terisidan ajralgan maxluqlar kezib yuribdi. Do'konlar ichidan aylanib o'ting.",
+            en: "An endless abandoned mall... Empty shops, shattered displays, and old carts. Distorted slow music still plays from ceiling speakers. Instead of clerks, skinless creatures roam the halls. Detour through the stores.",
+            ru: "Бесконечный заброшенный торговый центр... Пустые магазины, разбитые витрины и старые тележки. Из динамиков на потолке всё ещё играет искажённая медленная музыка. Вместо продавцов здесь бродят существа без кожи. Обходите через магазины."
+          },
+          cas_36: {
+            uz: "Bo'm-bo'sh aeroport terminali... Parvozlar jadvalida faqat xato yozuvlar yonib turibdi. Kutish zallaridagi o'rindiqlar chang bosgan, derazadan esa tuman ichidagi samolyotlar ko'rinadi. Chiqish uchun samolyotlar turgan angar tomondagi darvozani topishingiz kerak.",
+            en: "An empty airport terminal... Departure boards flash nothing but errors. Dust covers the waiting-hall seats, and planes sit in the mist outside. To escape, find the gate leading toward the hangar.",
+            ru: "Пустой терминал аэропорта... На табло вылетов горят одни ошибки. Кресла в зале ожидания покрыты пылью, а за окнами в тумане видны самолёты. Чтобы выбраться, найдите ворота в сторону ангара."
+          },
+          cas_37: {
+            uz: "Poolrooms... Hamma joy moviy kafel va iliq tiniq suv, xuddi sokin hammomdek. Ammo suvdagi aks-sado juda g'alati — siz to'xtasangiz ham suvda qadam tovushi eshitiladi. Chuqur hovuzlarga tushmang va quyosh nuri tushayotgan chiqish zinapoyasini qidiring.",
+            en: "The Poolrooms... Blue tiles and warm clear water everywhere, like a quiet bathhouse. Yet the echoes are strange—even when you stop, footsteps splash in the water. Stay out of deep pools and look for the sunlit exit stairs.",
+            ru: "Бассейны... Повсюду голубая плитка и тёплая прозрачная вода, словно в тихой купальне. Но эхо странное: даже когда вы стоите на месте, в воде слышны шаги. Не заходите в глубокие бассейны и ищите лестницу к солнечному свету."
+          },
+          cas_3999: {
+            uz: "Nihoyat! Neon chiroqlar, orqada o'yin avtomatlari va sokin musiqa... Bu haqiqiy oxir! Siz barcha dahshatlardan omon o'tdingiz. Avtomatlar yonidagi so'nggi topshiriqlarni bajaring va chiqish darvozasidan haqiqiy dunyoga qayting.",
+            en: "At last! Neon lights, arcade machines behind me, and calm music... This is the true end! You survived every nightmare. Complete the final tasks by the arcades and return through the exit gate to the real world.",
+            ru: "Наконец-то! Неоновый свет, игровые автоматы и спокойная музыка... Это настоящий финал! Вы пережили все кошмары. Выполните последние задания у автоматов и вернитесь в реальный мир."
+          },
+          cas_4: {
+            uz: "Bo'sh ofis xonalari... Derazalardan tashqarida tinmay yomg'ir yog'yapti, lekin oynaga tegmang — bu oddiy suv emas. Javonlar va stollar ichidan ko'k shishadagi bodom suvini qidiring. U holdan toyganingizda kuch beradi va aqldan ozishdan saqlaydi.",
+            en: "Empty office rooms... Rain pours endlessly outside the windows, but don't touch the glass—that isn't ordinary water. Search shelves and desks for blue bottles of Almond Water. It restores strength and protects your sanity.",
+            ru: "Пустые офисные кабинеты... За окнами не прекращается дождь, но не прикасайтесь к стеклу — это не обычная вода. Ищите на полках и столах синие бутылки миндальной воды. Она вернёт силы и спасёт рассудок."
+          },
+          cas_46: {
+            uz: "Qaynoq arab cho'li... Qum bo'roni ko'zni ochirmaydi, shamol esa xuddi qichqirayotgandek uvillaydi. Uzoqda palma daraxtlari va voha ko'rinyapti, lekin bu sarob bo'lishi ham mumkin. Qum tepalar orasida adashmaslik uchun vohadagi chiqish portalini tezroq toping.",
+            en: "A scorching Arabian desert... The sandstorm blinds you, and the wind howls like a scream. Palm trees and an oasis appear in the distance, though it may be a mirage. Find the oasis exit portal quickly before getting lost in the dunes.",
+            ru: "Раскалённая арабская пустыня... Песчаная буря слепит глаза, а ветер воет как крик. Вдалеке видны пальмы и оазис, но это может быть мираж. Скорее найдите портал выхода в оазисе, чтобы не сгинуть в барханах."
+          },
+          cas_5: {
+            uz: "Eski hashamatli mehmonxona... Gilamlar qizil, devorlarda esa sirli suratlar osilgan. Eshiklar o'z-o'zidan yopilib qolyapti, xuddi kimdir meni kuzatayotgandek. Agar yo'lak oxirida qora kiyimli xizmatkorni ko'rsangiz, to'xtamang va aslo ko'ziga qaramang.",
+            en: "An old luxury hotel... Red carpets and eerie portraits lining the walls. Doors slam shut on their own, as if someone is watching me. If you spot a black-suited butler at the end of the hall, do not stop—and never look him in the eyes.",
+            ru: "Старый роскошный отель... Красные ковры и загадочные картины на стенах. Двери захлопываются сами по себе, будто за мной следят. Если увидите в конце коридора слугу в чёрном — не останавливайтесь и не смотрите ему в глаза."
+          },
+          cas_6: {
+            uz: "Bu qavatda chiroq umuman yo'q. Ko'zingizni ochsangiz ham, yumsangiz ham bir xil qop-qora zulmat. Faqat fonar batareyasiga ishoning; batareya topsangiz darrov oling. Qorong'uda oltita favqulodda mayaqni yoqmasdan turib chiqish eshigini topa olmaysiz.",
+            en: "There is no light on this floor at all. Eyes open or shut, it is the same pitch-black darkness. Rely only on your flashlight battery—grab any battery you find. You cannot find the exit without lighting all six emergency beacons in the dark.",
+            ru: "На этом этаже нет никакого света. С открытыми или закрытыми глазами — вокруг одна кромешная тьма. Надейтесь только на батарею фонарика и сразу берите запасные. Без шести аварийных маяков в темноте выход не найти."
+          },
+          cas_61: {
+            uz: "Nihoyat, tinch va yorug' joy — Snackrooms! Javonlarda ichimliklar va yeguliklar to'la, chiroqlar esa iliq yonib turibdi. Bu yerda maxluqlar yo'q. Biroz nafas rostlab, batareya va bodom suvi to'plab oling, lekin keyingi qavatga o'tishni unutmang.",
+            en: "At last, a quiet, bright place—The Snackrooms! Shelves are stocked with drinks and snacks under warm lights. There are no monsters here. Catch your breath, stock up on batteries and Almond Water, and don't forget to move on to the next floor.",
+            ru: "Наконец-то тихое и светлое место — Snackrooms! Полки полны еды и напитков, горит тёплый свет. Монстров здесь нет. Переведите дух, соберите батарейки и миндальную воду, но не забудьте перейти на следующий уровень."
+          },
+          cas_7: {
+            uz: "Cheksiz sovuq okean... Oyoq ostimda quruqlik yo'q, faqat to'lqinlar va muzdek suv. Suv ostida bahaybat bir narsa suzib yurganini his qilyapman. Uzoqda miltillayotgan suzuvchi belgilarga qarab suzing — faqat ular sizni quruq orolga olib chiqadi.",
+            en: "An endless freezing ocean... No solid ground beneath me, only waves and icy water. I can feel something massive swimming below. Swim toward the distant blinking buoys—only they will guide you to dry land.",
+            ru: "Бескрайний ледяной океан... Под ногами нет суши, только волны и ледяная вода. Я чувствую, как под водой кружит что-то огромное. Плывите к далёким мигающим буйкам — только они выведут вас на остров."
+          },
+          cas_0: {
+            uz: "M.E.G. 1-raqamli arxiv yozuvi. Uch kundan beri shu sariq devorlar va nam gilam orasida adashib yuribman. Chiroqlarning g'uvillashi boshimni yorib yuboryapti. Ba'zi xonalarda shiftdagi yog'och narvonlarni ko'rdim. Tepaga chiqish mumkin, lekin zinhor pastga qaramang.",
+            en: "M.E.G. Archive Log #1. For three days I've been lost among these yellow walls and damp carpet. The buzzing lights are splitting my head. In some rooms I saw wooden ladders to the ceiling. You can climb up, but never look down.",
+            ru: "Архивная запись M.E.G. №1. Уже три дня я блуждаю среди жёлтых стен и сырого ковра. Гул ламп раскалывает голову. В некоторых комнатах я видел деревянные лестницы наверх. Можно подняться, но ни в коем случае не смотрите вниз."
+          },
+          cas_1: {
+            uz: "Tashlandiq omborxona... Har burchakda zanglagan temir javonlar va beton ustunlar. Bir soat oldin zulmatda ikki oyoqli qop-qora soya menga qarab yugurdi. Chiqish uchun qizil chiroqli eshikni topishingiz shart. Qadam tovushi yaqinlashsa, darrov yashirining.",
+            en: "Abandoned warehouse... Rusted metal shelves and concrete pillars in every corner. An hour ago, a pitch-black two-legged shadow sprinted toward me in the dark. You must find the red-lit exit door. If footsteps get close, hide immediately.",
+            ru: "Заброшенный склад... В каждом углу ржавые железные стеллажи и бетонные колонны. Час назад во тьме на меня бросилась чёрная двуногая тень. Чтобы выйти, нужно найти дверь с красным светом. Если шаги приближаются — сразу прячьтесь."
+          },
+          cas_10: {
+            uz: "Cheksiz bug'doy dalasi va qalin tuman. Bu yerda abadiy kechqurun hukmron. Zanglagan traktorlar va eski omborlar yonidan ehtiyotkorlik bilan o'ting. Tuman ichida ko'zingizga qizil nuqtalar ko'rinsa, darrov boshqa tomonga buriling. Ular izingizga tushgan.",
+            en: "Endless wheat fields and thick fog. Eternal dusk rules here. Pass the rusted tractors and old barns with caution. If you spot red dots in the mist, turn the other way immediately. They are hunting you.",
+            ru: "Бесконечное пшеничное поле и густой туман. Здесь царят вечные сумерки. Осторожно проходите мимо ржавых тракторов и старых амбаров. Если увидите в тумане красные точки — сразу сворачивайте в другую сторону. Они идут по вашему следу."
+          },
+          cas_11: {
+            uz: "Abadiy bo'sh shahar... Osmono'par binolar bulutlarga tegib turibdi. Lekin ko'chalarda birorta tirik jon yo'q. Mashinalar joyida toshdek qotib qolgan. Agar uzoqdan metro bekatining yashil belgisini ko'rsangiz, o'sha yerga shoshiling. Najot o'sha yerda.",
+            en: "An eternally empty city... Skyscrapers touch the clouds, yet not a single living soul walks the streets. Cars sit frozen like stone. If you spot the green metro sign in the distance, hurry there. Salvation is there.",
+            ru: "Вечно пустой город... Небоскрёбы упираются в облака, но на улицах нет ни одной живой души. Машины застыли как камень. Если увидите вдалеке зелёный знак метро — спешите туда. Спасение там."
+          },
+          cas_14: {
+            uz: "Bu yer go'yoki jannat o'rmonidek ko'rinadi. Qizil osmon ostida baland daraxtlar shovullaydi. Lekin aldanmang — o'tlar orasida oldingi sayohatchilarning izlari va qon dog'lari bor. Bu o'rmon ongni chalg'itadi; faqat kompas va chiqish belgisiga ishoning.",
+            en: "This place looks like a paradise forest. Tall trees rustle beneath a crimson sky. Don't be fooled — among the grass lie footprints and bloodstains of past wanderers. This forest deceives the mind; trust only your compass and the exit sign.",
+            ru: "Это место кажется райским лесом. Под алым небом шумят высокие деревья. Но не обманывайтесь: в траве есть следы и пятна крови прошлых путников. Этот лес туманит разум — доверяйте только компасу и знаку выхода."
+          },
+          cas_15: {
+            uz: "Oppoq futuristik koridorlar va sovuq neon chiroqlar... Xuddi kosmik kemaning ichidek. Devordagi kompyuterlar hali ham ishlab turibdi, lekin tizim xato beryapti. Chiqish shlyuzini ochish uchun zallardagi terminallardan maxfiy kodlarni topib, tizimni qayta ishga tushiring.",
+            en: "Pure white futuristic corridors and cold neon lights... Like the inside of a spaceship. Wall computers are still running, but the system is throwing errors. Find the secret codes at the hall terminals to reboot the system and open the airlock.",
+            ru: "Белоснежные футуристические коридоры и холодный неон... Будто внутри космического корабля. Компьютеры на стенах всё ещё работают, но система выдаёт сбой. Найдите секретные коды на терминалах в залах, перезапустите систему и откройте шлюз."
+          },
+          cas_188: {
+            uz: "Kvadrat shaklidagi ulkan hovli... To'rt tomondan yuzlab qop-qora derazalar sizga qarab turibdi. Ba'zi derazalar ortida nimadir harakatlanayotganini ko'rdim. Hovlining o'rtasidagi yorug' maydonga chiqmang. Devor bo'ylab yurib chiqish eshigini toping.",
+            en: "A massive square courtyard... Hundreds of pitch-black windows stare down at you from all four sides. I saw something moving behind some of them. Stay out of the bright center of the courtyard. Follow the walls to find the exit door.",
+            ru: "Огромный квадратный двор... Со всех четырёх сторон на вас смотрят сотни чёрных окон. За некоторыми из них я видел движение. Не выходите на светлую площадку в центре двора. Идите вдоль стен и найдите выход."
+          },
+          cas_2: {
+            uz: "Bu tor yo'lakda nafas olish qiyin... Devorlardagi issiq quvurlar har daqiqada yorilib, qaynoq bug' purkayapti. Suv sizib chiqayotgan joylardan chetroq yuring. Orqamdan kimdir emas, xuddi devorni tirnayotgan bir narsa sudralib kelyapti. Yugurish kerak!",
+            en: "It's hard to breathe in this narrow corridor... Hot pipes along the walls burst every minute, spraying scalding steam. Stay clear of leaking water. Something isn't walking behind me — it's crawling, clawing at the walls. I have to run!",
+            ru: "В этом узком коридоре трудно дышать... Горячие трубы на стенах прорывает каждую минуту, выбрасывая обжигающий пар. Обходите места протечек. За мной не просто идут — что-то ползёт, царапая стены. Надо бежать!"
+          },
+          cas_22: {
+            uz: "Qulab tushgan beton devorlar, singan mashinalar va chang... Bu yerda hamma narsa vayron bo'lgan. Qadam tashlashda ehtiyot bo'ling — pol har joyda sinib ketishi mumkin. Vayronalar orasidan chiqish yo'lini toping, lekin qorong'u burchaklarda yashiringan sharpalarni unutmang.",
+            en: "Collapsed concrete walls, wrecked cars, and dust... Everything here is in ruins. Watch your step — the floor can give way anywhere. Find the exit through the rubble, and don't forget the shadows lurking in dark corners.",
+            ru: "Рухнувшие бетонные стены, разбитые машины и пыль... Здесь всё разрушено. Осторожнее с каждым шагом — пол может провалиться в любой точке. Найдите выход среди руин и не забывайте о тенях в тёмных углах."
+          },
+          cas_3: {
+            uz: "Elektr stansiyasi... Havo ozon va kuygan sim hidiga to'lgan. Chiqish eshigini ochish uchun koridorlardagi barcha elektr shkaflarni yoqish kerak ekan. Lekin ehtiyot bo'ling: har safar tok ulanganda shovqin kuchayib, qorong'udagi maxluqlar shu tomonga keladi.",
+            en: "The electrical station... The air smells of ozone and burnt wire. To open the exit door, all breaker panels in the corridors must be switched on. Be careful: every time power kicks in, the noise draws the creatures from the dark.",
+            ru: "Электростанция... Воздух пропитан озоном и гарью проводов. Чтобы открыть выход, нужно включить все электрощитки в коридорах. Но осторожнее: каждый раз при подаче тока шум усиливается и притягивает тварей из темноты."
+          },
           vox_wake: {
-            en: "Where am I...? These endless yellow walls... I have to find a way out.",
-            ru: "Где я?.. Эти бесконечные жёлтые стены... Мне нужно найти выход."
+            uz: "Boshim... Qayerdaman o'zi? Bu qanaqa joy?! Chiqish yo'lini topishim kerak.",
+            en: "My head... Where am I? What is this place?! I need to find a way out.",
+            ru: "Голова... Где я вообще? Что это за место?! Мне нужно найти выход."
           },
           vox_monster: {
-            en: "Something is following me! Don't look back — run or hide!",
-            ru: "За мной кто-то идёт! Не оглядывайся — беги или прячься!"
+            uz: "Yo Xudo! U meni ko'rdi! Yugur!",
+            en: "Oh God! It saw me! Run!",
+            ru: "Боже! Оно меня увидело! Беги!"
           },
           vox_hide: {
-            en: "Quiet... Hold your breath until it passes.",
-            ru: "Тише... Задержи дыхание, пока оно не пройдёт мимо."
+            uz: "Tss... Nafas olma... U yaqinda yuribdi.",
+            en: "Shh... Don't breathe... It's walking nearby.",
+            ru: "Тсс... Не дыши... Оно ходит рядом."
           },
           vox_almond: {
-            en: "Almond Water... My strength and mind are clearing up.",
-            ru: "Миндальная вода... Силы и рассудок возвращаются."
+            uz: "Oh... Bodom suvi! O'zimga keldim, kuchim qaytdi!",
+            en: "Ah... Almond Water! I'm back to myself, my strength returned!",
+            ru: "Ох... Миндальная вода! Я пришёл в себя, силы вернулись!"
           },
           vox_battery_low: {
-            en: "My flashlight battery is almost dead!",
-            ru: "Заряд фонарика почти на нуле!"
+            uz: "Jin ursin... Fonar batareyasi tugayapti! Tezroq batareya topish kerak.",
+            en: "Damn it... Flashlight battery is dying! Need to find a battery fast.",
+            ru: "Чёрт... Батарея фонарика садится! Нужно срочно найти батарейку."
           },
           vox_caught: {
-            uz: "Yo'q! U meni topdi!",
-            en: "No! It found me!",
-            ru: "Нет! Оно нашло меня!"
+            uz: "Yo'q! Yaqinlashma!",
+            en: "No! Stay back!",
+            ru: "Нет! Не подходи!"
           },
           vox_win: {
-            uz: "Chiqish eshigiga yetib keldim!",
-            en: "I made it through the exit!",
-            ru: "Я добрался до выхода!"
+            uz: "Uddaladim! Nihoyat bu dahshatdan qutuldim!",
+            en: "I did it! I finally escaped this nightmare!",
+            ru: "Я справился! Наконец-то я выбрался из этого кошмара!"
           },
           vox_train_arrive: {
-            uz: "Bekatga metro poyezdi keldi... Ichiga kiramiz.",
-            en: "A subway train just pulled into the station... Let's get on.",
-            ru: "На станцию прибыл поезд метро... Нужно зайти внутрь."
+            uz: "Nima?! Bu tashlandiq joyda poyezd qayerdan kelyapti?!",
+            en: "What?! Where is a train coming from in this abandoned place?!",
+            ru: "Что?! Откуда в этом заброшенном месте едет поезд?!"
           },
           metro_arrive_vox: {
-            uz: "[E'lon]: Poyezd M.E.G. Markaziy Bekatiga yetib keldi. Vagonga chiqing.",
-            en: "[PA System]: Train arriving at M.E.G. Transit Hub. Please step inside the carriage.",
-            ru: "[Объявление]: Поезд прибыл на пересадочный узел M.E.G. Просьба пройти в вагон."
+            uz: "[E'lon]: Diqqat! Noma'lum yo'nalishdagi poyezd birinchi yo'lga kirib kelmoqda. Ehtiyot bo'ling!",
+            en: "[PA System]: Attention! An unknown-bound train is arriving on Track 1. Please stand clear!",
+            ru: "[Объявление]: Внимание! Поезд неизвестного следования прибывает на первый путь. Будьте осторожны!"
           },
           metro_depart_vox: {
-            uz: "[E'lon]: Eshiklar yopilmoqda. Keyingi Backrooms sektoriga jo'naymiz.",
-            en: "[PA System]: Doors closing. Departing for the next Backrooms sector.",
-            ru: "[Объявление]: Двери закрываются. Отправление к следующему уровню Закулисья."
+            uz: "[E'lon]: Ehtiyot bo'ling, eshiklar yopilmoqda. Keyingi bekat — Zulmat qatlami. Orqaga qaytish yo'q.",
+            en: "[PA System]: Stand clear, doors closing. Next stop — The Dark Layer. There is no turning back.",
+            ru: "[Объявление]: Осторожно, двери закрываются. Следующая станция — Слой Тьмы. Пути назад нет."
           }
         },
         showVoiceSubtitle(name, durMs, customTxt) {

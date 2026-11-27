@@ -3958,6 +3958,11 @@
         });
         loadGlbIntoGroup('hospital_bed.glb', level14Group, { x: -12, y: 0, z: 10, rotY: 0.4, targetH: 1.15 });
         loadGlbIntoGroup('hospital_bed.glb', level14Group, { x: 14, y: 0, z: -26, rotY: -0.5, targetH: 1.15 });
+        [-16, -34, -52].forEach((az) => {
+          const archTop = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 2.2), new THREE.MeshLambertMaterial({ color: 0x3b1218 }));
+          archTop.position.set(0, 5.6, az);
+          level14Group.add(archTop);
+        });
         [[-18, 14], [18, 14], [-26, -20], [26, -20], [0, -32]].forEach(([nx, nz]) => {
           const g = new THREE.Group(); g.position.set(nx, 1.3, nz);
           const lMat = new THREE.MeshBasicMaterial({ color: 0xf87171 });
@@ -3994,6 +3999,12 @@
         const inst = new THREE.InstancedMesh(wGeo, sciMat, wPos.length), dm = new THREE.Object3D();
         wPos.forEach((p, idx) => { dm.position.set(p.x, H / 2, p.z); dm.updateMatrix(); inst.setMatrixAt(idx, dm.matrix); });
         inst.instanceMatrix.needsUpdate = true; level15Group.add(inst);
+        const neonRibMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+        [-12, -28, -44, -60].forEach((rz) => {
+          const rib = new THREE.Mesh(new THREE.BoxGeometry(26, 0.16, 0.24), neonRibMat);
+          rib.position.set(0, 4.4, rz);
+          level15Group.add(rib);
+        });
         const sp = l15OpenCells[1] || { x: 0, z: 0 }; l15Spawn.set(sp.x, 1.65, sp.z);
         const ms = l15OpenCells[Math.floor(l15OpenCells.length * 0.72)] || { x: 24, z: 24 }; l15MonsterSpawn.set(ms.x, 0, ms.z);
         for (let i = 0; i < 5; i++) {
@@ -4031,6 +4042,9 @@
         }
         [[-12, 10], [12, -10], [-28, -28], [28, 12]].forEach(([cx, cz], idx) => {
           loadGlbIntoGroup('car.glb', level22Group, { x: cx, y: 0, z: cz, rotY: idx * 1.4, targetH: 1.6 });
+          const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.04, 18), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+          stripe.position.set(cx > 0 ? 6.5 : -6.5, 0.02, cz);
+          level22Group.add(stripe);
           l22Boxes.push({ x: cx, z: cz, half: 1.5 });
         });
         [[-16, 18], [16, 18], [-24, -12], [24, -12], [-18, -42], [18, -42]].forEach(([sx, sz]) => {
@@ -4057,6 +4071,11 @@
         const stoneM = new THREE.MeshLambertMaterial({ color: 0xb45309 });
         [[-16, 18], [16, 18], [-28, -14], [28, -14], [-14, -56], [14, -56]].forEach(([px, pz], idx) => {
           loadGlbIntoGroup(idx % 2 === 0 ? 'palm_tree.glb' : 'coconut_palm.glb', level46Group, { x: px, y: 0, z: pz, rotY: idx * 0.9, targetH: 6.8 });
+        if (idx === 0) {
+          const oasis = new THREE.Mesh(new THREE.CircleGeometry(7.2, 24), new THREE.MeshStandardMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.72, roughness: 0.15, metalness: 0.25 }));
+          oasis.rotation.x = -Math.PI / 2; oasis.position.set(0, 0.04, -30);
+          level46Group.add(oasis);
+        }
         });
         [[-22, 12], [22, 12], [-34, -26], [34, -26], [0, -48]].forEach(([ox, oz]) => {
           const g = new THREE.Group(); g.position.set(ox, 0, oz);

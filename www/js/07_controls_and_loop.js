@@ -41,6 +41,7 @@
 
       function animate() {
         requestAnimationFrame(animate);
+        try {
         const dt = Math.min(clock.getDelta(), 0.05);
         animT += dt;
         updateLightVariation(dt);
@@ -85,11 +86,11 @@
           }
           scene.background.setHex(0x05080f);
           scene.fog.color.setHex(0x05080f);
-          scene.fog.density = 0.030;
-          hemiLight.color.setHex(0xcbd5e1);
-          hemiLight.groundColor.setHex(0x1e293b);
-          hemiLight.intensity = 0.48;
-          ambientLight.intensity = 0.18;
+          scene.fog.density = 0.022;
+          hemiLight.color.setHex(0xdce6f2);
+          hemiLight.groundColor.setHex(0x2d3748);
+          hemiLight.intensity = 0.78;
+          ambientLight.intensity = 0.34;
           flashLight.intensity = 0.0;
           if (!window.__zulmatNormalizeRigged) {
             window.__zulmatNormalizeRigged = function(m, targetH) {
@@ -122,10 +123,10 @@
           if (!window.__zulmatMenuHero) {
             window.__zulmatMenuHero = { loading: true, ready: false, group: new THREE.Group(), holder: new THREE.Group(), mixer: null, cache: {}, skin: null };
             const hg = window.__zulmatMenuHero.group;
-            hg.position.set(2.15, 0, 1.35);
-            hg.rotation.y = -0.62;
+            hg.position.set(-1.35, 0, 1.85);
+            hg.rotation.y = 0.25;
             const rimL = new THREE.PointLight(0xfef08a, 1.75, 9);
-            rimL.position.set(0.6, 2.2, 1.4);
+            rimL.position.set(0.4, 2.3, 1.8);
             hg.add(rimL, window.__zulmatMenuHero.holder);
             if (typeof metroLobbyGroup !== 'undefined' && metroLobbyGroup) metroLobbyGroup.add(hg);
             else level0Group.add(hg);
@@ -179,9 +180,9 @@
           const skPanelOpen = document.getElementById('start-skins-panel');
           if (skPanelOpen && !skPanelOpen.classList.contains('hidden')) {
             // Character showcase camera: places large 3D character on the LEFT, compact selector on the RIGHT
-            camera.position.set(0.65, 1.32, 4.18);
+            camera.position.set(-1.15, 1.26, 4.65);
             camera.rotation.order = 'YXZ';
-            camera.lookAt(2.82, 0.96, 1.35);
+            camera.lookAt(-0.48, 0.95, 1.85);
           } else {
             const pOff = Math.sin(animT * 0.16) * 0.55;
             camera.position.set(-4.35 + pOff * 0.45, 1.66 + Math.sin(animT * 0.6) * 0.018, 4.45 + pOff * 0.25);
@@ -430,6 +431,9 @@
             }
           }
           if (state.zone === 'level0' && !state._wakeSpoken && state.elapsed > 1.2) {
+            state._wakeSpoken = true;
+            Sound.playVoice('vox_wake', 0.92, 60000);
+          }
 
           if (window._nearExtraLoreNote && state.zone !== 'level0') {
             elInteractBtn.classList.add('visible');
@@ -472,8 +476,6 @@
             }
           } else {
             for (let li = 0; li < roomLightPool.length; li++) roomLightPool[li].intensity = 0;
-          }            state._wakeSpoken = true;
-            Sound.playVoice('vox_wake', 0.92, 60000);
           }
           if (state.monsterChasing && !state._monsterSpoken) {
             state._monsterSpoken = true;
@@ -2333,6 +2335,7 @@
         }
 
         renderer.render(scene, camera);
+        } catch (animErr) { console.error(animErr); }
       }
 
       animate();

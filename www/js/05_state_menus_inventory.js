@@ -986,7 +986,8 @@
           resetGame(lvl);
           return;
         }
-        if (state.trainAnim !== 'parked') return;
+        if (state.trainAnim === 'departing') return;
+        if (metroTrain && metroTrain.group) metroTrain.group.position.x = 0;
         state.targetLevel = lvl;
         try { LSset('zulmat_last_level', String(lvl)); } catch (e) {}
         requestAnimationFrame(() => ensureLevelBuilt(lvl));
@@ -2298,6 +2299,7 @@
           setTimeout(() => { iv.classList.add('hidden'); iv.classList.remove('fade-out'); }, 650);
         }
         if (!state.started) {
+          if (typeof Sound !== 'undefined' && Sound.init) Sound.init();
           state.started = true; document.body.classList.add('game-started');
           enterMetroLobby(false);
         }
@@ -3573,8 +3575,59 @@
         }
         return false;
       }
+      function findNextWaypoint(sx, sz, tx, tz) {
+        const CELL = 2.6;
+        const bxs = (typeof getZoneBoxes === 'function') ? getZoneBoxes() : [];
+        const isFree = (cx, cz) => {
+          const wx = cx * CELL, wz = cz * CELL;
+          for (let i = 0; i < bxs.length; i++) {
+            const b = bxs[i];
+            if (Math.abs(wx - b.x) < b.halfX + 0.48 && Math.abs(wz - b.z) < b.halfZ + 0.48) return false;
+          }
+          return true;
+        };
+        const scx = Math.round(sx / CELL), scz = Math.round(sz / CELL);
+        const tcx = Math.round(tx / CELL), tcz = Math.round(tz / CELL);
+        if (scx === tcx && scz === tcz) return null;
+        const startK = scx + ',' + scz;
+        const targetK = tcx + ',' + tcz;
+        const q = [[scx, scz]];
+        const parent = {};
+        parent[startK] = null;
+        const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+        let foundKey = null;
+        let qi = 0;
+        while (qi < q.length && qi < 180) {
+          const [cx, cz] = q[qi++];
+          const ck = cx + ',' + cz;
+          if (ck === targetK) { foundKey = ck; break; }
+          for (let d = 0; d < 4; d++) {
+            const nx = cx + dirs[d][0], nz = cz + dirs[d][1];
+            const nk = nx + ',' + nz;
+            if (parent[nk] !== undefined) continue;
+            if (nk !== targetK && !isFree(nx, nz)) continue;
+            parent[nk] = ck;
+            q.push([nx, nz]);
+          }
+        }
+        if (!foundKey) return null;
+        let cur = foundKey;
+        while (parent[cur] && parent[cur] !== startK) cur = parent[cur];
+        const parts = cur.split(',');
+        return { x: Number(parts[0]) * CELL, z: Number(parts[1]) * CELL };
+      }
       function steerMonsterStep(mPos, tx, tz, spd, dt) {
         if (state.monsterStunTimer > 0) return;
+        const nowWp = performance.now();
+        if (typeof hasLineOfSight === 'function' && !hasLineOfSight(mPos.x, mPos.z, tx, tz)) {
+          if (!mPos._wpUntil || nowWp > mPos._wpUntil) {
+            mPos._wp = findNextWaypoint(mPos.x, mPos.z, tx, tz);
+            mPos._wpUntil = nowWp + 360;
+          }
+          if (mPos._wp) { tx = mPos._wp.x; tz = mPos._wp.z; }
+        } else {
+          mPos._wp = null;
+        }
         const dx = tx - mPos.x, dz = tz - mPos.z;
         const dd = Math.hypot(dx, dz) || 1;
         const ux = dx / dd, uz = dz / dd;
@@ -4153,6 +4206,29 @@
           setTxt('btn-coop-net-online', lang === 'en' ? 'ONLINE' : (lang === 'ru' ? 'ОНЛАЙН' : 'ONLAYN'));
           setTxt('btn-coop-net-lan', lang === 'en' ? 'LOCAL WI-FI' : (lang === 'ru' ? 'ЛОКАЛЬНЫЙ WI-FI' : 'MAHALLIY WI-FI'));
           setTxt('btn-coop-leave', lang === 'en' ? 'LEAVE' : (lang === 'ru' ? 'ВЫЙТИ' : 'CHIQISH'));
+          setTxt('coop-char-lbl', lang === 'en' ? 'Character:' : (lang === 'ru' ? 'Персонаж:' : 'Personaj:'));
+          setTxt('coop-wait-lbl', lang === 'en' ? 'Waiting...' : (lang === 'ru' ? 'Ожидание...' : 'Kutilmoqda...'));
+          setTxt('coop-players-hdr', lang === 'en' ? 'IN ROOM' : (lang === 'ru' ? 'В КОМНАТЕ' : 'XONADAGILAR'));
+          setTxt('coop-chat-hdr', lang === 'en' ? 'ROOM CHAT' : (lang === 'ru' ? 'ЧАТ КОМНАТЫ' : 'XONA CHATI'));
+          const rnI = document.getElementById('coop-room-name-inp');
+          if (rnI) rnI.placeholder = lang === 'en' ? 'Room name (e.g. Zulmat)' : (lang === 'ru' ? 'Название комнаты' : 'Xona nomi (masalan: Zulmat)');
+          const rpI = document.getElementById('coop-room-pass-inp');
+          if (rpI) rpI.placeholder = lang === 'en' ? 'Password (optional)' : (lang === 'ru' ? 'Пароль (необяз.)' : 'Parol (ixtiyoriy)');
+          const jpI = document.getElementById('coop-join-pass-inp');
+          if (jpI) jpI.placeholder = lang === 'en' ? 'Password (if any)' : (lang === 'ru' ? 'Пароль (если есть)' : "Parol (bo'lsa)");
+          const chI = document.getElementById('coop-chat-input');
+          if (chI) chI.placeholder = lang === 'en' ? 'Type a message...' : (lang === 'ru' ? 'Напишите сообщение...' : 'Xabar yozing...');
+          const modeOpts = {
+            '0': lang === 'en' ? 'Story: Level 0 (The Lobby)' : (lang === 'ru' ? 'Сюжет: Уровень 0 (Лабиринт)' : 'Syujet: Level 0 (Labirint)'),
+            'metro': lang === 'en' ? 'Story: Metro Hub (31 Stations)' : (lang === 'ru' ? 'Сюжет: Метро Хаб (31 станция)' : 'Syujet: Metro Hub (31 Bekat)'),
+            'endless': lang === 'en' ? 'Endless Mode (50KM)' : (lang === 'ru' ? 'Бесконечный режим (50КМ)' : 'Cheksiz Rejim (50KM)')
+          };
+          document.querySelectorAll('#coop-mode-menu .z-dd-opt').forEach((o) => {
+            const v = o.getAttribute('data-val');
+            if (modeOpts[v]) o.textContent = modeOpts[v];
+            if (o.classList.contains('active')) setTxt('coop-mode-label', o.textContent);
+          });
+          if (window.__zulmatRefreshCoopLang) window.__zulmatRefreshCoopLang();
 
           setTxt('btn-station-go', lang === 'en' ? 'DEPART >' : (lang === 'ru' ? 'ОТПРАВИТЬСЯ >' : 'BEKATGA BORISH >'));
           setTxt('btn-station-close', lang === 'en' ? '< BACK' : (lang === 'ru' ? '< НАЗАД' : '< ORQAGA'));

@@ -39,6 +39,8 @@
           const lv = document.getElementById('coop-lobby-view');
           if (sv) sv.classList.toggle('hidden', inLobby);
           if (lv) lv.classList.toggle('hidden', !inLobby);
+          const mb = document.getElementById('coop-modal-box');
+          if (mb) mb.style.maxWidth = inLobby ? 'min(780px, 92vw)' : '440px';
           const hm = document.getElementById('coop-host-mode-row');
           const gm = document.getElementById('coop-guest-mode-box');
           if (hm) hm.classList.toggle('hidden', !isHost);
@@ -48,8 +50,12 @@
         function renderLobby() {
           const titleEl = document.getElementById('coop-lobby-room-title');
           const subEl = document.getElementById('coop-lobby-room-sub');
-          if (titleEl) titleEl.textContent = (roomName || ('Xona #' + roomCode)) + (roomPass ? ' [Parolli]' : '');
-          if (subEl) subEl.textContent = (netMode === 'lan' ? ('Wi-Fi IP: ' + (lanIp || roomCode)) : ('Kod: ' + roomCode)) + (isHost ? ' • Siz Host' : '');
+          const _lg = window.__zulmatLang || 'uz';
+          const _lockTag = roomPass ? (_lg === 'en' ? ' [Locked]' : (_lg === 'ru' ? ' [Пароль]' : ' [Parolli]')) : '';
+          if (titleEl) titleEl.textContent = (roomName || ((_lg === 'en' ? 'Room #' : (_lg === 'ru' ? 'Комната #' : 'Xona #')) + roomCode)) + _lockTag;
+          const _codeLbl = _lg === 'en' ? 'Code: ' : (_lg === 'ru' ? 'Код: ' : 'Kod: ');
+          const _hostLbl = _lg === 'en' ? ' • You are Host' : (_lg === 'ru' ? ' • Вы Хост' : ' • Siz Host');
+          if (subEl) subEl.textContent = (netMode === 'lan' ? ('Wi-Fi IP: ' + (lanIp || roomCode)) : (_codeLbl + roomCode)) + (isHost ? _hostLbl : '');
           const gmTxt = document.getElementById('coop-guest-mode-text');
           if (gmTxt) gmTxt.textContent = currentModeLabel;
 
@@ -501,7 +507,7 @@
             roomName = customName || ('Xona #' + roomCode);
             isHost = true;
             setStatus("Xona yaratilmoqda (" + roomCode + ")...", "#facc15");
-            peer = new window.Peer('zulmat-br-' + roomCode, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
+            peer = new window.Peer('zulmat-br-' + roomCode, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }] } });
             peer.on('open', () => {
               setLobbyView(true);
               updatePeerCount();
@@ -527,7 +533,7 @@
             roomName = 'Xona #' + clean;
             isHost = false;
             setStatus("Xona " + clean + " ga ulanilmoqda...", "#facc15");
-            peer = new window.Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
+            peer = new window.Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }] } });
             peer.on('open', () => {
               const conn = peer.connect('zulmat-br-' + clean, { reliable: false });
               setupConn(conn);
@@ -559,7 +565,7 @@
           if (micEnabled) {
             micEnabled = false;
             if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; }
-            if (btn) btn.textContent = "MIK: O'CHIQ";
+            const _lg = window.__zulmatLang || "uz"; if (btn) btn.textContent = _lg === "en" ? "MIC: OFF" : (_lg === "ru" ? "МИК: ВЫКЛ" : "MIK: O'CHIQ");
             return;
           }
           if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -569,7 +575,7 @@
           navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((stream) => {
             localStream = stream;
             micEnabled = true;
-            if (btn) btn.textContent = "MIK: YONIQ";
+            const _lg = window.__zulmatLang || "uz"; if (btn) btn.textContent = _lg === "en" ? "MIC: ON" : (_lg === "ru" ? "МИК: ВКЛ" : "MIK: YONIQ");
             if (peer) {
               Object.keys(peers).forEach((pid) => {
                 if (peers[pid].conn && peers[pid].conn.open) {
@@ -846,6 +852,7 @@
           const st = document.getElementById('start-overlay');
           if (co) co.classList.add('hidden');
           if (st) st.classList.add('hidden');
+          if (typeof Sound !== 'undefined' && Sound.init) Sound.init();
           if (window.__zulmatStopStartMenuBgm) window.__zulmatStopStartMenuBgm();
           document.body.classList.add('game-started');
           state.started = true;
@@ -871,7 +878,7 @@
             const pubId = 'zulmat-br-ENDLESSPUBLIC';
             roomCode = 'ENDLESSPUBLIC';
             isHost = false;
-            peer = new window.Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
+            peer = new window.Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }] } });
             peer.on('open', () => {
               const conn = peer.connect(pubId, { reliable: false });
               setupConn(conn);
@@ -887,7 +894,7 @@
                 // No public host yet -> become the shared Endless host automatically!
                 try { peer.destroy(); } catch (e) {}
                 isHost = true;
-                peer = new window.Peer(pubId, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
+                peer = new window.Peer(pubId, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }] } });
                 peer.on('open', () => {
                   const cw = document.getElementById('ingame-chat-wrap');
                   if (cw) cw.classList.remove('hidden');
@@ -905,6 +912,12 @@
             });
           });
         }
+        window.__zulmatRefreshCoopLang = () => {
+          const _lg = window.__zulmatLang || 'uz';
+          const _bm = document.getElementById('btn-coop-mic');
+          if (_bm) _bm.textContent = micEnabled ? (_lg === 'en' ? 'MIC: ON' : (_lg === 'ru' ? 'МИК: ВКЛ' : 'MIK: YONIQ')) : (_lg === 'en' ? 'MIC: OFF' : (_lg === 'ru' ? 'МИК: ВЫКЛ' : "MIK: O'CHIQ"));
+          if (inLobby) renderLobby();
+        };
         window.__zulmatJoinPublicEndless = joinPublicEndless;
 
         return { tick, joinPublicEndless };
