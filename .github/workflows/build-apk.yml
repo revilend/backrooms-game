@@ -283,8 +283,12 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
+          KS_B64=$(printf '%s' "$KS_B64" | tr -cd 'A-Za-z0-9+/=')
+          KS_PASS=$(python3 -c 'import os; print("".join(c for c in os.environ.get("KS_PASS","") if 33 <= ord(c) <= 126))')
+          KEY_ALIAS=$(python3 -c 'import os; print("".join(c for c in os.environ.get("KEY_ALIAS","") if 33 <= ord(c) <= 126))')
+          KEY_PASS=$(python3 -c 'import os; print("".join(c for c in os.environ.get("KEY_PASS","") if 33 <= ord(c) <= 126))')
           if [ -n "$KS_B64" ]; then
-            echo "$KS_B64" | base64 -d > app/release.jks
+            printf '%s' "$KS_B64" | base64 -d > app/release.jks
             ./gradlew assembleRelease \
               -Pandroid.injected.signing.store.file="$(pwd)/app/release.jks" \
               -Pandroid.injected.signing.store.password="$KS_PASS" \
