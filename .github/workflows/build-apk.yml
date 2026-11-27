@@ -247,15 +247,19 @@ jobs:
       - name: Set Custom App Icon
         run: |
           if [ -f "www/assets/app_icon.png" ]; then
-            rm -rf android/app/src/main/res/mipmap-anydpi-v26
-            for spec in "mipmap-mdpi:48" "mipmap-hdpi:72" "mipmap-xhdpi:96" "mipmap-xxhdpi:144" "mipmap-xxxhdpi:192"; do
-              dir="android/app/src/main/res/${spec%%:*}"
-              sz="${spec##*:}"
-              mkdir -p "$dir"
-              ffmpeg -y -i www/assets/app_icon.png -vf "scale=${sz}:${sz}" "$dir/ic_launcher.png" -loglevel error
-              cp "$dir/ic_launcher.png" "$dir/ic_launcher_round.png"
-              cp "$dir/ic_launcher.png" "$dir/ic_launcher_foreground.png"
-            done
+            python3 -m pip install -q pillow
+            python3 - << 'PYICON'
+          import os, shutil
+          from PIL import Image
+          shutil.rmtree("android/app/src/main/res/mipmap-anydpi-v26", ignore_errors=True)
+          img = Image.open("www/assets/app_icon.png").convert("RGBA")
+          for folder, sz in [("mipmap-mdpi", 48), ("mipmap-hdpi", 72), ("mipmap-xhdpi", 96), ("mipmap-xxhdpi", 144), ("mipmap-xxxhdpi", 192)]:
+              d = f"android/app/src/main/res/{folder}"
+              os.makedirs(d, exist_ok=True)
+              resized = img.resize((sz, sz), Image.LANCZOS)
+              for name in ("ic_launcher.png", "ic_launcher_round.png", "ic_launcher_foreground.png"):
+                  resized.save(os.path.join(d, name))
+          PYICON
           fi
 
       - name: Set Auto VersionCode in build.gradle
