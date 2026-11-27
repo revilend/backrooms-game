@@ -1,306 +1,254 @@
 name: Build ZULMAT Android APK
 
-
-
 on:
-
   workflow_dispatch:
-
   push:
-
     branches: [ main ]
-
     paths:
-
       - 'www/**'
-
       - 'models/**'
-
       - 'audio/**'
-
       - 'package.json'
-
       - 'capacitor.config.json'
-
       - '.github/workflows/build-apk.yml'
 
-
-
 jobs:
-
   build-android-apk:
-
     runs-on: ubuntu-latest
 
-
-
     steps:
-
       - name: Checkout repository
-
         uses: actions/checkout@v4
 
-
-
       - name: Set up Node.js 20
-
         uses: actions/setup-node@v4
-
         with:
-
           node-version: '20'
 
-
-
       - name: Set up Java 17 (Temurin)
-
         uses: actions/setup-java@v4
-
         with:
-
           distribution: 'temurin'
-
           java-version: '17'
 
-
-
       - name: Bundle local 3D models, audio, Three.js & Draco decoders offline into www/
-
         run: |
-
           mkdir -p www/vendor/draco www/models www/audio www/video
-
           if [ -d "models" ]; then cp -r models/* www/models/ || true; fi
-
           if [ -d "audio" ]; then cp -r audio/* www/audio/ || true; fi
-
           if [ -d "video" ]; then cp -r video/* www/video/ || true; fi
-
-          for f in www/models/metro_station_*.glb www/models/subway_train.glb; do
-
-            [ -f "$f" ] && npx -y @gltf-transform/cli draco "$f" "$f" || true
-
+          find www/models -type f -name "*.glb" -size +3M | while read -r f; do
+            echo "Draco compressing: $f"
+            npx -y @gltf-transform/cli draco "$f" "$f" || true
           done
-
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js -o www/vendor/three.min.js
-
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js -o www/vendor/GLTFLoader.js
-
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js -o www/vendor/DRACOLoader.js
-
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/draco_decoder.js -o www/vendor/draco/draco_decoder.js
-
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/draco_decoder.wasm -o www/vendor/draco/draco_decoder.wasm
-
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/draco_wasm_wrapper.js -o www/vendor/draco/draco_wasm_wrapper.js
-
           python3 - << 'PYREWRITE'
-
           import glob, os
-
           targets = ["www/index.html"] + sorted(glob.glob("www/js/*.js"))
-
           for p in targets:
-
               if not os.path.exists(p): continue
-
               txt = open(p, "r", encoding="utf-8").read()
-
               txt = txt.replace("https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/", "./")
-
               txt = txt.replace("https://raw.githubusercontent.com/revilend/backrooms-game/main/", "./")
-
               txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js", "./vendor/three.min.js")
-
               txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js", "./vendor/GLTFLoader.js")
-
               txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js", "./vendor/DRACOLoader.js")
-
               txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/", "./vendor/draco/")
-
               txt = txt.replace("https://www.gstatic.com/draco/versioned/decoders/1.5.6/", "./vendor/draco/")
-
               open(p, "w", encoding="utf-8").write(txt)
-
               print("Rewrote offline paths:", p)
-
           PYREWRITE
-
           ls -lh www/vendor www/vendor/draco
 
-
-
       - name: Install Capacitor & create Android project
-
         run: |
-
           npm install
-
           npx cap add android
 
-
-
       - name: Configure AndroidManifest (Landscape Lock + Mic/Internet for Co-op)
-
         run: |
-
           python3 - << 'PYEOF'
-
           p = "android/app/src/main/AndroidManifest.xml"
-
           with open(p, "r", encoding="utf-8") as f:
-
               xml = f.read()
-
           perms = [
-
               '<uses-permission android:name="android.permission.INTERNET" />',
-
               '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-
               '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
-
           ]
-
           for perm in perms:
-
               if perm not in xml:
-
                   xml = xml.replace("<application", perm + "\n    <application", 1)
-
+          if 'android:usesCleartextTraffic' not in xml:
+              xml = xml.replace('<application', '<application\n        android:usesCleartextTraffic="true"', 1)
           if 'android:screenOrientation' not in xml:
-
               xml = xml.replace('android:name=".MainActivity"', 'android:name=".MainActivity"\n            android:screenOrientation="sensorLandscape"', 1)
-
           with open(p, "w", encoding="utf-8") as f:
-
               f.write(xml)
-
           PYEOF
-
           npx cap sync android
 
-
-
       - name: Enable Immersive Fullscreen in MainActivity
-
         run: |
-
           MAIN_ACT=$(find android/app/src/main/java -name "MainActivity.java" | head -n 1)
-
           if [ -n "$MAIN_ACT" ]; then
-
             python3 - << 'PY'
-
           import os
-
           p = ""
-
           for r, _, fs in os.walk("android/app/src/main/java"):
-
               for fn in fs:
-
                   if fn == "MainActivity.java": p = os.path.join(r, fn)
-
           if p and os.path.exists(p):
-
               txt = open(p).read()
-
               if "IMMERSIVE_STICKY" not in txt:
-
                   txt = txt.replace(
-
                       "public class MainActivity extends BridgeActivity {}",
-
-                      '''public class MainActivity extends BridgeActivity {
-
-  @Override
-
-  public void onStart() {
-
-    super.onStart();
-
-    try { getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false); } catch (Exception e) {}
-
-  }
-
-  @Override
-
-  public void onWindowFocusChanged(boolean hasFocus) {
-
-    super.onWindowFocusChanged(hasFocus);
-
-    if (hasFocus) {
-
-      getWindow().getDecorView().setSystemUiVisibility(
-
-        android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-
-        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-
-        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-
-        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-
-        | android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-
-        | android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
-
-      );
-
-      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-
-        android.view.WindowManager.LayoutParams lp = getWindow().getAttributes();
-
-        lp.layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-
-        getWindow().setAttributes(lp);
-
-      }
-
-    }
-
-  }
-
-}'''
-
+                      "public class MainActivity extends BridgeActivity {\n"
+                      "  private java.net.ServerSocket lanServer;\n"
+                      "  private final java.util.Map<String, java.io.OutputStream> lanClients = new java.util.concurrent.ConcurrentHashMap<>();\n"
+                      "  private int lanSeq = 0;\n"
+                      "  public class ZulmatLanBridge {\n"
+                      "    @android.webkit.JavascriptInterface\n"
+                      "    public String getLocalIp() {\n"
+                      "      try {\n"
+                      "        java.util.Enumeration<java.net.NetworkInterface> nis = java.net.NetworkInterface.getNetworkInterfaces();\n"
+                      "        while (nis.hasMoreElements()) {\n"
+                      "          java.net.NetworkInterface ni = nis.nextElement();\n"
+                      "          if (!ni.isUp() || ni.isLoopback()) continue;\n"
+                      "          java.util.Enumeration<java.net.InetAddress> addrs = ni.getInetAddresses();\n"
+                      "          while (addrs.hasMoreElements()) {\n"
+                      "            java.net.InetAddress a = addrs.nextElement();\n"
+                      "            if (a instanceof java.net.Inet4Address && a.isSiteLocalAddress()) return a.getHostAddress();\n"
+                      "          }\n"
+                      "        }\n"
+                      "      } catch (Exception e) {}\n"
+                      "      return \"192.168.43.1\";\n"
+                      "    }\n"
+                      "    @android.webkit.JavascriptInterface\n"
+                      "    public String startHost() {\n"
+                      "      stopHost();\n"
+                      "      new Thread(() -> {\n"
+                      "        try {\n"
+                      "          lanServer = new java.net.ServerSocket(8765);\n"
+                      "          while (lanServer != null && !lanServer.isClosed()) {\n"
+                      "            final java.net.Socket s = lanServer.accept();\n"
+                      "            final String pid = \"lan_\" + (++lanSeq);\n"
+                      "            new Thread(() -> handleLanClient(pid, s)).start();\n"
+                      "          }\n"
+                      "        } catch (Exception e) {}\n"
+                      "      }).start();\n"
+                      "      return getLocalIp();\n"
+                      "    }\n"
+                      "    @android.webkit.JavascriptInterface\n"
+                      "    public void stopHost() {\n"
+                      "      try { if (lanServer != null) lanServer.close(); } catch (Exception e) {}\n"
+                      "      lanServer = null;\n"
+                      "      for (java.io.OutputStream os : lanClients.values()) { try { os.close(); } catch (Exception e) {} }\n"
+                      "      lanClients.clear();\n"
+                      "    }\n"
+                      "    @android.webkit.JavascriptInterface\n"
+                      "    public void sendTo(String pid, String msg) {\n"
+                      "      java.io.OutputStream os = lanClients.get(pid);\n"
+                      "      if (os == null) return;\n"
+                      "      try {\n"
+                      "        byte[] p = msg.getBytes(\"UTF-8\");\n"
+                      "        java.io.ByteArrayOutputStream fr = new java.io.ByteArrayOutputStream();\n"
+                      "        fr.write(0x81);\n"
+                      "        if (p.length < 126) { fr.write(p.length); }\n"
+                      "        else if (p.length < 65536) { fr.write(126); fr.write((p.length >> 8) & 0xFF); fr.write(p.length & 0xFF); }\n"
+                      "        else { fr.write(127); for (int i = 7; i >= 0; i--) fr.write((int)((((long)p.length) >> (8 * i)) & 0xFF)); }\n"
+                      "        fr.write(p);\n"
+                      "        synchronized (os) { os.write(fr.toByteArray()); os.flush(); }\n"
+                      "      } catch (Exception e) { lanClients.remove(pid); }\n"
+                      "    }\n"
+                      "  }\n"
+                      "  private void handleLanClient(String pid, java.net.Socket s) {\n"
+                      "    try {\n"
+                      "      java.io.InputStream in = s.getInputStream();\n"
+                      "      java.io.OutputStream out = s.getOutputStream();\n"
+                      "      java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(in, \"UTF-8\"));\n"
+                      "      String line, key = \"\";\n"
+                      "      while ((line = br.readLine()) != null && line.length() > 0) {\n"
+                      "        if (line.toLowerCase().startsWith(\"sec-websocket-key:\")) key = line.substring(18).trim();\n"
+                      "      }\n"
+                      "      if (key.isEmpty()) { s.close(); return; }\n"
+                      "      byte[] sha1 = java.security.MessageDigest.getInstance(\"SHA-1\").digest((key + \"258EAFA5-E914-47DA-95CA-C5AB0DC85B11\").getBytes(\"UTF-8\"));\n"
+                      "      String accept = android.util.Base64.encodeToString(sha1, android.util.Base64.NO_WRAP);\n"
+                      "      String hs = \"HTTP/1.1 101 Switching Protocols\\r\\nUpgrade: websocket\\r\\nConnection: Upgrade\\r\\nSec-WebSocket-Accept: \" + accept + \"\\r\\n\\r\\n\";\n"
+                      "      out.write(hs.getBytes(\"UTF-8\")); out.flush();\n"
+                      "      lanClients.put(pid, out);\n"
+                      "      while (true) {\n"
+                      "        int b1 = in.read(); if (b1 == -1 || (b1 & 0x0F) == 8) break;\n"
+                      "        int b2 = in.read(); if (b2 == -1) break;\n"
+                      "        boolean masked = (b2 & 0x80) != 0;\n"
+                      "        long len = b2 & 0x7F;\n"
+                      "        if (len == 126) { len = ((in.read() & 0xFF) << 8) | (in.read() & 0xFF); }\n"
+                      "        else if (len == 127) { len = 0; for (int i = 0; i < 8; i++) len = (len << 8) | (in.read() & 0xFF); }\n"
+                      "        byte[] mask = new byte[4];\n"
+                      "        if (masked) { for (int i = 0; i < 4; i++) mask[i] = (byte)in.read(); }\n"
+                      "        byte[] payload = new byte[(int)len];\n"
+                      "        int read = 0;\n"
+                      "        while (read < len) { int r = in.read(payload, read, (int)len - read); if (r <= 0) break; read += r; }\n"
+                      "        if (masked) { for (int i = 0; i < payload.length; i++) payload[i] ^= mask[i % 4]; }\n"
+                      "        final String msg = new String(payload, \"UTF-8\");\n"
+                      "        runOnUiThread(() -> { try { getBridge().getWebView().evaluateJavascript(\"window.__zulmatLanOnMsg && window.__zulmatLanOnMsg(\" + org.json.JSONObject.quote(pid) + \", \" + org.json.JSONObject.quote(msg) + \")\", null); } catch (Exception e) {} });\n"
+                      "      }\n"
+                      "    } catch (Exception e) {}\n"
+                      "    lanClients.remove(pid);\n"
+                      "    try { s.close(); } catch (Exception e) {}\n"
+                      "    runOnUiThread(() -> { try { getBridge().getWebView().evaluateJavascript(\"window.__zulmatLanOnClose && window.__zulmatLanOnClose(\" + org.json.JSONObject.quote(pid) + \")\", null); } catch (Exception e) {} });\n"
+                      "  }\n"
+                      "  @Override\n"
+                      "  public void onStart() {\n"
+                      "    super.onStart();\n"
+                      "    try {\n"
+                      "      android.webkit.WebView wv = getBridge().getWebView();\n"
+                      "      wv.getSettings().setMediaPlaybackRequiresUserGesture(false);\n"
+                      "      wv.addJavascriptInterface(new ZulmatLanBridge(), \"ZulmatLan\");\n"
+                      "    } catch (Exception e) {}\n"
+                      "  }\n"
+                      "  @Override\n"
+                      "  public void onWindowFocusChanged(boolean hasFocus) {\n"
+                      "    super.onWindowFocusChanged(hasFocus);\n"
+                      "    if (hasFocus) {\n"
+                      "      getWindow().getDecorView().setSystemUiVisibility(\n"
+                      "        android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY\n"
+                      "        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE\n"
+                      "        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION\n"
+                      "        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN\n"
+                      "        | android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION\n"
+                      "        | android.view.View.SYSTEM_UI_FLAG_FULLSCREEN\n"
+                      "      );\n"
+                      "      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {\n"
+                      "        android.view.WindowManager.LayoutParams lp = getWindow().getAttributes();\n"
+                      "        lp.layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;\n"
+                      "        getWindow().setAttributes(lp);\n"
+                      "      }\n"
+                      "    }\n"
+                      "  }\n"
+                      "}"
                   )
-
                   open(p, "w").write(txt)
-
           PY
 
-
-
       - name: Build Debug APK
-
         working-directory: android
-
         run: |
-
           chmod +x gradlew
-
           ./gradlew assembleDebug
 
-
-
       - name: Rename and Upload APK Artifact
-
         run: |
-
           cp android/app/build/outputs/apk/debug/app-debug.apk ZULMAT-Backrooms-v1.0.apk
-
           ls -lh ZULMAT-Backrooms-v1.0.apk
 
-
-
       - name: Upload ZULMAT-Backrooms-v1.0.apk
-
         uses: actions/upload-artifact@v4
-
         with:
-
           name: ZULMAT-Backrooms-v1.0-APK
-
           path: ZULMAT-Backrooms-v1.0.apk
-
