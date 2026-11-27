@@ -5,26 +5,20 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'www/index.html'
+      - 'www/**'
+      - 'models/**'
+      - 'audio/**'
       - 'package.json'
       - 'capacitor.config.json'
       - '.github/workflows/build-apk.yml'
-      - 'models/**'
-      - 'audio/**'
-      - 'video/**'
 
 jobs:
   build-android-apk:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository with Git LFS
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      - name: Pull Git LFS files
-        run: git lfs pull || true
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
@@ -37,26 +31,38 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Bundle local 3D models, audio & offline Three.js into www/
+      - name: Bundle local 3D models, audio, Three.js & Draco decoders offline into www/
         run: |
-          mkdir -p www/vendor www/models www/audio www/video
+          mkdir -p www/vendor/draco www/models www/audio www/video
           if [ -d "models" ]; then cp -r models/* www/models/ || true; fi
           if [ -d "audio" ]; then cp -r audio/* www/audio/ || true; fi
           if [ -d "video" ]; then cp -r video/* www/video/ || true; fi
+          for f in www/models/metro_station_*.glb www/models/subway_train.glb; do
+            [ -f "$f" ] && npx -y @gltf-transform/cli draco "$f" "$f" || true
+          done
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js -o www/vendor/three.min.js
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js -o www/vendor/GLTFLoader.js
           curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js -o www/vendor/DRACOLoader.js
+          curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/draco_decoder.js -o www/vendor/draco/draco_decoder.js
+          curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/draco_decoder.wasm -o www/vendor/draco/draco_decoder.wasm
+          curl -fsSL https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/draco_wasm_wrapper.js -o www/vendor/draco/draco_wasm_wrapper.js
           python3 - << 'PYREWRITE'
-          p = "www/index.html"
-          txt = open(p, "r", encoding="utf-8").read()
-          txt = txt.replace("https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/", "./")
-          txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js", "./vendor/three.min.js")
-          txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js", "./vendor/GLTFLoader.js")
-          txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js", "./vendor/DRACOLoader.js")
-          open(p, "w", encoding="utf-8").write(txt)
-          print("Rewrite CDN URLs to local offline paths: DONE")
+          import glob, os
+          targets = ["www/index.html"] + sorted(glob.glob("www/js/*.js"))
+          for p in targets:
+              if not os.path.exists(p): continue
+              txt = open(p, "r", encoding="utf-8").read()
+              txt = txt.replace("https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/", "./")
+              txt = txt.replace("https://raw.githubusercontent.com/revilend/backrooms-game/main/", "./")
+              txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js", "./vendor/three.min.js")
+              txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js", "./vendor/GLTFLoader.js")
+              txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js", "./vendor/DRACOLoader.js")
+              txt = txt.replace("https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/", "./vendor/draco/")
+              txt = txt.replace("https://www.gstatic.com/draco/versioned/decoders/1.5.6/", "./vendor/draco/")
+              open(p, "w", encoding="utf-8").write(txt)
+              print("Rewrote offline paths:", p)
           PYREWRITE
-          ls -lh www/vendor
+          ls -lh www/vendor www/vendor/draco
 
       - name: Install Capacitor & create Android project
         run: |
@@ -86,52 +92,48 @@ jobs:
 
       - name: Enable Immersive Fullscreen in MainActivity
         run: |
-          python3 - << 'PYEOF'
-          import glob
-
-          addon = """  @Override
+          MAIN_ACT=$(find android/app/src/main/java -name "MainActivity.java" | head -n 1)
+          if [ -n "$MAIN_ACT" ]; then
+            python3 - << 'PY'
+          import os
+          p = ""
+          for r, _, fs in os.walk("android/app/src/main/java"):
+              for fn in fs:
+                  if fn == "MainActivity.java": p = os.path.join(r, fn)
+          if p and os.path.exists(p):
+              txt = open(p).read()
+              if "IMMERSIVE_STICKY" not in txt:
+                  txt = txt.replace(
+                      "public class MainActivity extends BridgeActivity {}",
+                      '''public class MainActivity extends BridgeActivity {
+  @Override
   public void onStart() {
     super.onStart();
     try { getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false); } catch (Exception e) {}
   }
-
-  private void applyImmersiveMode() {
-    android.view.Window w = getWindow();
-    if (w == null) return;
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-      android.view.WindowManager.LayoutParams lp = w.getAttributes();
-      lp.layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-      w.setAttributes(lp);
-    }
-    w.getDecorView().setSystemUiVisibility(
-      android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-      | android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-      | android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-      | android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-      | android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-      | android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
-    );
-  }
-
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
     if (hasFocus) {
-      applyImmersiveMode();
+      getWindow().getDecorView().setSystemUiVisibility(
+        android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+        | android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        | android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        | android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
+      );
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+        android.view.WindowManager.LayoutParams lp = getWindow().getAttributes();
+        lp.layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        getWindow().setAttributes(lp);
+      }
     }
   }
-"""
-
-          for jf in glob.glob("android/app/src/main/**/MainActivity.java", recursive=True):
-              with open(jf, "r", encoding="utf-8") as f:
-                  txt = f.read()
-              if "applyImmersiveMode" not in txt:
-                  idx = txt.rfind("}")
-                  if idx != -1:
-                      txt = txt[:idx] + "\n" + addon + "}\n"
-                      with open(jf, "w", encoding="utf-8") as f:
-                          f.write(txt)
-          PYEOF
+}'''
+                  )
+                  open(p, "w").write(txt)
+          PY
 
       - name: Build Debug APK
         working-directory: android
@@ -149,4 +151,3 @@ jobs:
         with:
           name: ZULMAT-Backrooms-v1.0-APK
           path: ZULMAT-Backrooms-v1.0.apk
-          
