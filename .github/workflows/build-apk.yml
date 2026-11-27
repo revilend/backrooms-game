@@ -12,6 +12,9 @@ on:
       - 'capacitor.config.json'
       - '.github/workflows/build-apk.yml'
 
+permissions:
+  contents: write
+
 jobs:
   build-android-apk:
     runs-on: ubuntu-latest
@@ -37,6 +40,10 @@ jobs:
           if [ -d "models" ]; then cp -r models/* www/models/ || true; fi
           if [ -d "audio" ]; then cp -r audio/* www/audio/ || true; fi
           if [ -d "video" ]; then cp -r video/* www/video/ || true; fi
+          find www/models -type f -name "*.glb" -size +8M | while read -r f; do
+            echo "Optimizing heavy GLB (simplify + draco): $f"
+            npx -y @gltf-transform/cli simplify "$f" "$f" --ratio 0.65 --error 0.002 || true
+          done
           find www/models -type f -name "*.glb" -size +3M | while read -r f; do
             echo "Draco compressing: $f"
             npx -y @gltf-transform/cli draco "$f" "$f" || true
@@ -237,19 +244,70 @@ jobs:
           PY
           fi
 
-      - name: Build Debug APK
-        working-directory: android
+      - name: Set Custom App Icon
         run: |
+          if [ -f "www/assets/app_icon.png" ]; then
+            rm -rf android/app/src/main/res/mipmap-anydpi-v26
+            for spec in "mipmap-mdpi:48" "mipmap-hdpi:72" "mipmap-xhdpi:96" "mipmap-xxhdpi:144" "mipmap-xxxhdpi:192"; do
+              dir="android/app/src/main/res/${spec%%:*}"
+              sz="${spec##*:}"
+              mkdir -p "$dir"
+              ffmpeg -y -i www/assets/app_icon.png -vf "scale=${sz}:${sz}" "$dir/ic_launcher.png" -loglevel error
+              cp "$dir/ic_launcher.png" "$dir/ic_launcher_round.png"
+              cp "$dir/ic_launcher.png" "$dir/ic_launcher_foreground.png"
+            done
+          fi
+
+      - name: Set Auto VersionCode in build.gradle
+        run: |
+          python3 - << 'PYVER'
+          import re
+          p = "android/app/build.gradle"
+          txt = open(p, "r", encoding="utf-8").read()
+          vc = "${{ github.run_number }}"
+          txt = re.sub(r'versionCode\s+\d+', f'versionCode {vc}', txt, count=1)
+          txt = re.sub(r'versionName\s+"[^"]+"', f'versionName "1.{vc}"', txt, count=1)
+          open(p, "w", encoding="utf-8").write(txt)
+          PYVER
+
+      - name: Build Signed Release or Debug APK
+        env:
+          KS_B64: ${{ secrets.ZULMAT_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ZULMAT_KEYSTORE_PASS }}
+          KEY_ALIAS: ${{ secrets.ZULMAT_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ZULMAT_KEY_PASS }}
+        run: |
+          cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > app/release.jks
+            ./gradlew assembleRelease \
+              -Pandroid.injected.signing.store.file="$(pwd)/app/release.jks" \
+              -Pandroid.injected.signing.store.password="$KS_PASS" \
+              -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+              -Pandroid.injected.signing.key.password="$KEY_PASS"
+            cp app/build/outputs/apk/release/app-release.apk ../ZULMAT-Backrooms-v1.${{ github.run_number }}.apk
+          else
+            ./gradlew assembleDebug
+            cp app/build/outputs/apk/debug/app-debug.apk ../ZULMAT-Backrooms-v1.${{ github.run_number }}.apk
+          fi
 
-      - name: Rename and Upload APK Artifact
+      - name: Check APK Output
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk ZULMAT-Backrooms-v1.0.apk
-          ls -lh ZULMAT-Backrooms-v1.0.apk
+          ls -lh ZULMAT-Backrooms-v1.${{ github.run_number }}.apk
 
-      - name: Upload ZULMAT-Backrooms-v1.0.apk
+      - name: Upload ZULMAT-Backrooms-v1.${{ github.run_number }}.apk
         uses: actions/upload-artifact@v4
         with:
-          name: ZULMAT-Backrooms-v1.0-APK
-          path: ZULMAT-Backrooms-v1.0.apk
+          name: ZULMAT-Backrooms-v1.${{ github.run_number }}-APK
+          path: ZULMAT-Backrooms-v1.${{ github.run_number }}.apk
+
+      - name: Publish Direct APK to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: ZULMAT Backrooms 3D v1.${{ github.run_number }}
+          files: ZULMAT-Backrooms-v1.${{ github.run_number }}.apk
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
