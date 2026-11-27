@@ -1,16 +1,105 @@
       const CoopSystem = (function() {
-        const peers = {}; // peerId -> { conn, call, audioEl, name, zone, targetPos, targetYaw, flashOn, walking, avatar }
+        const peers = {}; // peerId -> { conn, call, audioEl, name, skin, zone, targetPos, targetYaw, flashOn, walking, avatar }
         let peer = null;
         let roomCode = '';
+        let roomName = '';
+        let roomPass = '';
+        let joinPass = '';
+        let hostInfo = { name: 'Host', skin: 'businessman' };
+        let currentModeVal = '0';
+        let currentModeLabel = 'Syujet: Level 0 (Labirint)';
         let isHost = false;
+        let inLobby = false;
+        let netMode = 'online';
+        let lanIp = '';
+        let lanSockets = {};
         let localStream = null;
         let micEnabled = false;
         let sendTimer = 0;
         let peerJsLoaded = false;
 
+        const SKIN_LABELS_MAP = { businessman: 'Biznesmen', tvman: 'TV-Man', casual: 'Sayohatchi', man: 'Yigit', girl: 'Qiz', hazmat: 'Hazmat', survivor: 'Omon Qoluvchi' };
+
+        function broadcastCoop(payload) {
+          Object.values(peers).forEach((p) => {
+            if (p && p.conn && p.conn.open) {
+              try { p.conn.send(payload); } catch (e) {}
+            }
+          });
+        }
+
         function setStatus(msg, color = '#94a3b8') {
           const el = document.getElementById('coop-status');
           if (el) { el.textContent = msg; el.style.color = color; }
+        }
+
+        function setLobbyView(active) {
+          inLobby = !!active;
+          const sv = document.getElementById('coop-setup-view');
+          const lv = document.getElementById('coop-lobby-view');
+          if (sv) sv.classList.toggle('hidden', inLobby);
+          if (lv) lv.classList.toggle('hidden', !inLobby);
+          const hm = document.getElementById('coop-host-mode-row');
+          const gm = document.getElementById('coop-guest-mode-box');
+          if (hm) hm.classList.toggle('hidden', !isHost);
+          if (gm) gm.classList.toggle('hidden', isHost);
+        }
+
+        function renderLobby() {
+          const titleEl = document.getElementById('coop-lobby-room-title');
+          const subEl = document.getElementById('coop-lobby-room-sub');
+          if (titleEl) titleEl.textContent = (roomName || ('Xona #' + roomCode)) + (roomPass ? ' [Parolli]' : '');
+          if (subEl) subEl.textContent = (netMode === 'lan' ? ('Wi-Fi IP: ' + (lanIp || roomCode)) : ('Kod: ' + roomCode)) + (isHost ? ' • Siz Host' : '');
+          const gmTxt = document.getElementById('coop-guest-mode-text');
+          if (gmTxt) gmTxt.textContent = currentModeLabel;
+
+          const listEl = document.getElementById('coop-players-list');
+          const cntEl = document.getElementById('coop-player-count');
+          const entries = [];
+          entries.push({ name: getMyName(), skin: mySkin, role: isHost ? 'HOST' : 'SIZ' });
+          Object.values(peers).forEach((p) => {
+            if (p && p.authed !== false) {
+              const isPeerHost = !isHost && p.isHost;
+              entries.push({ name: p.name || "Do'st", skin: p.skin || 'businessman', role: isPeerHost ? 'HOST' : "DO'ST" });
+            }
+          });
+          if (cntEl) cntEl.textContent = String(entries.length);
+          if (listEl) {
+            listEl.textContent = '';
+            entries.forEach((e) => {
+              const row = document.createElement('div');
+              row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 7px;border-radius:6px;background:rgba(2,6,14,0.65);font-size:11.5px;';
+              const left = document.createElement('span');
+              left.style.color = '#f8fafc';
+              left.textContent = e.name + ' (' + (SKIN_LABELS_MAP[e.skin] || e.skin) + ')';
+              const badge = document.createElement('span');
+              badge.style.cssText = 'font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;' + (e.role === 'HOST' ? 'background:rgba(250,204,21,0.2);color:#fde047;' : 'background:rgba(56,189,248,0.18);color:#7dd3fc;');
+              badge.textContent = e.role;
+              row.appendChild(left);
+              row.appendChild(badge);
+              listEl.appendChild(row);
+            });
+          }
+        }
+
+        function leaveRoom(msg, color) {
+          Object.keys(peers).forEach((pid) => {
+            if (peers[pid].avatar) scene.remove(peers[pid].avatar.root);
+            if (peers[pid].audioEl) { peers[pid].audioEl.pause(); peers[pid].audioEl.srcObject = null; }
+            delete peers[pid];
+          });
+          if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
+          if (window.ZulmatLan && window.ZulmatLan.stopHost) { try { window.ZulmatLan.stopHost(); } catch (e) {} }
+          Object.values(lanSockets).forEach((ws) => { try { ws.close(); } catch (e) {} });
+          lanSockets = {};
+          lanIp = '';
+          roomCode = '';
+          isHost = false;
+          setLobbyView(false);
+          const igW = document.getElementById('ingame-chat-wrap');
+          if (igW) igW.classList.add('hidden');
+          if (msg) setStatus(msg, color || '#94a3b8');
+          else setStatus("Oflayn. Xona yarating yoki kod bilan kiring.", "#94a3b8");
         }
 
         function getMyName() {
@@ -160,7 +249,10 @@
             peers[pid].conn = conn;
           }
           conn.on('open', () => {
-            conn.send({ t: 'hello', name: getMyName(), skin: mySkin, zone: state.zone });
+            conn.send({ t: 'hello', name: getMyName(), skin: mySkin, zone: state.zone, pass: joinPass, isHost });
+            if (isHost) {
+              pStateSync();
+            }
             updatePeerCount();
             if (micEnabled && localStream && peer) {
               try {
@@ -168,10 +260,37 @@
                 attachCall(pid, call);
               } catch (e) {}
             }
-            if (typeof showToast === 'function') showToast("Do'stingiz Co-op xonaga qo'shildi!", 3500);
           });
+          function pStateSync() {
+            try {
+              conn.send({ t: 'room_meta', roomName, hasPass: !!roomPass, modeVal: currentModeVal, modeLabel: currentModeLabel });
+            } catch (e) {}
+          }
           conn.on('data', (d) => {
-              if (d && (d.t === 'chat' || d.t === 'start') && window.__zulmatOnCoopMsg) { window.__zulmatOnCoopMsg(d); return; }
+              if (d && d.t === 'auth_fail') {
+                leaveRoom(d.reason || "Parol noto'g'ri!", '#f87171');
+                return;
+              }
+              if (d && d.t === 'room_meta') {
+                roomName = d.roomName || ('Xona #' + roomCode);
+                if (d.hasPass) roomPass = '***';
+                if (d.modeVal) currentModeVal = d.modeVal;
+                if (d.modeLabel) currentModeLabel = d.modeLabel;
+                setLobbyView(true);
+                renderLobby();
+                return;
+              }
+              if (d && (d.t === 'chat' || d.t === 'start') && window.__zulmatOnCoopMsg) {
+                window.__zulmatOnCoopMsg(d);
+                if (isHost && d.t === 'chat') {
+                  Object.keys(peers).forEach((oid) => {
+                    if (oid !== pid && peers[oid].conn && peers[oid].conn.open) {
+                      try { peers[oid].conn.send(d); } catch (e) {}
+                    }
+                  });
+                }
+                return;
+              }
               if (d && d.t === 'pos' && !isHost && d.z === state.zone && typeof d.mx === 'number' && state.monsterPos) {
                 state.monsterPos.x += (d.mx - state.monsterPos.x) * 0.45;
                 state.monsterPos.z += (d.mz - state.monsterPos.z) * 0.45;
@@ -181,10 +300,25 @@
             const p = peers[pid];
             if (!p || !d) return;
             if (d.t === 'hello' && d.name) {
+              if (isHost && roomPass && String(d.pass || '') !== roomPass) {
+                p.authed = false;
+                try { conn.send({ t: 'auth_fail', reason: "Parol noto'g'ri!" }); } catch (e) {}
+                setTimeout(() => { try { conn.close(); } catch (e) {} }, 120);
+                return;
+              }
+              p.authed = true;
+              p.isHost = !!d.isHost;
               p.name = String(d.name).slice(0, 16);
               const sk = ['businessman','tvman','casual','man','girl','hazmat','survivor'].includes(d.skin) ? d.skin : 'businessman';
+              p.skin = sk;
               if (p.avatar) scene.remove(p.avatar.root);
               p.avatar = createHazmatAvatar(p.name, sk);
+              if (isHost) {
+                pStateSync();
+              } else {
+                setLobbyView(true);
+              }
+              if (typeof showToast === 'function') showToast(p.name + " xonaga qo'shildi!", 3000);
               updatePeerCount();
             } else if (d.t === 'pos') {
               p.zone = d.z || '';
@@ -245,23 +379,131 @@
 
         function updatePeerCount() {
           const igW = document.getElementById('ingame-chat-wrap');
-          if (igW) igW.classList.toggle('hidden', Object.keys(conns).length === 0);
-          const names = Object.values(peers).map((p) => p.name);
-          if (isHost) {
-            setStatus("Xona kodi: " + roomCode + " • Ulanganlar (" + names.length + "): " + (names.length ? names.join(', ') : "Do'stingiz kutilmoqda..."), "#4ade80");
-          } else if (roomCode) {
-            setStatus("Xona " + roomCode + " ga ulandi! Jamoa: " + (names.length ? names.join(', ') : 'Host'), "#4ade80");
+          if (igW) igW.classList.toggle('hidden', Object.keys(peers).length === 0);
+          renderLobby();
+        }
+
+
+        function makeLanConn(pid, wsObj) {
+          const handlers = { open: [], data: [], close: [] };
+          const c = {
+            peer: pid,
+            open: true,
+            send(obj) {
+              if (!this.open) return;
+              const str = JSON.stringify(obj);
+              if (wsObj) { try { wsObj.send(str); } catch (e) {} }
+              else if (window.ZulmatLan && window.ZulmatLan.sendTo) { try { window.ZulmatLan.sendTo(pid, str); } catch (e) {} }
+            },
+            on(ev, fn) { if (handlers[ev]) handlers[ev].push(fn); },
+            close() {
+              this.open = false;
+              if (wsObj) { try { wsObj.close(); } catch (e) {} }
+              handlers.close.forEach((f) => f());
+            },
+            _emit(ev, arg) { if (handlers[ev]) handlers[ev].forEach((f) => f(arg)); }
+          };
+          return c;
+        }
+
+        window.__zulmatLanOnMsg = (pid, rawStr) => {
+          let c = peers[pid] && peers[pid].conn;
+          if (!c) {
+            c = makeLanConn(pid, null);
+            setupConn(c);
+            c._emit('open');
           }
+          try { c._emit('data', JSON.parse(rawStr)); } catch (e) {}
+        };
+        window.__zulmatLanOnClose = (pid) => {
+          if (peers[pid] && peers[pid].conn) peers[pid].conn._emit('close');
+        };
+
+        function hostLanRoom() {
+          if (!window.ZulmatLan || !window.ZulmatLan.startHost) {
+            setStatus("Mahalliy Wi-Fi host faqat Android APK da ishlaydi.", "#f87171");
+            return;
+          }
+          const rnInp = document.getElementById('coop-room-name-inp');
+          const rpInp = document.getElementById('coop-room-pass-inp');
+          const customName = rnInp ? rnInp.value.trim().slice(0, 22) : '';
+          roomPass = rpInp ? rpInp.value.trim().slice(0, 16) : '';
+          joinPass = '';
+          isHost = true;
+          const ip = window.ZulmatLan.startHost();
+          lanIp = (ip && ip !== '0.0.0.0') ? ip : '192.168.43.1';
+          roomCode = lanIp;
+          roomName = customName || 'Mahalliy Xona';
+          setLobbyView(true);
+          updatePeerCount();
+        }
+
+        function joinLanRoom(ipInput, pass) {
+          joinPass = String(pass || '').trim().slice(0, 16);
+          roomPass = '';
+          isHost = false;
+          const raw = String(ipInput || '').trim();
+          const candidates = [];
+          if (raw) {
+            candidates.push(raw.includes('.') ? raw : ('192.168.43.' + raw));
+          } else {
+            if (window.ZulmatLan && window.ZulmatLan.getLocalIp) {
+              const myIp = String(window.ZulmatLan.getLocalIp() || '');
+              const parts = myIp.split('.');
+              if (parts.length === 4) candidates.push(parts[0] + '.' + parts[1] + '.' + parts[2] + '.1');
+            }
+            ['192.168.43.1', '192.168.137.1', '172.20.10.1', '192.168.1.1'].forEach((g) => {
+              if (!candidates.includes(g)) candidates.push(g);
+            });
+          }
+          setStatus("Mahalliy Wi-Fi xonasi qidirilmoqda...", "#facc15");
+          let connected = false;
+          let failed = 0;
+          candidates.forEach((ip) => {
+            try {
+              const ws = new WebSocket('ws://' + ip + ':8765');
+              const tid = setTimeout(() => { if (!connected && ws.readyState !== 1) try { ws.close(); } catch (e) {} }, 2800);
+              ws.onopen = () => {
+                clearTimeout(tid);
+                if (connected) { try { ws.close(); } catch (e) {} return; }
+                connected = true;
+                lanIp = ip;
+                roomCode = ip;
+                roomName = 'Mahalliy Xona';
+                const pid = 'lan_host';
+                lanSockets[pid] = ws;
+                const c = makeLanConn(pid, ws);
+                setupConn(c);
+                c._emit('open');
+                ws.onmessage = (ev) => { try { c._emit('data', JSON.parse(ev.data)); } catch (e) {} };
+                ws.onclose = () => c._emit('close');
+              };
+              ws.onerror = () => {
+                clearTimeout(tid);
+                failed++;
+                if (!connected && failed >= candidates.length) {
+                  setStatus("Mahalliy xona topilmadi. Host IP ni tekshiring.", "#f87171");
+                }
+              };
+            } catch (e) { failed++; }
+          });
         }
 
         function hostRoom() {
+          const rnInp = document.getElementById('coop-room-name-inp');
+          const rpInp = document.getElementById('coop-room-pass-inp');
+          const customName = rnInp ? rnInp.value.trim().slice(0, 22) : '';
+          roomPass = rpInp ? rpInp.value.trim().slice(0, 16) : '';
+          joinPass = '';
           ensurePeerJs(() => {
             if (peer) { try { peer.destroy(); } catch (e) {} }
             roomCode = String(Math.floor(1000 + Math.random() * 9000));
+            roomName = customName || ('Xona #' + roomCode);
             isHost = true;
             setStatus("Xona yaratilmoqda (" + roomCode + ")...", "#facc15");
             peer = new window.Peer('zulmat-br-' + roomCode, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
             peer.on('open', () => {
+              setLobbyView(true);
               updatePeerCount();
               if (navigator.clipboard) navigator.clipboard.writeText(roomCode).catch(() => {});
             });
@@ -274,12 +516,15 @@
           });
         }
 
-        function joinRoom(code) {
+        function joinRoom(code, pass) {
           const clean = String(code || '').replace(/[^0-9A-Za-z]/g, '').trim();
           if (clean.length < 4) { setStatus("4 xonali xona kodini kiriting!", "#facc15"); return; }
+          joinPass = String(pass || '').trim().slice(0, 16);
+          roomPass = '';
           ensurePeerJs(() => {
             if (peer) { try { peer.destroy(); } catch (e) {} }
             roomCode = clean;
+            roomName = 'Xona #' + clean;
             isHost = false;
             setStatus("Xona " + clean + " ga ulanilmoqda...", "#facc15");
             peer = new window.Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }] } });
@@ -314,7 +559,7 @@
           if (micEnabled) {
             micEnabled = false;
             if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; }
-            if (btn) btn.textContent = "MIKROFON: O'CHIQ";
+            if (btn) btn.textContent = "MIK: O'CHIQ";
             return;
           }
           if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -324,7 +569,7 @@
           navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((stream) => {
             localStream = stream;
             micEnabled = true;
-            if (btn) btn.textContent = "MIKROFON: YONIQ";
+            if (btn) btn.textContent = "MIK: YONIQ";
             if (peer) {
               Object.keys(peers).forEach((pid) => {
                 if (peers[pid].conn && peers[pid].conn.open) {
@@ -369,6 +614,24 @@
               p.avatar.root.rotation.y = p.targetYaw;
               p.avatar.beamCone.visible = p.flashOn;
               p.avatar.flashLight.intensity = p.flashOn ? 1.2 : 0;
+              if (p.avatar.label) {
+                const isPublicOnline = (roomCode === 'ENDLESSPUBLIC');
+                const dPeer = Math.hypot(state.pos.x - p.targetPos.x, state.pos.z - p.targetPos.z);
+                if (isPublicOnline) {
+                  p.avatar.label.material.depthTest = true;
+                  p.avatar.label.material.fog = true;
+                  p.avatar.label.renderOrder = 0;
+                  p.avatar.label.scale.set(1.35, 0.34, 1);
+                  p.avatar.label.visible = (dPeer < 28) && (typeof hasLineOfSight !== 'function' || hasLineOfSight(state.pos.x, state.pos.z, p.targetPos.x, p.targetPos.z));
+                } else {
+                  p.avatar.label.material.depthTest = false;
+                  p.avatar.label.material.fog = false;
+                  p.avatar.label.renderOrder = 999;
+                  const scF = Math.min(3.8, Math.max(1.0, dPeer * 0.085));
+                  p.avatar.label.scale.set(1.35 * scF, 0.34 * scF, 1);
+                  p.avatar.label.visible = true;
+                }
+              }
               if (p.avatar.mixer) {
                 p.avatar.mixer.update(dt);
                 if (p.walking && !p.avatar.isWalking && p.avatar.walkAct) {
@@ -449,8 +712,22 @@
           coopOv.classList.remove('hidden');
         });
         if (bClose && coopOv) bClose.addEventListener('click', () => coopOv.classList.add('hidden'));
-        if (bHost) bHost.addEventListener('click', hostRoom);
-        if (bJoin) bJoin.addEventListener('click', () => joinRoom(cInp ? cInp.value : ''));
+        if (bHost) bHost.addEventListener('click', () => { if (netMode === 'lan') hostLanRoom(); else hostRoom(); });
+        const bLeave = document.getElementById('btn-coop-leave');
+        const jPassInp = document.getElementById('coop-join-pass-inp');
+        const bNetOn = document.getElementById('btn-coop-net-online');
+        const bNetLan = document.getElementById('btn-coop-net-lan');
+        function setNetMode(m) {
+          netMode = m;
+          if (bNetOn) bNetOn.classList.toggle('active', m === 'online');
+          if (bNetLan) bNetLan.classList.toggle('active', m === 'lan');
+          if (cInp) cInp.placeholder = m === 'lan' ? "Host IP (bo'sh = avto)" : "Kod (4821)";
+          setStatus(m === 'lan' ? "Mahalliy Wi-Fi: bitta telefonda Hotspot yoqing, qolganlar ulansin." : "Oflayn. Xona yarating yoki kod bilan kiring.", "#94a3b8");
+        }
+        if (bNetOn) bNetOn.addEventListener('click', () => setNetMode('online'));
+        if (bNetLan) bNetLan.addEventListener('click', () => setNetMode('lan'));
+        if (bJoin) bJoin.addEventListener('click', () => { if (netMode === 'lan') joinLanRoom(cInp ? cInp.value : '', jPassInp ? jPassInp.value : ''); else joinRoom(cInp ? cInp.value : '', jPassInp ? jPassInp.value : ''); });
+        if (bLeave) bLeave.addEventListener('click', () => leaveRoom());
         if (bMic) bMic.addEventListener('click', toggleMic);
         const skinBtns = {
           businessman: document.getElementById('btn-skin-businessman'),
@@ -495,6 +772,9 @@
               const v = opt.getAttribute('data-val') || '0';
               if (modeSel) modeSel.value = v;
               if (modeLbl) modeLbl.textContent = opt.textContent;
+              currentModeVal = v;
+              currentModeLabel = opt.textContent;
+              if (isHost) broadcastCoop({ t: 'room_meta', roomName, hasPass: !!roomPass, modeVal: currentModeVal, modeLabel: currentModeLabel });
               modeMenu.querySelectorAll('.z-dd-opt').forEach((o) => o.classList.toggle('active', o === opt));
               modeMenu.classList.add('hidden');
               modeBtn.classList.remove('open');
@@ -545,7 +825,7 @@
           igInp.value = '';
           const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
           appendChat(myN, txt);
-          Object.values(conns).forEach((c) => { if (c && c.open) { try { c.send({ t: 'chat', name: myN, text: txt }); } catch (e) {} } });
+          broadcastCoop({ t: 'chat', name: myN, text: txt });
         }
         if (igBtn) igBtn.addEventListener('click', sendInGameChat);
         if (igInp) igInp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') sendInGameChat(); });
@@ -556,7 +836,7 @@
           chatInp.value = '';
           const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
           appendChat(myN, txt);
-          Object.values(conns).forEach((c) => { if (c && c.open) { try { c.send({ t: 'chat', name: myN, text: txt }); } catch (e) {} } });
+          broadcastCoop({ t: 'chat', name: myN, text: txt });
         }
         if (btnSend) btnSend.addEventListener('click', sendChatMsg);
         if (chatInp) chatInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMsg(); });
@@ -577,7 +857,7 @@
         }
         if (btnStartCoop) btnStartCoop.addEventListener('click', () => {
           const mv = modeSel ? modeSel.value : '0';
-          Object.values(conns).forEach((c) => { if (c && c.open) { try { c.send({ t: 'start', mode: mv }); } catch (e) {} } });
+          broadcastCoop({ t: 'start', mode: mv });
           launchCoopMode(mv);
         });
         window.__zulmatOnCoopMsg = (d) => {
@@ -762,61 +1042,91 @@
         g.visible = false;
         scene.add(g);
 
-        let active = false, life = 0, nextCD = 32 + Math.random() * 24;
-        let vx = 0, vy = 0, vz = 0, rvx = 0, rvy = 0, rvz = 0, bounced = false;
+        let active = false, life = 0, nextCD = 28 + Math.random() * 22;
+        let vx = 0, vy = 0, vz = 0, rvx = 0, rvy = 0, rvz = 0, bounced = false, settled = false;
         const SAFE_ZONES = { metro_lobby: 1, level61: 1, level3999: 1, levelmanila: 1, level37: 1, level7: 1, level922: 1 };
+
+        function isPointClear(px, pz, pad = 0.55) {
+          if (typeof getZoneBoxes !== 'function') return true;
+          const bxs = getZoneBoxes();
+          for (let i = 0; i < bxs.length; i++) {
+            const b = bxs[i];
+            if (Math.abs(px - b.x) < b.halfX + pad && Math.abs(pz - b.z) < b.halfZ + pad) return false;
+          }
+          return true;
+        }
 
         function trigger() {
           const sinY = Math.sin(state.yaw), cosY = Math.cos(state.yaw);
           const fwdX = -sinY, fwdZ = -cosY;
           const rightX = cosY, rightZ = -sinY;
           const side = Math.random() < 0.5 ? -1 : 1;
-          // Spawn 6.5m ahead & 2.2m to the side, then fling violently across player's view!
-          g.position.set(state.pos.x + fwdX * 6.8 + rightX * side * 2.4, 0.45, state.pos.z + fwdZ * 6.8 + rightZ * side * 2.4);
+          const sx = state.pos.x + fwdX * 5.4 + rightX * side * 1.9;
+          const sz = state.pos.z + fwdZ * 5.4 + rightZ * side * 1.9;
+          const tx = state.pos.x + fwdX * 2.2;
+          const tz = state.pos.z + fwdZ * 2.2;
+          // Only trigger when corridor ahead is open so chair never spawns inside walls
+          if (!isPointClear(sx, sz, 0.55) || !isPointClear(tx, tz, 0.5)) {
+            nextCD = 5.0;
+            return false;
+          }
+          g.position.set(sx, 0.72, sz);
           g.rotation.set(0, Math.random() * Math.PI * 2, 0);
-          vx = -rightX * side * 7.8 - fwdX * 1.4;
-          vy = 3.2;
-          vz = -rightZ * side * 7.8 - fwdZ * 1.4;
-          rvx = (Math.random() > 0.5 ? 1 : -1) * 7.5;
-          rvy = (Math.random() - 0.5) * 6.0;
-          rvz = side * 6.8;
+          vx = (tx - sx) * 1.95;
+          vy = 2.6;
+          vz = (tz - sz) * 1.95;
+          rvx = (Math.random() > 0.5 ? 1 : -1) * 8.5;
+          rvy = (Math.random() - 0.5) * 6.5;
+          rvz = side * 7.2;
           active = true;
           bounced = false;
+          settled = false;
           life = 0;
           g.visible = true;
-          if (typeof Sound !== 'undefined') {
-            const cSfx = 'chair_throw_' + (1 + Math.floor(Math.random() * 3));
-            if (!Sound.playSfx(cSfx, 0.95)) {
-              Sound.playSfx('locker_hide', 0.92);
-              setTimeout(() => Sound.playSfx('locker_hide', 0.65, { rate: 0.78 }), 260);
-            }
+          // Launch air whoosh immediately; crash sound plays at exact floor/wall impact
+          if (typeof Sound !== 'undefined' && Sound.noiseBurst) {
+            Sound.noiseBurst(0.18, 620, 1.1, 0.14, 'bandpass', 240);
           }
           state.sanity = Math.max(0, state.sanity - 6);
           if (typeof elDangerVig !== 'undefined' && elDangerVig) {
-            elDangerVig.style.opacity = '0.55';
-            setTimeout(() => { if (!state.killing) elDangerVig.style.opacity = '0'; }, 280);
+            elDangerVig.style.opacity = '0.58';
+            setTimeout(() => { if (!state.killing) elDangerVig.style.opacity = '0'; }, 320);
+          }
+          return true;
+        }
+
+        function playImpactSfx() {
+          if (typeof Sound === 'undefined') return;
+          const cSfx = 'chair_throw_' + (1 + Math.floor(Math.random() * 3));
+          if (!Sound.playSfx(cSfx, 0.95)) {
+            Sound.playSfx('locker_hide', 0.9);
           }
         }
 
         function update(dt) {
           if (!state.started || state.paused || state.ended || state.hiding || SAFE_ZONES[state.zone]) {
-            if (active && SAFE_ZONES[state.zone]) { active = false; g.visible = false; }
+            if (active && SAFE_ZONES[state.zone]) { active = false; settled = false; g.visible = false; }
             return;
           }
           if (!active) {
             nextCD -= dt;
-            if (nextCD <= 0) {
-              nextCD = 38 + Math.random() * 28;
+            const spd = state.vel ? Math.hypot(state.vel.x, state.vel.z) : 0;
+            if (nextCD <= 0 && spd > 0.7 && !state.killing) {
+              nextCD = 42 + Math.random() * 26;
               trigger();
             }
             return;
           }
           life += dt;
-          if (life < 2.2) {
-            vy -= 14.5 * dt;
-            g.position.x += vx * dt;
+          if (life < 2.1) {
+            vy -= 15.0 * dt;
+            const nx = g.position.x + vx * dt;
+            const nz = g.position.z + vz * dt;
+            if (!isPointClear(nx, g.position.z, 0.34)) { vx = -vx * 0.45; if (!bounced) { bounced = true; playImpactSfx(); } }
+            else g.position.x = nx;
+            if (!isPointClear(g.position.x, nz, 0.34)) { vz = -vz * 0.45; if (!bounced) { bounced = true; playImpactSfx(); } }
+            else g.position.z = nz;
             g.position.y += vy * dt;
-            g.position.z += vz * dt;
             g.rotation.x += rvx * dt;
             g.rotation.y += rvy * dt;
             g.rotation.z += rvz * dt;
@@ -824,24 +1134,34 @@
               g.position.y = 0.28;
               if (!bounced) {
                 bounced = true;
-                vy = Math.abs(vy) * 0.36;
-                vx *= 0.58; vz *= 0.58;
-                rvx *= 0.45; rvy *= 0.45; rvz *= 0.45;
+                playImpactSfx();
+                vy = Math.abs(vy) * 0.34;
+                vx *= 0.52; vz *= 0.52;
+                rvx *= 0.4; rvy *= 0.4; rvz *= 0.4;
               } else {
+                settled = true;
                 vy = 0;
-                vx *= Math.pow(0.08, dt);
-                vz *= Math.pow(0.08, dt);
-                rvx *= Math.pow(0.05, dt);
-                rvy *= Math.pow(0.05, dt);
-                rvz *= Math.pow(0.05, dt);
+                vx *= Math.pow(0.05, dt);
+                vz *= Math.pow(0.05, dt);
+                rvx *= Math.pow(0.03, dt);
+                rvy *= Math.pow(0.03, dt);
+                rvz *= Math.pow(0.03, dt);
               }
             }
-          } else if (life > 18.0) {
-            active = false;
-            g.visible = false;
+          } else {
+            settled = true;
+            if (life > 11.0 || Math.hypot(g.position.x - state.pos.x, g.position.z - state.pos.z) > 16) {
+              active = false;
+              settled = false;
+              g.visible = false;
+            }
           }
         }
-        return { update };
+        function getCollisionBox() {
+          if (!active || (!settled && !bounced)) return null;
+          return { x: g.position.x, z: g.position.z, halfX: 0.34, halfZ: 0.34 };
+        }
+        return { update, getCollisionBox };
       })();
 
       // ============================================================

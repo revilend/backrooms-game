@@ -246,6 +246,56 @@
         state.monsterTarget = new THREE.Vector3(cell.x, 0, cell.z);
       }
 
+      const STORY_BRIEFS = {
+        0: {
+          uz: "[M.E.G. RATSIA]: Siz 0-qavatdasiz. Oldindagi shkafdan fonarni oling va 8 ta kalitni topib metroni oching.",
+          en: "[M.E.G. RADIO]: You fell into Level 0. Grab the flashlight from the cabinet ahead and find 8 keys for the Metro.",
+          ru: "[РАЦИЯ M.E.G.]: Вы на Уровне 0. Возьмите фонарик со шкафа впереди и найдите 8 ключей к метро."
+        },
+        1: {
+          uz: "[M.E.G. RATSIA]: 1-qavat — Omborxona. Chiroqlar o'chishi mumkin, Skin-Stealer ga yaqinlashmang.",
+          en: "[M.E.G. RADIO]: Level 1 — Habitable Zone. Watch for power blackouts and avoid the Skin-Stealer.",
+          ru: "[РАЦИЯ M.E.G.]: Уровень 1 — Обитаемая зона. Следите за светом и избегайте Кожекрада."
+        },
+        37: {
+          uz: "[M.E.G. RATSIA]: 37-qavat — Poolrooms. Suv tinch ko'rinsa ham, chuqur basseynlarda yolg'iz emassiz.",
+          en: "[M.E.G. RADIO]: Level 37 — Poolrooms. The water looks calm, but something lurks in the pools.",
+          ru: "[РАЦИЯ M.E.G.]: Уровень 37 — Бассейны. Вода кажется тихой, но в глубине кто-то есть."
+        },
+        fun: {
+          uz: "[OGOHLANTIRISH]: Level Fun =). Partygoer larning tabassumiga ishonmang — tezda chiqishni toping!",
+          en: "[WARNING]: Level Fun =). Do not trust the Partygoers' smiles — find the exit fast!",
+          ru: "[ТРЕВОГА]: Уровень Веселье =). Не верьте улыбкам Тусовщиков — бегите к выходу!"
+        },
+        run: {
+          uz: "[FAVQULODDA SIGNAL]: Level ! — ORQAGA QARAMANG! Qizil koridorda faqat oldinga yuguring!",
+          en: "[EMERGENCY]: Level ! — DO NOT LOOK BACK! Sprint down the red corridor now!",
+          ru: "[ТРЕВОГА]: Уровень ! — НЕ ОГЛЯДЫВАЙТЕСЬ! Бегите вперёд по красному коридору!"
+        },
+        3999: {
+          uz: "[M.E.G. RATSIA]: 3999-qavat — Haqiqiy Dunyo darvozasi. Oxirgi kalitlarni yig'ing va uyga qayting!",
+          en: "[M.E.G. RADIO]: Level 3999 — The True Exit awaits. Gather the final keys and return home!",
+          ru: "[РАЦИЯ M.E.G.]: Уровень 3999 — Выход в реальный мир. Соберите ключи и вернитесь домой!"
+        },
+        end: {
+          uz: "[TERMINAL]: The End. Siz Backrooms ning oxiriga yetdingiz — kompyuterdan qochish kodini ishga tushiring.",
+          en: "[TERMINAL]: The End. You reached the final archive — run the escape sequence.",
+          ru: "[ТЕРМИНАЛ]: Конец. Вы добрались до финала — запустите выход на терминале."
+        }
+      };
+      function showStoryBrief(lvl) {
+        const b = STORY_BRIEFS[lvl];
+        if (!b || typeof Sound === 'undefined' || !Sound.showVoiceSubtitle) return;
+        const lang = window.__zulmatLang || 'uz';
+        const delay = (lvl === 0) ? 5200 : 1800;
+        setTimeout(() => {
+          if (!state.started || state.ended || state.killing) return;
+          if (Sound.activeVoice) return;
+          if (Sound.playRadioBeep) Sound.playRadioBeep();
+          Sound.showVoiceSubtitle('story_' + lvl, 6500, b[lang] || b.uz);
+        }, delay);
+      }
+
       window.__zulmatEndlessStreak = 0;
       window.__zulmatEndlessBest = parseInt(LSget('zulmat_endless_best') || '0', 10) || 0;
       window.__zulmatPickNextEndless = function(prevLvl) {
@@ -638,6 +688,7 @@
               const pt = activeEndlessPits[pi];
               if (Math.abs(state.pos.x - pt.x) < pt.halfX - 0.15 && Math.abs(state.pos.z - pt.z) < pt.halfZ - 0.15) {
                 state._fallingPit = true; state._fallPitT = 0;
+                if (typeof Sound !== 'undefined' && Sound.playSfx) Sound.playSfx('fall_abyss', 0.92);
                 showToast("Tubsizlikka quladingiz!", true);
                 break;
               }
@@ -3580,6 +3631,21 @@
       }
 
       function resolveWallCollision(pos, radius, forMonster) {
+        if (!forMonster && typeof poltergeistChair !== 'undefined' && poltergeistChair.getCollisionBox) {
+          const cb = poltergeistChair.getCollisionBox();
+          if (cb) {
+            const cMinX = cb.x - cb.halfX - radius, cMaxX = cb.x + cb.halfX + radius;
+            const cMinZ = cb.z - cb.halfZ - radius, cMaxZ = cb.z + cb.halfZ + radius;
+            if (pos.x > cMinX && pos.x < cMaxX && pos.z > cMinZ && pos.z < cMaxZ) {
+              const pL = pos.x - cMinX, pR = cMaxX - pos.x, pT = pos.z - cMinZ, pB = cMaxZ - pos.z;
+              const mp = Math.min(pL, pR, pT, pB);
+              if (mp === pL) pos.x = cMinX;
+              else if (mp === pR) pos.x = cMaxX;
+              else if (mp === pT) pos.z = cMinZ;
+              else pos.z = cMaxZ;
+            }
+          }
+        }
         const _pitList = (forMonster && state.zone === 'level0' && window.l0PitTraps && pos.y < 3.6)
           ? window.l0PitTraps
           : ((forMonster && state.zone === 'levelendless' && typeof Endless50K !== 'undefined' && Endless50K.getActivePits) ? Endless50K.getActivePits() : null);
@@ -4084,6 +4150,9 @@
           setTxt('btn-coop-join', t.coopJoin);
           setTxt('btn-coop-send', t.coopSend);
           setTxt('btn-close-coop', t.coopClose);
+          setTxt('btn-coop-net-online', lang === 'en' ? 'ONLINE' : (lang === 'ru' ? 'ОНЛАЙН' : 'ONLAYN'));
+          setTxt('btn-coop-net-lan', lang === 'en' ? 'LOCAL WI-FI' : (lang === 'ru' ? 'ЛОКАЛЬНЫЙ WI-FI' : 'MAHALLIY WI-FI'));
+          setTxt('btn-coop-leave', lang === 'en' ? 'LEAVE' : (lang === 'ru' ? 'ВЫЙТИ' : 'CHIQISH'));
 
           setTxt('btn-station-go', lang === 'en' ? 'DEPART >' : (lang === 'ru' ? 'ОТПРАВИТЬСЯ >' : 'BEKATGA BORISH >'));
           setTxt('btn-station-close', lang === 'en' ? '< BACK' : (lang === 'ru' ? '< НАЗАД' : '< ORQAGA'));

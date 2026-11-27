@@ -1136,6 +1136,7 @@
           });
           cg.add(seat, back);
           level0Group.add(cg);
+          wallBoxes.push({ x: cx, z: cz, halfX: 0.34, halfZ: 0.34 });
         }
 
         // Place architectural variety cleanly across open cells (avoiding spawn & keys/batteries)

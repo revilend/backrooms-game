@@ -52,6 +52,17 @@
           }
         }
         if (state.started && !state.paused && Sound && Sound.updateListener) Sound.updateListener(state.pos, state.yaw);
+        if (state.started && !state.paused && !state.ended && !state.killing && state.zone !== 'metro_lobby') {
+          state._distScreamT = (state._distScreamT === undefined) ? (22 + Math.random() * 20) : (state._distScreamT - dt);
+          if (state._distScreamT <= 0) {
+            state._distScreamT = 38 + Math.random() * 30;
+            if (!state.monsterChasing && !state.hiding && typeof Sound !== 'undefined' && !Sound.activeVoice && Sound.playSfx3D) {
+              const ang = Math.random() * Math.PI * 2;
+              const r = 16 + Math.random() * 8;
+              Sound.playSfx3D('distant_scream', state.pos.x + Math.cos(ang) * r, 1.6, state.pos.z + Math.sin(ang) * r, 0.72, { maxDist: 34 });
+            }
+          }
+        }
 
         // Flickering Backrooms fluorescent lights
         for (let i = 0; i < flickLights.length; i++) {
@@ -2280,6 +2291,7 @@
               if (adx < pt.halfX && adz < pt.halfZ && state.pos.y < 2.15) {
                 state._fallingPit = true;
                 state._fallPitT = 0;
+                if (Sound && Sound.playSfx) Sound.playSfx('fall_abyss', 0.92);
                 showToast("CHUQUR BO'SHLIQQA QULADINGIZ!", true);
                 if (Sound && Sound.playVoice) Sound.playVoice('vox_caught', 0.9, 6000);
                 break;

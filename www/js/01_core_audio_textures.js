@@ -106,7 +106,7 @@
         sfxBuffers: {},
         sfxLoading: {},
         sfxNames: [
-          'monster_growl', 'monster_roar', 'footstep_carpet', 'footstep_concrete', 'footstep_grass',
+          'monster_growl', 'monster_roar', 'footstep_carpet', 'footstep_concrete', 'footstep_grass', 'footstep_water', 'radio_beep', 'fall_abyss', 'distant_scream',
           'pickup_item', 'switch_breaker', 'splash_water', 'wade_water',
           'flashlight_click', 'electric_zap', 'no_clip_glitch', 'locker_hide',
           'almond_drink', 'keypad_beep', 'steam_hiss', 'crt_boot',
@@ -417,41 +417,48 @@
             ru: "Заряд фонарика почти на нуле!"
           },
           vox_caught: {
+            uz: "Yo'q! U meni topdi!",
             en: "No! It found me!",
             ru: "Нет! Оно нашло меня!"
           },
           vox_win: {
+            uz: "Chiqish eshigiga yetib keldim!",
             en: "I made it through the exit!",
             ru: "Я добрался до выхода!"
           },
           vox_train_arrive: {
+            uz: "Bekatga metro poyezdi keldi... Ichiga kiramiz.",
             en: "A subway train just pulled into the station... Let's get on.",
             ru: "На станцию прибыл поезд метро... Нужно зайти внутрь."
           },
           metro_arrive_vox: {
+            uz: "[E'lon]: Poyezd M.E.G. Markaziy Bekatiga yetib keldi. Vagonga chiqing.",
             en: "[PA System]: Train arriving at M.E.G. Transit Hub. Please step inside the carriage.",
             ru: "[Объявление]: Поезд прибыл на пересадочный узел M.E.G. Просьба пройти в вагон."
           },
           metro_depart_vox: {
+            uz: "[E'lon]: Eshiklar yopilmoqda. Keyingi Backrooms sektoriga jo'naymiz.",
             en: "[PA System]: Doors closing. Departing for the next Backrooms sector.",
             ru: "[Объявление]: Двери закрываются. Отправление к следующему уровню Закулисья."
           }
         },
-        showVoiceSubtitle(name, durMs) {
+        showVoiceSubtitle(name, durMs, customTxt) {
           const lang = window.__zulmatLang || 'uz';
           const el = document.getElementById('voice-subtitle');
           if (!el) return;
-          if (lang === 'uz') { el.classList.add('hidden'); return; }
-          const entry = this._voiceSubtitles[name];
-          let txt = entry ? (entry[lang] || entry.en) : '';
-          if (!txt && String(name).startsWith('cas_')) {
-            txt = lang === 'ru' ? '[Аудиозапись M.E.G. воспроизводится...]' : '[M.E.G. Archive Cassette playing...]';
+          let txt = customTxt || '';
+          if (!txt) {
+            const entry = this._voiceSubtitles[name];
+            txt = entry ? (entry[lang] || entry.uz || entry.en) : '';
+            if (!txt && String(name).startsWith('cas_')) {
+              txt = lang === 'ru' ? '[Аудиозапись M.E.G. воспроизводится...]' : (lang === 'en' ? '[M.E.G. Archive Cassette playing...]' : "[M.E.G. arxiv kasetasi yangramoqda...]");
+            }
           }
           if (!txt) return;
           el.textContent = txt;
           el.classList.remove('hidden');
           clearTimeout(this._subTimer);
-          this._subTimer = setTimeout(() => { el.classList.add('hidden'); }, Math.max(3200, durMs || 5500));
+          this._subTimer = setTimeout(() => { el.classList.add('hidden'); }, Math.max(3400, durMs || 5500));
         },
         playVoice(name, vol = 0.92, cooldownMs = 0) {
           if (this.muted || !name) return false;
@@ -467,8 +474,8 @@
               if (!a._triedRaw) {
                 a._triedRaw = true;
                 a.src = this.ghAudioFallback + 'voice/' + name + '.m4a';
-                a.play().catch(() => {});
-              }
+                a.play().catch(restoreBgm);
+              } else { restoreBgm(); }
             };
             a.volume = Math.min(1, Math.max(0, vol));
             this.activeVoice = a;
@@ -485,7 +492,6 @@
               if (isFinite(a.duration) && a.duration > 0.5) this.showVoiceSubtitle(name, a.duration * 1000 + 600);
             };
             a.onended = restoreBgm;
-            a.onerror = restoreBgm;
             a.play().catch(restoreBgm);
             return true;
           } catch (e) { return false; }
@@ -543,11 +549,20 @@
             srcN.start(now, Math.random() * 0.8, dur);
           } catch (e) {}
         },
+        playRadioBeep() {
+          if (this.muted || !this.ctx) return;
+          if (this.playSfx('radio_beep', 0.45, { dur: 1.0 })) return;
+          try {
+            this.noiseBurst(0.08, 2200, 1.8, 0.08, 'bandpass', 2200);
+            this.softTone(1380, 1180, 0.07, 0.06);
+          } catch (e) {}
+        },
         footstep(sprint = false) { this.step(sprint); },
         step(sprint) {
           const carpetZones = ['level0', 'level4', 'level5', 'levelfun', 'levelend', 'level61', 'level974'];
           const grassZones = ['level9', 'level10', 'level94'];
-          const sfxName = grassZones.includes(state.zone) ? 'footstep_grass' : (carpetZones.includes(state.zone) ? 'footstep_carpet' : 'footstep_concrete');
+          const waterZones = ['level37', 'level7'];
+          const sfxName = waterZones.includes(state.zone) ? 'footstep_water' : (grassZones.includes(state.zone) ? 'footstep_grass' : (carpetZones.includes(state.zone) ? 'footstep_carpet' : 'footstep_concrete'));
           const off = (Math.floor(Math.random() * 6)) * 0.55;
           if (this.playSfx(sfxName, sprint ? 0.36 : 0.24, { offset: off, dur: 0.32, rate: sprint ? 1.12 : 0.96 })) return;
           const v = sprint ? 0.14 : 0.075;
