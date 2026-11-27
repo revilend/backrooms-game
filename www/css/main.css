@@ -7,8 +7,8 @@
       --danger: #ef4444;
       --gold: #facc15;
       --cyan: #38bdf8;
-      --font-ui: 'IBM Plex Mono', 'Courier New', ui-monospace, monospace;
-      --font-horror: 'Rubik Glitch', 'IBM Plex Mono', Impact, serif;
+      --font-ui: 'Pixelify Sans', 'VT323', 'Courier New', ui-monospace, monospace;
+      --font-horror: 'Pixelify Sans', 'VT323', 'Courier New', monospace;
     }
 
     * {
@@ -794,6 +794,9 @@
       justify-content: center;
       align-items: flex-start;
       gap: 14px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      background: linear-gradient(90deg, rgba(3, 5, 9, 0.78) 0%, rgba(3, 5, 9, 0.40) 45%, rgba(3, 5, 9, 0.10) 100%);
     }
     #start-overlay::before {
       content: '';
@@ -862,10 +865,10 @@
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 4px;
+      gap: 8px;
       width: 100%;
-      max-width: 300px;
-      margin-top: 4px;
+      max-width: 340px;
+      margin-top: 8px;
     }
     .start-glass-primary,
     .start-glass-link {
@@ -873,14 +876,14 @@
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      gap: 10px;
-      padding: 8px 14px 8px 12px;
+      gap: 12px;
+      padding: 12px 18px 12px 16px;
       border: none;
-      border-left: 2px solid transparent;
-      border-radius: 2px;
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0.0) 0%, transparent 100%);
-      color: rgba(226, 232, 240, 0.78);
-      font-size: 13.5px;
+      border-left: 3px solid transparent;
+      border-radius: 4px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+      color: rgba(241, 245, 249, 0.88);
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: 0.14em;
       text-align: left;
@@ -889,11 +892,11 @@
     }
     .start-glass-primary {
       color: #fef08a;
-      font-size: 15px;
+      font-size: 19px;
       font-weight: 900;
       border-left-color: #fde047;
-      background: linear-gradient(90deg, rgba(250, 204, 21, 0.20) 0%, rgba(250, 204, 21, 0.04) 65%, transparent 100%);
-      padding: 10px 14px 10px 12px;
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.24) 0%, rgba(250, 204, 21, 0.05) 70%, transparent 100%);
+      padding: 14px 18px 14px 16px;
     }
     .start-glass-link:hover,
     .start-glass-link:focus-visible {
@@ -926,11 +929,11 @@
       color: rgba(148, 163, 184, 0.56);
     }
     @media (max-height: 460px) {
-      #start-overlay { padding: 14px 28px; }
-      .start-shell { gap: 7px; }
-      .start-center-title h1 { font-size: 28px; }
-      .start-glass-primary { padding: 7px 12px; font-size: 13.5px; }
-      .start-glass-link { padding: 5px 12px; font-size: 12px; }
+      #start-overlay { padding: 16px 30px; }
+      .start-shell { gap: 9px; }
+      .start-center-title h1 { font-size: 38px; }
+      .start-glass-primary { padding: 11px 16px; font-size: 17.5px; }
+      .start-glass-link { padding: 9px 16px; font-size: 15.5px; }
     }
 
     /* --- Retro VHS CRT Level Select (Matching 1000015661.jpg) --- */
@@ -1493,9 +1496,55 @@
     }
 
     #start-overlay.skins-open {
-      background: linear-gradient(270deg, rgba(3,5,9,0.82) 0%, rgba(3,5,9,0.18) 38%, rgba(3,5,9,0.06) 100%) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: linear-gradient(270deg, rgba(3,5,9,0.84) 0%, rgba(3,5,9,0.22) 38%, rgba(3,5,9,0.08) 100%) !important;
     }
     #start-overlay.skins-open .start-center-title {
       opacity: 0 !important;
       pointer-events: none !important;
+    }
+
+    .pause-float-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+    .pause-float-btn {
+      background: transparent;
+      border: none;
+      padding: 8px 24px;
+      color: #ffffff;
+      font-size: clamp(24px, 4.4vw, 34px);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-align: center;
+      cursor: pointer;
+      text-shadow: 2px 2px 0 #dc2626, -1px -1px 0 #991b1b, 0 0 16px rgba(220, 38, 38, 0.55);
+      transition: transform 0.12s ease, color 0.12s ease;
+    }
+    .pause-float-btn:hover,
+    .pause-float-btn:active {
+      transform: scale(1.06);
+      color: #fef08a;
+    }
+
+    @font-face {
+      font-family: 'HelpMe';
+      src: url('../assets/HelpMe.ttf') format('truetype');
+      unicode-range: U+0000-00FF, U+2000-206F;
+      font-display: swap;
+    }
+    #voice-subtitle {
+      font-family: 'HelpMe', var(--font-ui) !important;
+      font-size: 16px !important;
+      font-weight: 400 !important;
+      letter-spacing: 0.06em !important;
+      text-shadow: 0 2px 8px #000, 0 0 12px rgba(239, 68, 68, 0.48) !important;
     }
