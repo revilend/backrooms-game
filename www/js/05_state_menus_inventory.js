@@ -679,8 +679,8 @@
           if (cx === lastCx && cz === lastCz) return;
           lastCx = cx; lastCz = cz;
           const needed = new Set();
-          for (let dx = -2; dx <= 2; dx++) {
-            for (let dz = -2; dz <= 2; dz++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            for (let dz = -1; dz <= 1; dz++) {
               const k = (cx + dx) + ',' + (cz + dz);
               needed.add(k);
               if (!activeChunks.has(k)) activeChunks.set(k, buildChunk(cx + dx, cz + dz));
@@ -739,15 +739,16 @@
           const tz = state.monsterChasing ? state.pos.z : state._endlessPatrol.z;
           const dx = tx - state.monsterPos.x, dz = tz - state.monsterPos.z;
           const anId = (activeAiDimension && activeAiDimension.anomaly) ? activeAiDimension.anomaly : 'none';
-          if (anId === 'blackout') { hemiLight.intensity = 0.04; ambientLight.intensity = 0.015; }
+          if (anId === 'blackout') { hemiLight.intensity = 0.24; ambientLight.intensity = 0.12; }
           else if (anId === 'flicker_storm') {
-            const flk = (Math.sin(animT * 19.0) * Math.sin(animT * 7.3) > 0.25) ? 0.42 : 0.06;
-            hemiLight.intensity = flk; ambientLight.intensity = flk * 0.45;
+            const flk = (Math.sin(animT * 19.0) * Math.sin(animT * 7.3) > 0.25) ? 0.56 : 0.22;
+            hemiLight.intensity = flk; ambientLight.intensity = flk * 0.50;
           } else if (anId === 'toxic_haze') {
-            scene.fog.density = 0.044 + Math.sin(animT * 1.4) * 0.008;
+            hemiLight.intensity = 0.44; ambientLight.intensity = 0.22;
+            scene.fog.density = 0.036 + Math.sin(animT * 1.4) * 0.006;
             if (state.sprinting) state.stamina = Math.max(0, state.stamina - dt * 10);
-          } else if (anId === 'dense_fog') { scene.fog.density = 0.056; }
-          else { hemiLight.intensity = 0.35; ambientLight.intensity = 0.18; }
+          } else if (anId === 'dense_fog') { hemiLight.intensity = 0.44; ambientLight.intensity = 0.22; scene.fog.density = 0.044; }
+          else { hemiLight.intensity = 0.50; ambientLight.intensity = 0.26; }
           // Abyss bridge fall check
           if (!state._fallingPit && !state.killing && activeEndlessPits.length > 0) {
             for (let pi = 0; pi < activeEndlessPits.length; pi++) {

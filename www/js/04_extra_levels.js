@@ -312,9 +312,6 @@
           ['metro_station_1.glb', 'metro_station_2.glb', 'metro_station_3.glb'].forEach((fname) => {
             loadGlbWithFallback(fname, onStationGlb, () => {
               stPartsFailed++;
-              if (stPartsFailed === 3 && stPartsLoaded === 0) {
-                loadGlbWithFallback('metro_station.glb', onStationGlb);
-              }
             });
           });
         }

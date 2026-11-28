@@ -74,6 +74,7 @@
         }
 
         if (!state.started) {
+          if (typeof metroLobbyGroup !== 'undefined' && metroLobbyGroup && !metroLobbyGroup.visible) metroLobbyGroup.visible = true;
           const _igChat = document.getElementById('ingame-chat-wrap');
           if (_igChat && !_igChat.classList.contains('hidden')) _igChat.classList.add('hidden');
           [
@@ -129,9 +130,11 @@
             const hg = window.__zulmatMenuHero.group;
             hg.position.set(-1.35, 0, 1.85);
             hg.rotation.y = 0.25;
-            const rimL = new THREE.PointLight(0xfef08a, 1.75, 9);
-            rimL.position.set(0.4, 2.3, 1.8);
-            hg.add(rimL, window.__zulmatMenuHero.holder);
+            const rimL = new THREE.PointLight(0xfef9c3, 3.2, 12);
+            rimL.position.set(0.2, 2.2, 2.2);
+            const fillL = new THREE.PointLight(0x93c5fd, 1.8, 10);
+            fillL.position.set(-1.2, 1.5, 2.0);
+            hg.add(rimL, fillL, window.__zulmatMenuHero.holder);
             if (typeof metroLobbyGroup !== 'undefined' && metroLobbyGroup) metroLobbyGroup.add(hg);
             else level0Group.add(hg);
             const SKIN_FILES = {
