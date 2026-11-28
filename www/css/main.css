@@ -423,8 +423,10 @@
       border: 2px solid rgba(250, 204, 21, 0.32);
       pointer-events: none;
       z-index: 2;
-      opacity: 0.78;
+      opacity: 0;
+      transition: opacity 0.14s ease;
     }
+    .joystick-zone.active { opacity: 0.92 !important; }
 
     .joystick-knob {
       position: absolute;
@@ -794,9 +796,9 @@
       justify-content: center;
       align-items: flex-start;
       gap: 14px;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      background: linear-gradient(90deg, rgba(3, 5, 9, 0.78) 0%, rgba(3, 5, 9, 0.40) 45%, rgba(3, 5, 9, 0.10) 100%);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: linear-gradient(90deg, rgba(3, 5, 9, 0.84) 0%, rgba(3, 5, 9, 0.42) 45%, rgba(3, 5, 9, 0.08) 100%);
     }
     #start-overlay::before {
       content: '';
@@ -1406,11 +1408,10 @@
       .inv-slot { width: 36px !important; height: 36px !important; }
       .inv-glb-img { width: 26px !important; height: 26px !important; }
       .joystick-zone {
-        bottom: max(14px, env(safe-area-inset-bottom)) !important;
-        left: max(16px, env(safe-area-inset-left)) !important;
+        bottom: max(14px, env(safe-area-inset-bottom));
+        left: max(16px, env(safe-area-inset-left));
         width: 96px !important;
         height: 96px !important;
-        opacity: 0.62 !important;
       }
       .joystick-knob { width: 38px !important; height: 38px !important; margin: -19px 0 0 -19px !important; }
       #btn-flash {
@@ -1441,27 +1442,6 @@
         padding: 8px 18px !important;
         font-size: 12px !important;
       }
-    }
-
-    /* Instant 0ms Metro Start Menu Backdrop -> Crossfades smoothly to live 3D GLB Metro once loaded */
-    #start-overlay::after {
-      content: '';
-      position: absolute;
-      inset: -4%;
-      z-index: -1;
-      background:
-        linear-gradient(90deg, rgba(3, 5, 9, 0.90) 0%, rgba(3, 5, 9, 0.62) 38%, rgba(3, 5, 9, 0.12) 78%, rgba(3, 5, 9, 0.38) 100%),
-        url('../assets/metro_bg.jpg') center center / cover no-repeat;
-      animation: startBgDrift 22s ease-in-out infinite alternate;
-      transition: opacity 0.9s ease;
-      pointer-events: none;
-    }
-    #start-overlay.glb-ready::after {
-      opacity: 0;
-    }
-    @keyframes startBgDrift {
-      0% { transform: scale(1.0) translate(0px, 0px); }
-      100% { transform: scale(1.06) translate(-10px, -4px); }
     }
 
     /* Fix Modal Clipping on Mobile Landscape (#station-overlay & #shop-overlay) */
