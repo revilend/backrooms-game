@@ -1528,3 +1528,25 @@
       letter-spacing: 0.06em !important;
       text-shadow: 0 2px 8px #000, 0 0 12px rgba(239, 68, 68, 0.48) !important;
     }
+
+      #ending-credits-overlay.hidden { display: none !important; }
+      .ending-credits-track {
+        position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+        width: min(640px, 88vw); text-align: center; color: #e2e8f0;
+        padding-bottom: 120px; pointer-events: none;
+      }
+      .ending-credits-track.rolling {
+        animation: zulmatCreditsRoll 32s linear forwards;
+      }
+      @keyframes zulmatCreditsRoll {
+        0% { top: 100%; opacity: 0; }
+        5% { opacity: 1; }
+        92% { opacity: 1; }
+        100% { top: -175%; opacity: 0; }
+      }
+      .ec-kicker { font-size: 12px; letter-spacing: 0.24em; color: #94a3b8; font-weight: 700; margin-bottom: 8px; }
+      .ec-title { font-size: clamp(24px, 4.4vw, 38px); font-weight: 900; letter-spacing: 0.14em; color: #f8fafc; margin-bottom: 14px; }
+      .ec-thanks { font-size: clamp(16px, 2.8vw, 22px); font-weight: 800; letter-spacing: 0.1em; color: #fde047; margin-bottom: 38px; }
+      .ec-sec { font-size: 11px; letter-spacing: 0.22em; color: #64748b; font-weight: 800; margin: 26px 0 8px; text-transform: uppercase; }
+      .ec-item { font-size: clamp(14px, 2.2vw, 17px); color: #e2e8f0; line-height: 1.65; font-weight: 600; }
+      .ec-footer { margin-top: 48px; font-size: 13px; letter-spacing: 0.18em; color: #86efac; font-weight: 800; }
