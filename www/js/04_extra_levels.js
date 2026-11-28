@@ -300,8 +300,8 @@
               if (typeof stripGltfLights === 'function') stripGltfLights(st);
               stRoot.add(st);
               stPartsLoaded++;
-              if (stPartsLoaded >= 1) procStationGroup.visible = false;
-              if (stPartsLoaded >= 1) {
+              if (stPartsLoaded >= 3) procStationGroup.visible = false;
+              if (stPartsLoaded >= 3) {
                 window.__zulmatMetroGlbReady = true;
                 const stOvEl = document.getElementById('start-overlay');
                 if (stOvEl) stOvEl.classList.add('glb-ready');
@@ -3842,7 +3842,7 @@
         levelMirrorGroup.add(window.__zulmatMirrorRef.group);
         if (typeof gltfLoader !== 'undefined') {
           const sk = LSget('zulmat_player_skin') || 'businessman';
-          const skFile = ({ businessman: 'player_businessman.glb', tvman: 'player_tvman.glb', casual: 'player_casual.glb', man: 'player_man.glb', girl: 'player_girl.glb', hazmat: 'player_hazmat.glb' })[sk] || 'player_businessman.glb';
+          const skFile = ({ businessman: 'player_businessman.glb', tvman: 'player_tvman.glb', casual: 'player_casual.glb', man: 'player_man.glb', girl: 'player_girl.glb', hazmat: 'player_hazmat.glb', survivor: 'player_survivor.glb', anime_boy: 'player_anime_boy.glb', anime_girl: 'player_anime_girl.glb', fashion_girl: 'player_fashion_girl.glb' })[sk] || 'player_businessman.glb';
           gltfLoader.load(REPO_GLB_BASE + skFile, (gltf) => {
             if (!window.__zulmatMirrorRef) return;
             const m = gltf.scene;
@@ -4592,9 +4592,9 @@
 
       // --- Game State ---
       const DIFFS = {
-        easy: { mSpeed: 3.1, chaseSpeed: 4.9, sight: 11.5, batDrain: 0.85 },
-        normal: { mSpeed: 3.7, chaseSpeed: 5.9, sight: 14.5, batDrain: 1.15 },
-        hard: { mSpeed: 4.3, chaseSpeed: 6.7, sight: 18.0, batDrain: 1.55 }
+        easy: { mSpeed: 2.9, chaseSpeed: 4.5, sight: 11.5, batDrain: 0.85 },
+        normal: { mSpeed: 3.4, chaseSpeed: 5.2, sight: 14.5, batDrain: 1.15 },
+        hard: { mSpeed: 3.9, chaseSpeed: 5.65, sight: 17.5, batDrain: 1.55 }
       };
 
 
@@ -4655,25 +4655,159 @@
             uz: ["QOG'OZ #14: ORQAGA QARAMA!", "Qizil chiroq yondi! To'siqlardan sakrab va egilib o'ting — to'xtasangiz yirtqich yetib oladi!"],
             en: ["NOTE #14: RUN FOR YOUR LIFE!", "Red alert! Vault obstacles and duck under beams — never slow down!"],
             ru: ["ЗАПИСКА #14: БЕГИ ЗА СВОЮ ЖИЗНЬ!", "Красная тревога! Перепрыгивайте преграды и пригибайтесь — не останавливайтесь!"]
+          },
+          levelmanila: {
+            x: 2.5, z: 2.5,
+            uz: ["ARXIV #15: MANILA XONASI", "Bu xonada maxluqlar yo'q. M.E.G. qo'llanmalarini o'qib, keyingi qavatlarga tayyorlaning."],
+            en: ["ARCHIVE #15: THE MANILA ROOM", "No entities can enter here. Read the M.E.G. files carefully before boarding the train."],
+            ru: ["АРХИВ #15: КОМНАТА МАНИЛА", "Сюда не проникают сущности. Изучите файлы M.E.G. перед отправкой на следующий уровень."]
+          },
+          level7: {
+            x: 0, z: 4,
+            uz: ["QOG'OZ #16: TALASSOFOBIYA", "Cheksiz qora okean... Suvga tushsangiz suzuvchi yirtqich sizni darhol sezadi. Yog'och ko'priklarda yuring!"],
+            en: ["NOTE #16: THALASSOPHOBIA", "An endless dark ocean. Stepping into the water alerts the sea entity — stay on the wooden docks!"],
+            ru: ["ЗАПИСКА #16: ТАЛАССОФОБИЯ", "Бескрайний тёмный океан. Вода выдаёт вас морской сущности — держитесь на деревянных мостках!"]
+          },
+          level8: {
+            x: 4, z: -4,
+            uz: ["QOG'OZ #17: G'OR TIZIMI", "Binafsha kristallar qorong'u g'orda yo'l ko'rsatadi. O'rgimchaksimon soyadan uzoqroq yuring."],
+            en: ["NOTE #17: CAVE SYSTEM", "Glowing violet crystals mark the path through these tunnels. Keep your distance from the cave stalker."],
+            ru: ["ЗАПИСКА #17: СИСТЕМА ПЕЩЕР", "Фиолетовые кристаллы ведут к выходу. Держитесь подальше от пещерного хищника."]
+          },
+          level61: {
+            x: 0, z: 4,
+            uz: ["QOG'OZ #18: SNACKROOMS", "Nihoyat xavfsiz bekat! Bu yerda Bodom suvi bepul — kuch va aql-hushingizni tiklab oling."],
+            en: ["NOTE #18: THE SNACKROOMS", "A rare safe haven! Drink free Almond Water at the neon bars to restore stamina and sanity."],
+            ru: ["ЗАПИСКА #18: ЗАКУСОЧНАЯ", "Редкое безопасное место! Пейте миндальную воду у баров, чтобы восстановить силы и рассудок."]
+          },
+          level9: {
+            x: 4, z: 6,
+            uz: ["QOG'OZ #19: QORONG'U MAHALLA", "Ko'chada projektorli kuzatuvchi kezib yuribdi. Elektr qutilarini tuzatib metroga qayting."],
+            en: ["NOTE #19: DARKENED SUBURBS", "The Neighborhood Watch prowls the asphalt. Repair the fuse boxes and stay off the main road."],
+            ru: ["ЗАПИСКА #19: ТЁМНЫЙ ПРИГОРОД", "По улицам бродит Дозорный с прожектором. Почините щитки и избегайте открытых дорог."]
+          },
+          level10: {
+            x: 3, z: 5,
+            uz: ["QOG'OZ #20: BUG'DOY DALA", "Tuman ichida 5 ta radio minora signal uzatmoqda. Hammasini sozlasangiz yerto'la lyuki ochiladi."],
+            en: ["NOTE #20: FIELD OF WHEAT", "Five radio towers hum through the fog. Tune all of them to unlock the cellar hatch."],
+            ru: ["ЗАПИСКА #20: ПШЕНИЧНОЕ ПОЛЕ", "Пять радиовышек гудят в тумане. Настройте их все, чтобы открыть люк в подвал."]
+          },
+          level11: {
+            x: 4, z: 6,
+            uz: ["QOG'OZ #21: CHEKSIZ SHAHAR", "Osmono'par binolar orasida 6 ta metro karta sochilgan. Grand Central darvozasini oching."],
+            en: ["NOTE #21: THE ENDLESS CITY", "Six metro keycards are scattered across the avenues. Collect them to unlock Grand Central."],
+            ru: ["ЗАПИСКА #21: БЕСКОНЕЧНЫЙ ГОРОД", "Шесть карт метро разбросаны по проспектам. Соберите их, чтобы открыть Гранд-Сентрал."]
+          },
+          level14: {
+            x: 3, z: 5,
+            uz: ["QOG'OZ #22: QIZIL JANNAT", "Bu qizil tuman aldamchi — bir joyda to'xtab qolsangiz aql-hushingiz pasayadi. Harakatda bo'ling!"],
+            en: ["NOTE #22: PARADISE", "The crimson mist drains your sanity whenever you stand still. Keep moving and light the 5 beacons!"],
+            ru: ["ЗАПИСКА #22: РАЙ", "Алый туман лишает рассудка, если стоять на месте. Двигайтесь и зажгите 5 маяков!"]
+          },
+          level15: {
+            x: 3, z: -4,
+            uz: ["QOG'OZ #23: KELAJAK YO'LAKLARI", "Har bir necha soniyada elektr impulsi o'tadi — egilib oling (Crouch), aks holda batareya kamayadi."],
+            en: ["NOTE #23: FUTURISTIC HALLS", "Periodic power surges sweep these corridors — crouch to shield your flashlight battery!"],
+            ru: ["ЗАПИСКА #23: ФУТУРИСТИЧНЫЕ ЗАЛЫ", "Периодические разряды бьют по коридорам — приседайте, чтобы не разрядить фонарик!"]
+          },
+          level22: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #24: TASHLANDIQ GARAJ", "Havo og'ir, yugurish kuchingizni tezroq oladi. 6 ta elektr qutisini yoqib chiqishni oching."],
+            en: ["NOTE #24: ABANDONED GARAGE", "Heavy fumes drain stamina faster when sprinting. Flip all 6 power boxes to escape."],
+            ru: ["ЗАПИСКА #24: ЗАБРОШЕННЫЙ ГАРАЖ", "Тяжёлый воздух быстрее тратит выносливость. Включите 6 щитков, чтобы выбраться."]
+          },
+          level33: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #25: CHEKSIZ SAVDO MARKAZI", "Bo'sh vitrinalar ortida nimadir kuzatyapti. 6 ta xavfsizlik terminalini yoqing."],
+            en: ["NOTE #25: THE INFINITE MALL", "Something watches from behind the shuttered storefronts. Activate all 6 security terminals."],
+            ru: ["ЗАПИСКА #25: БЕСКОНЕЧНЫЙ МОЛЛ", "За витринами кто-то наблюдает. Активируйте 6 терминалов безопасности."]
+          },
+          level36: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #26: AEROPORT", "Parvozlar hech qachon uchmaydi... 5 ta chiqish chiptasini topib darvozadan o'ting."],
+            en: ["NOTE #26: THE AIRPORT", "No plane ever departs here. Find 5 boarding passes to unlock the terminal gate."],
+            ru: ["ЗАПИСКА #26: АЭРОПОРТ", "Самолёты здесь не взлетают. Найдите 5 посадочных талонов, чтобы открыть выход."]
+          },
+          level46: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #27: QUM BO'RONI", "Kuchli shamol sizni chetga suradi — shamol kuchayganda egiling va 5 ta obeliskni yoqing."],
+            en: ["NOTE #27: ARABIAN DESERT", "Sandstorm gusts push you off course — crouch to brace yourself and activate all 5 obelisks."],
+            ru: ["ЗАПИСКА #27: ПУСТЫНЯ", "Порывы песчаной бури сносят в сторону — приседайте и активируйте 5 обелисков."]
+          },
+          level188: {
+            x: 4, z: 4,
+            uz: ["QOG'OZ #28: HOVLI DERAZALARI", "Yuzlab derazalar sizga qarab turibdi. 4 ta CRT televizorni yig'ib liftga yeting."],
+            en: ["NOTE #28: THE COURTYARD", "Hundreds of dark windows stare down at you. Gather 4 CRT televisions to power the elevator."],
+            ru: ["ЗАПИСКА #28: ДВОР ОКОН", "Сотни тёмных окон следят за вами. Соберите 4 ЭЛТ-телевизора, чтобы включить лифт."]
+          },
+          level974: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #29: KITTY UYI", "Pushti xonalarda sokinlik hukmron, ammo Kitty sizni tinmay ta'qib qiladi. 6 ta yulduzchani yig'ing."],
+            en: ["NOTE #29: KITTY'S HOUSE", "Pastel rooms hide a relentless shadow. Collect 6 glowing stars to unlock the pink exit."],
+            ru: ["ЗАПИСКА #29: ДОМ КИТТИ", "За пастельными стенами скрывается тень. Соберите 6 звёзд, чтобы открыть розовую дверь."]
+          },
+          levelmirror: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #30: OYNALAR LABIRINTI", "Oynadagi aksingiz harakatingizni takrorlaydi — unga chalg'imasdan 5 ta oyna parchasini yig'ing."],
+            en: ["NOTE #30: MIRROR LABYRINTH", "Your reflection mimics every step in the glass. Collect 5 crystal shards before the stalker catches you."],
+            ru: ["ЗАПИСКА #30: ЗЕРКАЛЬНЫЙ ЛАБИРИНТ", "Отражение повторяет каждый шаг. Соберите 5 осколков зеркала раньше, чем вас найдёт сущность."]
+          },
+          levelfun: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #31: BAZM XONASI =)", "Sovg'a qutilari ichida haqiqiy chiqish kalitlari bor. Partygoer tabassumiga aslo ishonmang!"],
+            en: ["NOTE #31: LEVEL FUN =)", "The gift boxes hide the exit triggers. Never trust the smiling Partygoer!"],
+            ru: ["ЗАПИСКА #31: УРОВЕНЬ ВЕСЕЛЬЯ =)", "В подарочных коробках спрятаны ключи. Никогда не верьте улыбке Тусовщика!"]
+          },
+          levelend: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #32: OXIRGI KUTUBXONA", "DIQQAT: Kompyuterda reallife.exe ni ASLO BOSMANG — u tuzoq! Faqat metro_link.exe ni ishga tushiring."],
+            en: ["NOTE #32: THE END", "WARNING: Never run reallife.exe on the terminal — it is a trap! Use metro_link.exe to escape."],
+            ru: ["ЗАПИСКА #32: КОНЕЦ", "ВНИМАНИЕ: Не запускайте reallife.exe на терминале — это ловушка! Используйте metro_link.exe."]
+          },
+          levelshady: {
+            x: 4, z: -4,
+            uz: ["QOG'OZ #33: TH3 SH4DY GR3Y", "Ranglar o'chgan va makon parchalanmoqda. 5 ta kulrang anomaliyani yig'ib tezroq chiqing."],
+            en: ["NOTE #33: TH3 SH4DY GR3Y", "Color has drained from reality. Stabilize all 5 grey anomalies before the void claims you."],
+            ru: ["ЗАПИСКА #33: СЕРАЯ ТЕНЬ", "Реальность теряет краски. Соберите 5 серых аномалий и уходите немедленно."]
+          },
+          level922: {
+            x: 4.1, z: 1.8,
+            uz: ["QOG'OZ #34: CHEKSIZ ZINAPOYA", "Spiral zinadan 94-qavatgacha ko'tariling va aynan 94-qavatdan markazdagi tubsizlikka sakrang!"],
+            en: ["NOTE #34: THE TRUE FINAL", "Climb the infinite spiral to Floor 94, then leap into the central abyss from Floor 94!"],
+            ru: ["ЗАПИСКА #34: БЕСКОНЕЧНАЯ ЛЕСТНИЦА", "Поднимитесь по спирали на 94-й этаж и прыгните в центральную бездну именно с него!"]
+          },
+          level3999: {
+            x: 3, z: 4,
+            uz: ["QOG'OZ #35: HAQIQIY DUNYOGA QAYTISH", "Siz barcha qavatlardan omon o'tdingiz! Oxirgi 6 ta arkada topshirig'ini bajaring va uyga qayting."],
+            en: ["NOTE #35: THE TRUE ENDING", "You survived every floor! Complete the final 6 arcade tasks and step through the gate home."],
+            ru: ["ЗАПИСКА #35: ИСТИННЫЙ ФИНАЛ", "Вы пережили все уровни! Выполните 6 финальных заданий у автоматов и вернитесь домой."]
           }
         };
-        const noteMat = new THREE.MeshStandardMaterial({ color: 0xfef3c7, emissive: 0xfde047, emissiveIntensity: 0.28, roughness: 0.8 });
+        const noteMat = new THREE.MeshBasicMaterial({ color: 0xfef3c7 });
+        const haloMat = new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.32, side: THREE.DoubleSide, depthWrite: false });
         const grpMap = {
           level1: level1Group, level2: level2Group, level3: level3Group, level4: level4Group,
-          level5: level5Group, level6: level6Group, level37: level37Group, level94: level94Group, levelrun: levelRunGroup
+          level5: level5Group, level6: level6Group, level7: level7Group, level8: level8Group,
+          level9: level9Group, level10: level10Group, level11: level11Group, level14: level14Group,
+          level15: level15Group, level22: level22Group, level33: level33Group, level36: level36Group,
+          level37: level37Group, level46: level46Group, level61: level61Group, level94: level94Group,
+          level188: level188Group, level922: level922Group, level974: level974Group, level3999: level3999Group,
+          levelrun: levelRunGroup, levelfun: levelFunGroup, levelend: levelEndGroup,
+          levelshady: levelShadyGroup, levelmanila: levelManilaGroup, levelmirror: levelMirrorGroup
         };
         Object.keys(SPECS).forEach((zKey) => {
           const sp = SPECS[zKey], grp = grpMap[zKey];
           if (!grp) return;
           const yBase = (zKey === 'level94' && typeof getDreamHillY === 'function') ? getDreamHillY(sp.x, sp.z) : (zKey === 'level37' ? 0.9 : 0);
           const ng = new THREE.Group();
-          ng.position.set(sp.x, yBase + 0.03, sp.z);
+          ng.position.set(sp.x, yBase + 0.04, sp.z);
           const sheet = new THREE.Mesh(new THREE.PlaneGeometry(0.48, 0.64), noteMat);
           sheet.rotation.x = -Math.PI / 2;
           sheet.rotation.z = 0.35;
-          const glow = new THREE.PointLight(0xfde047, 0.55, 4.5);
-          glow.position.y = 0.35;
-          ng.add(sheet, glow);
+          const halo = new THREE.Mesh(new THREE.RingGeometry(0.36, 0.52, 16), haloMat);
+          halo.rotation.x = -Math.PI / 2;
+          halo.position.y = -0.01;
+          ng.add(sheet, halo);
           grp.add(ng);
           window.extraLoreNotes.push({ zone: zKey, x: sp.x, y: yBase, z: sp.z, mesh: ng, data: sp, read: false });
         });

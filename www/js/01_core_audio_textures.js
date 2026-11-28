@@ -306,6 +306,7 @@
         ghAudioBase: 'https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/audio/',
         zoneBgmMap: {
           metro_lobby: 'metro_hub',
+          levelendless: 'level922_void',
           level0: 'level0_lobby',
           level4: 'level0_lobby',
           level1: 'industrial_dark',

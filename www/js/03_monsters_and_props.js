@@ -543,6 +543,42 @@
         }
       })();
 
+
+      // 9. THE HUMAN DEER (Level 8 Cave, Level 14 Paradise, Level 46 Desert — rigged walk & run!)
+      (function buildHumanDeer() {
+        const g = new THREE.Group();
+        const fbMat = new THREE.MeshLambertMaterial({ color: 0x3b2a22 });
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.20, 1.65, 8), fbMat);
+        body.position.y = 1.45; g.add(body);
+        g.visible = false; monsterGroup.add(g); monsterVariants.humandeer = g;
+        if (typeof gltfLoader !== 'undefined') {
+          gltfLoader.load(REPO_GLB_BASE + 'the_human_deer.glb', (gltf) => {
+            const dm = gltf.scene;
+            stripGltfLights(dm);
+            dm.traverse((o) => { if (o.isMesh || o.isSkinnedMesh) o.frustumCulled = false; });
+            if (window.__zulmatNormalizeRigged) window.__zulmatNormalizeRigged(dm, 2.45);
+            const rig = {};
+            dm.traverse((o) => {
+              if (!o.isBone) return;
+              const n = o.name || '';
+              if (n === 'L_upper_leg_J_072') rig.thighL = o;
+              else if (n === 'R_upper_leg_J_078') rig.thighR = o;
+              else if (n === 'L_knee_J_073') rig.shinL = o;
+              else if (n === 'R_knee_J_079') rig.shinR = o;
+              else if (n === 'L_shoulder_J_034') rig.upperArmL = o;
+              else if (n === 'R_shoulder_J_053') rig.upperArmR = o;
+              else if (n === 'L_elbow_J_035') rig.forearmL = o;
+              else if (n === 'R_elbow_J_054') rig.forearmR = o;
+              else if (n === 'C_spine_02_J_019') rig.spine = o;
+              else if (n === 'C_Head_J_023') rig.head = o;
+            });
+            if (rig.thighL || rig.spine) activeRiggedMonsters.push(rig);
+            while (g.children.length > 0) g.remove(g.children[0]);
+            g.add(dm);
+          }, undefined, () => {});
+        }
+      })();
+
       function setMonsterVariant(cur) {
         const pick = cur === 0 ? 'bacteria'
           : ((cur === 1 || cur === 6 || cur === 'mirror') ? 'smiler'
@@ -551,7 +587,8 @@
           : (cur === 5 ? 'butler'
           : (cur === 974 ? 'kitty'
           : ((cur === 37 || cur === 7) ? 'poolstalker'
-          : ((cur === 'end' || cur === 'shady' || cur === 14) ? 'wraith' : 'wolf')))))));
+          : ((cur === 8 || cur === 14 || cur === 46) ? 'humandeer'
+          : ((cur === 'end' || cur === 'shady') ? 'wraith' : 'wolf'))))))));
         Object.keys(monsterVariants).forEach((k) => {
           monsterVariants[k].visible = (k === pick);
         });

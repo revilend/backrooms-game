@@ -829,7 +829,7 @@
           }
         }
         if (window.__zulmatShowLevelLoading) window.__zulmatShowLevelLoading('CHEKSIZ REJIM');
-        state.killing = false; state._fallingPit = false; state._fallPitT = 0; state.monsterStunTimer = 0; state.flashStunCd = 0;
+        state.killing = false; state._photoFreeze = false; state._photoMonsterPose = false; state._fallingPit = false; state._fallPitT = 0; state.monsterStunTimer = 0; state.flashStunCd = 0;
         if (state.zone === 'level0') {
           if (window.l0FlashPickup) { window.l0FlashPickup.taken = false; if (window.l0FlashPickup.mesh) window.l0FlashPickup.mesh.visible = true; }
           if (window.l0UpperPickups) window.l0UpperPickups.forEach((u) => { u.taken = false; if (u.mesh) u.mesh.visible = true; });
@@ -1001,16 +1001,16 @@
         const doneCnt = Object.values(state.completedLevels).filter(Boolean).length;
         const nxtL = getNextCampaignLevel();
         const nxtTh = LEVEL_THEMES[nxtL] || LEVEL_THEMES[0];
-        elHudObj.textContent = 'KEYINGI: ' + nxtTh.name + ' (' + doneCnt + '/31)';
+        const _ml = window.__zulmatLang || 'uz';
+        elHudObj.textContent = (_ml === 'en' ? 'BOARD THE TRAIN • Next: ' : (_ml === 'ru' ? 'СЯДЬТЕ В ПОЕЗД • Далее: ' : 'POYEZDGA CHIQING • Keyingi: ')) + nxtTh.name + ' (' + doneCnt + '/31)';
 
         if (fromVictory) {
           Sound.win(); if (window.__zulmatAddCoins) window.__zulmatAddCoins(150);
           setTimeout(() => Sound.trainBrake(), 260);
-          const nextMsg = state.currentLevel === 0
-            ? "LEVEL 0 TUGADI! Endi poyezdda LEVEL 1 (Habitable Zone) ochildi!"
-            : (state.currentLevel === 1
-              ? "LEVEL 1 TUGADI! Endi poyezdda LEVEL 37 (Poolrooms) ochildi!"
-              : "TABRIKLAYMIZ! Barcha 3 ta Backrooms levelidan o'tdingiz!");
+          const curThDone = LEVEL_THEMES[state.currentLevel] || LEVEL_THEMES[0];
+          const nextMsg = state.currentLevel === 3999
+            ? "TABRIKLAYMIZ! Barcha 31 ta qavatdan o'tib haqiqiy dunyoga qaytdingiz!"
+            : (curThDone.name.toUpperCase() + " TUGADI! Endi poyezdda " + nxtTh.title + " ochildi! (" + doneCnt + "/31)");
           showToast(nextMsg);
         } else {
           Sound.trainBrake();
@@ -1026,8 +1026,17 @@
         return CAMPAIGN_ORDER[0];
       }
 
+      window.__zulmatIsAdmin = function() {
+        const inp = document.getElementById('coop-name');
+        const v = (inp && inp.value.trim()) ? inp.value.trim() : (LSget('zulmat_player_name') || '');
+        return v.toLowerCase() === 'revilend09';
+      };
+      window.__zulmatSyncAdminUI = function() {
+        const box = document.getElementById('ss-studio-box');
+        if (box) box.classList.toggle('hidden', !window.__zulmatIsAdmin());
+      };
       window.__zulmatIsLevelUnlocked = function(lvl) {
-        if (window.__zulmatForceUnlockAll) return true;
+        if (window.__zulmatForceUnlockAll || (window.__zulmatIsAdmin && window.__zulmatIsAdmin())) return true;
         if (lvl === 0) return true;
         if (state.completedLevels && state.completedLevels[lvl]) return true;
         const nextLvl = getNextCampaignLevel();
@@ -2853,19 +2862,22 @@
         const lbl = document.getElementById('skin-preview-label');
         const coinsPill = document.getElementById('skins-coins-pill');
         const SKIN_LABELS = {
-          businessman: 'Biznesmen • Asosiy Qahramon',
-          tvman: 'TV-Man • Anomal Kuzatuvchi',
-          casual: 'Sayohatchi • Yengil Kiyim',
-          man: 'Yigit • Shahar Fuqarosi',
-          girl: 'Qiz • Omon Qoluvchi',
-          hazmat: 'Hazmat • M.E.G. Himoya Kostyumi',
-          survivor: 'Omon Qoluvchi • Tajribali Tadqiqotchi'
+          businessman: 'Sardor • Ofis Xodimi',
+          tvman: 'Signal-09 • Anomal Kuzatuvchi',
+          casual: 'Timur • Sayohatchi',
+          man: 'Jasur • Shahar Fuqarosi',
+          girl: 'Madina • Omon Qoluvchi',
+          hazmat: 'Agent K-7 • M.E.G. Himoya',
+          survivor: 'Bekzod • Tajribali Tadqiqotchi',
+          anime_boy: "Ren • Maktab O'quvchisi",
+          anime_girl: 'Kira • Kiber Qiz',
+          fashion_girl: 'Lola • Zamonaviy Qiz'
         };
         const SKIN_PRICES = { tvman: 300, hazmat: 400, survivor: 500 };
-        const SKIN_SHORT = { businessman: 'Biznesmen', tvman: 'TV-Man', casual: 'Sayohatchi', man: 'Yigit', girl: 'Qiz', hazmat: 'Hazmat', survivor: 'Omon Qoluvchi' };
+        const SKIN_SHORT = { businessman: 'Sardor', tvman: 'Signal-09', casual: 'Timur', man: 'Jasur', girl: 'Madina', hazmat: 'Agent K-7', survivor: 'Bekzod', anime_boy: 'Ren', anime_girl: 'Kira', fashion_girl: 'Lola' };
 
         function getUnlockedSkins() {
-          const base = { businessman: true, casual: true, man: true, girl: true };
+          const base = { businessman: true, casual: true, man: true, girl: true, anime_boy: true, anime_girl: true, fashion_girl: true };
           try {
             const raw = LSget('zulmat_unlocked_skins');
             if (raw) return Object.assign(base, JSON.parse(raw));
@@ -3393,7 +3405,7 @@
         if (Sound.activeZoneBgm) { try { Sound.activeZoneBgm.volume = 0.12; } catch (e) {} }
         Sound.syncMute();
         if (elPauseOv) elPauseOv.classList.remove('hidden');
-        else elSetOv.classList.remove('hidden');
+        else if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI(); elSetOv.classList.remove('hidden');
       });
       const bPH = document.getElementById('btn-pause-home');
       const bPO = document.getElementById('btn-pause-opts');
@@ -3408,7 +3420,7 @@
         if (elPauseOv) elPauseOv.classList.add('hidden');
         window.__zulmatReturnToPause = true;
         if (window.__zulmatSyncSettingsContext) window.__zulmatSyncSettingsContext();
-        elSetOv.classList.remove('hidden');
+        if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI(); elSetOv.classList.remove('hidden');
       });
       if (bPH) bPH.addEventListener('click', () => {
         if (elPauseOv) elPauseOv.classList.add('hidden');
@@ -3511,6 +3523,74 @@
         try { LSset('zulmat_gfx', state.gfxQuality); } catch (e) {}
       }
       applyGraphicsQuality(state.gfxQuality);
+
+      // --- Skrinshot Studiyasi (Sozlamalar ichida; ekranda ortiqcha tugma ko'rinmaydi) ---
+      (function bindScreenshotStudio() {
+        if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI();
+        let cleanHud = false;
+        let cleanTimer = null;
+        const btnClean = document.getElementById('btn-ss-clean-hud');
+        if (btnClean) btnClean.addEventListener('click', () => {
+          cleanHud = !cleanHud;
+          btnClean.classList.toggle('active', cleanHud);
+          btnClean.textContent = cleanHud ? 'HUD: Yashirin (8s)' : "HUD: Ko'rinsin";
+        });
+        function applyCleanHud() {
+          clearTimeout(cleanTimer);
+          if (!cleanHud) { document.body.classList.remove('ss-clean-hud'); return; }
+          document.body.classList.add('ss-clean-hud');
+          cleanTimer = setTimeout(() => { document.body.classList.remove('ss-clean-hud'); }, 8000);
+        }
+        document.querySelectorAll('.ss-scene-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const sc = btn.getAttribute('data-ss');
+            if (elSetOv) elSetOv.classList.add('hidden');
+            if (elStartOv) elStartOv.classList.add('hidden');
+            state.started = true;
+            state.paused = false;
+            state.ended = false;
+            state.killing = false;
+            state._photoFreeze = true;
+            state._photoMonsterPose = (sc === 'monster');
+            document.body.classList.add('game-started');
+            if (sc === 'metro') {
+              enterMetroLobby(false);
+              state.trainAnim = 'parked';
+              if (metroTrain && metroTrain.group) metroTrain.group.position.x = 0;
+              state.pos.set(-3.4, 1.65, 3.6);
+              state.yaw = -0.45;
+              state.pitch = -0.04;
+            } else if (sc === 'lvl0') {
+              resetGame(0);
+              state.hasFlashlight = true; state.flashOn = true; state.battery = 100;
+              if (btnFlash) { btnFlash.style.display = ''; btnFlash.classList.add('on'); }
+              state.pitch = -0.04;
+            } else if (sc === 'lvl37') {
+              resetGame(37);
+              state.hasFlashlight = true; state.flashOn = false; state.battery = 100;
+              state.pitch = -0.06;
+            } else if (sc === 'monster') {
+              resetGame(0);
+              state.hasFlashlight = true; state.flashOn = true; state.battery = 100;
+              if (btnFlash) { btnFlash.style.display = ''; btnFlash.classList.add('on'); }
+              const fwdX = -Math.sin(state.yaw), fwdZ = -Math.cos(state.yaw);
+              state.monsterPos.set(state.pos.x + fwdX * 4.2, 0, state.pos.z + fwdZ * 4.2);
+              if (monsterGroup) {
+                monsterGroup.visible = true;
+                monsterGroup.position.copy(state.monsterPos);
+                monsterGroup.rotation.y = Math.atan2(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
+              }
+              state.sanity = 35;
+              state.monsterChasing = false;
+              if (elDangerVig) elDangerVig.style.opacity = '0.82';
+            } else if (sc === 'online') {
+              if (typeof startEndless50K === 'function') startEndless50K();
+            }
+            applyCleanHud();
+          });
+        });
+      })();
+
       const btnGfx = document.getElementById('btn-gfx');
       if (btnGfx) btnGfx.addEventListener('click', () => {
         const next = state.gfxQuality === 'low' ? 'medium' : (state.gfxQuality === 'medium' ? 'high' : 'low');
@@ -3751,7 +3831,7 @@
         }
         if (bSetRes) {
           bSetRes.addEventListener('click', () => {
-            const ov = document.getElementById('settings-overlay');
+            if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI(); const ov = document.getElementById('settings-overlay');
             if (ov) ov.classList.add('hidden');
             state.paused = false;
             resetGame(state.currentLevel);
@@ -3996,6 +4076,7 @@
       }
 
       function startKillAnimation() {
+        if (state._photoFreeze) return;
         if (state.killing || state.ended) return;
         state.killing = true; Sound.playVoice('vox_caught', 0.95, 8000);
         state.killTimer = 0;
@@ -4031,21 +4112,26 @@
             best = state.elapsed;
             try { LSset('zulmat_best_time', String(best.toFixed(1))); } catch (e) {}
           }
-          badge.textContent = "G'ALABA!";
+          const _fl = window.__zulmatLang || 'uz';
+          badge.textContent = _fl === 'en' ? 'VICTORY!' : (_fl === 'ru' ? 'ПОБЕДА!' : "G'ALABA!");
           badge.style.background = 'rgba(34, 197, 94, 0.2)';
           badge.style.color = '#86efac';
           badge.style.borderColor = 'rgba(34, 197, 94, 0.6)';
-          title.textContent = "ZULMATDAN QOCHIB QUTULDINGIZ!";
-          desc.textContent = "Level 0 dagi barcha 8 ta kalitni topib, Backrooms labirintidan sog'-salomat chiqib ketdingiz.";
+          title.textContent = _fl === 'en' ? 'YOU ESCAPED THE DARKNESS!' : (_fl === 'ru' ? 'ВЫ ВЫБРАЛИСЬ ИЗ ТЬМЫ!' : "ZULMATDAN QOCHIB QUTULDINGIZ!");
+          const _lvTitle = (LEVEL_THEMES[state.currentLevel] && LEVEL_THEMES[state.currentLevel].title) || 'Backrooms';
+          desc.textContent = _fl === 'en' ? ('You safely escaped ' + _lvTitle + '!') : (_fl === 'ru' ? ('Вы успешно прошли ' + _lvTitle + '!') : (_lvTitle + " qavatidan sog'-salomat chiqib ketdingiz!"));
         } else {
+          const _fl = window.__zulmatLang || 'uz';
           elJumpFlash.classList.add('active');
           setTimeout(() => elJumpFlash.classList.remove('active'), 380);
-          badge.textContent = "QO'LGA TUSHDINGIZ";
+          badge.textContent = _fl === 'en' ? 'CAUGHT' : (_fl === 'ru' ? 'ПОЙМАН' : "QO'LGA TUSHDINGIZ");
           badge.style.background = 'rgba(239, 68, 68, 0.2)';
           badge.style.color = '#fca5a5';
           badge.style.borderColor = 'rgba(239, 68, 68, 0.6)';
-          title.textContent = "SOYA SIZNI TOPDI";
-          desc.textContent = "Yurak urishi tezlashganda metall shkafga yashirining va fonar batareyasini tejang.";
+          title.textContent = _fl === 'en' ? 'THE ENTITY FOUND YOU' : (_fl === 'ru' ? 'СУЩНОСТЬ НАШЛА ВАС' : "SOYA SIZNI TOPDI");
+          desc.textContent = _fl === 'en'
+            ? 'Hide in a locker when your heartbeat speeds up, and save sprint stamina for chases.'
+            : (_fl === 'ru' ? 'Прячьтесь в шкафу при учащении пульса и берегите выносливость для погони.' : "Yurak urishi tezlashganda metall shkafga yashirining va quvg'in uchun kuchingizni tejang.");
         }
         document.getElementById('end-best').textContent = best > 0 ? formatTime(best) : '--:--';
         Sound.crtBoot(); elEndOv.classList.remove('hidden');

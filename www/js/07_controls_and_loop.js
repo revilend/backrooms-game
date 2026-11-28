@@ -22,6 +22,28 @@
         let diff = ((tgt - cur + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
         return cur + diff * Math.min(1, rate);
       }
+      function tickMonsterAudio(dt, dM, chasing) {
+        if (typeof updateActiveMonsterMixers === 'function') updateActiveMonsterMixers(dt, chasing);
+        if (!isFinite(dM) || dM > 26 || state._photoFreeze) return;
+        const df = Math.max(0, Math.min(1, 1 - (dM - 2.0) / 14.0));
+        state.mStepTimer = (state.mStepTimer || 0) - dt;
+        if (state.mStepTimer <= 0) {
+          state.mStepTimer = chasing ? 0.36 : 0.64;
+          if (Sound && Sound.monsterStep) Sound.monsterStep(dM);
+        }
+        state.growlTimer = (state.growlTimer || 0) - dt;
+        if (state.growlTimer <= 0 && dM < 18) {
+          state.growlTimer = chasing ? (2.5 + Math.random() * 1.8) : (5.5 + Math.random() * 3.5);
+          if (Sound && Sound.monsterGrowl) Sound.monsterGrowl(Math.max(0.25, 1 - dM / 18));
+        }
+        if (df > 0.18) {
+          state.heartTimer = (state.heartTimer || 0) - dt;
+          if (state.heartTimer <= 0) {
+            state.heartTimer = Math.max(0.38, 1.15 - df * 0.75);
+            if (Sound && Sound.heartbeat) Sound.heartbeat(df);
+          }
+        }
+      }
       function updateLightVariation(dt) {
         if (renderer.toneMappingExposure !== ZLV.applied) ZLV.base = renderer.toneMappingExposure;
         let target = 1;
@@ -116,7 +138,7 @@
                 if (o !== m && o.scale && o.scale.y > 50) armScale = Math.max(armScale, o.scale.y);
               });
               let effH = (isFinite(sz.y) && sz.y > 0.001) ? sz.y : 1.7;
-              if (armScale > 50) effH = effH * armScale;
+              if (armScale > 50 && effH < 0.25) effH = effH * armScale;
               const sc = Math.min(2.5, Math.max(0.002, targetH / effH));
               m.scale.setScalar(sc);
               m.updateMatrixWorld(true);
@@ -141,7 +163,7 @@
             else level0Group.add(hg);
             const SKIN_FILES = {
               businessman: 'player_businessman.glb', tvman: 'player_tvman.glb', casual: 'player_casual.glb',
-              man: 'player_man.glb', girl: 'player_girl.glb', hazmat: 'player_hazmat.glb', survivor: 'player_survivor.glb'
+              man: 'player_man.glb', girl: 'player_girl.glb', hazmat: 'player_hazmat.glb', survivor: 'player_survivor.glb', anime_boy: 'player_anime_boy.glb', anime_girl: 'player_anime_girl.glb', fashion_girl: 'player_fashion_girl.glb'
             };
             window.__zulmatSetMenuHeroSkin = function(skinKey) {
               const mh = window.__zulmatMenuHero;
@@ -190,14 +212,14 @@
           const skPanelOpen = document.getElementById('start-skins-panel');
           if (skPanelOpen && !skPanelOpen.classList.contains('hidden')) {
             // Character showcase camera: places large 3D character on the LEFT, compact selector on the RIGHT
-            camera.position.set(-1.15, 1.26, 4.65);
+            camera.position.set(-1.35, 1.18, 4.35);
             camera.rotation.order = 'YXZ';
-            camera.lookAt(-0.48, 0.95, 1.85);
+            camera.lookAt(-0.68, 0.92, 1.85);
           } else {
-            const pOff = Math.sin(animT * 0.16) * 0.55;
-            camera.position.set(-4.35 + pOff * 0.45, 1.66 + Math.sin(animT * 0.6) * 0.018, 4.45 + pOff * 0.25);
+            const pOff = Math.sin(animT * 0.16) * 0.38;
+            camera.position.set(-1.10 + pOff * 0.45, 1.68 + Math.sin(animT * 0.6) * 0.018, 4.55 + pOff * 0.20);
             camera.rotation.order = 'YXZ';
-            camera.lookAt(1.85, 1.22, -2.35);
+            camera.lookAt(0.45, 1.32, -2.55);
           }
           renderer.render(scene, camera);
           return;
@@ -349,7 +371,7 @@
           if (len > 1) { inX /= len; inZ /= len; }
 
           const wantsSprint = (state.sprinting || keys['ShiftLeft'] || keys['ShiftRight']) && len > 0.15 && state.stamina > 3;
-          if (wantsSprint) {
+          if (wantsSprint && !state._photoFreeze) {
             state.stamina = Math.max(0, state.stamina - 24 * dt);
             if (state.stamina <= 3) {
               state.sprinting = false;
@@ -383,7 +405,7 @@
           }
 
           // Flashlight battery management
-          if (state.flashOn && !state.hiding) {
+          if (state.flashOn && !state.hiding && !state._photoFreeze) {
             state.battery = Math.max(0, state.battery - cfg.batDrain * dt);
             if (state.battery <= 0) {
               state.flashOn = false;
@@ -827,7 +849,7 @@
             const bob3 = state.hiding ? 0 : Math.sin(state.bobPhase) * (len > 0.05 ? 0.05 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob3, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM3); updateVhsGrain(0.26 + df3 * 0.35); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM3, state.monsterChasing); drawRadar(dM3); updateVhsGrain(0.26 + df3 * 0.35); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level4') {
@@ -909,7 +931,7 @@
             const bob5 = state.hiding ? 0 : Math.sin(state.bobPhase) * (len > 0.05 ? 0.048 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob5, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM5); updateVhsGrain(0.24 + df5 * 0.35); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM5, state.monsterChasing); drawRadar(dM5); updateVhsGrain(0.24 + df5 * 0.35); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level6') {
@@ -943,7 +965,7 @@
             const bob6 = Math.sin(state.bobPhase) * (len > 0.05 ? 0.048 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob6, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM6); updateVhsGrain(0.32 + df6 * 0.4); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM6, state.monsterChasing); drawRadar(dM6); updateVhsGrain(0.32 + df6 * 0.4); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level7') {
@@ -983,7 +1005,7 @@
             const bob7 = Math.sin(state.bobPhase) * (len > 0.05 ? 0.045 : 0.015);
             camera.position.set(state.pos.x, state.pos.y + bob7, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM7); updateVhsGrain(0.2 + df7 * 0.35); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM7, state.monsterChasing); drawRadar(dM7); updateVhsGrain(0.2 + df7 * 0.35); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level8') {
@@ -1018,7 +1040,7 @@
             const bob8 = Math.sin(state.bobPhase) * (len > 0.05 ? 0.048 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob8, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM8); updateVhsGrain(0.24 + df8 * 0.35); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM8, state.monsterChasing); drawRadar(dM8); updateVhsGrain(0.24 + df8 * 0.35); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level188') {
@@ -1049,7 +1071,7 @@
             const bob188 = Math.sin(state.bobPhase) * (len > 0.05 ? 0.048 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob188, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM188); updateVhsGrain(0.22 + df188 * 0.35); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM188, state.monsterChasing); drawRadar(dM188); updateVhsGrain(0.22 + df188 * 0.35); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level974') {
@@ -1082,7 +1104,7 @@
             const bob974 = Math.sin(state.bobPhase) * (len > 0.05 ? 0.045 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob974, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM974); updateVhsGrain(0.15 + df974 * 0.3); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM974, state.monsterChasing); drawRadar(dM974); updateVhsGrain(0.15 + df974 * 0.3); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level3999') {
@@ -1126,29 +1148,10 @@
             const df = Math.max(0, Math.min(1, 1 - (dM - 2) / 14)); elDangerVig.style.opacity = String(df * 0.85);
             if (dM < 1.5) { startKillAnimation(); return; }
             elHudObj.textContent = 'Level 33 • Terminallar: ' + state.l33NodesDone + ' / 6' + (l33Exit.unlocked ? ' • CHIQISH OCHILDI!' : '');
-            if (state.zone === 'levelmirror' && window.__zulmatMirrorRef && window.__zulmatMirrorRef.group) {
-              const mr = window.__zulmatMirrorRef;
-              let bestM = null, bestD = 14.0;
-              for (let mi = 0; mi < mr.coords.length; mi++) {
-                const [mx, mz] = mr.coords[mi];
-                const md = Math.hypot(state.pos.x - mx, state.pos.z - mz);
-                if (md < bestD) { bestD = md; bestM = [mx, mz]; }
-              }
-              if (bestM && Math.abs(state.pos.x - bestM[0]) < 4.5) {
-                const [mx, mz] = bestM;
-                const dz = state.pos.z - mz;
-                mr.group.visible = true;
-                mr.group.position.set(state.pos.x, 0, mz - dz);
-                mr.group.rotation.y = Math.PI - state.yaw;
-                if (mr.mixer) mr.mixer.update(dt * (len > 0.05 ? 1.35 : 0.5));
-              } else {
-                mr.group.visible = false;
-              }
-            }
             const bob = Math.sin(state.bobPhase) * (len > 0.05 ? 0.045 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM); updateVhsGrain(0.18 + df * 0.35); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM, state.monsterChasing); drawRadar(dM); updateVhsGrain(0.18 + df * 0.35); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level36') {
@@ -1176,7 +1179,7 @@
             const bob = Math.sin(state.bobPhase) * (len > 0.05 ? 0.045 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM); updateVhsGrain(0.16 + df * 0.35); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM, state.monsterChasing); drawRadar(dM); updateVhsGrain(0.16 + df * 0.35); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'levelshady') {
@@ -1207,7 +1210,7 @@
             const bob = Math.sin(state.bobPhase) * (len > 0.05 ? 0.048 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM); updateVhsGrain(0.30 + df * 0.4); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM, state.monsterChasing); drawRadar(dM); updateVhsGrain(0.30 + df * 0.4); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level14' || state.zone === 'level15' || state.zone === 'level22' || state.zone === 'level46' || state.zone === 'levelmanila' || state.zone === 'levelmirror') {
@@ -1251,6 +1254,24 @@
                 if (!state.crouching) { state.pos.x += Math.sin(animT * 0.35) * 0.42 * dt; resolveWallCollision(state.pos, 0.38); }
               } else if (state.zone === 'levelmirror') {
                 camera.rotation.z = Math.sin(animT * 1.35) * 0.025;
+                if (window.__zulmatMirrorRef && window.__zulmatMirrorRef.group) {
+                  const mr = window.__zulmatMirrorRef;
+                  let bestM = null, bestD = 14.0;
+                  for (let mi = 0; mi < mr.coords.length; mi++) {
+                    const [mx, mz] = mr.coords[mi];
+                    const md = Math.hypot(state.pos.x - mx, state.pos.z - mz);
+                    if (md < bestD) { bestD = md; bestM = [mx, mz]; }
+                  }
+                  if (bestM && Math.abs(state.pos.x - bestM[0]) < 4.5) {
+                    const [mx, mz] = bestM;
+                    mr.group.visible = true;
+                    mr.group.position.set(state.pos.x, 0, mz - (state.pos.z - mz));
+                    mr.group.rotation.y = Math.PI - state.yaw;
+                    if (mr.mixer) mr.mixer.update(dt * (len > 0.05 ? 1.35 : 0.5));
+                  } else {
+                    mr.group.visible = false;
+                  }
+                }
               }
               const spd = (state.monsterChasing ? cfg.chaseSpeed : cfg.mSpeed) * 1.12;
               steerMonsterStep(state.monsterPos, state.monsterPos.x + (dx), state.monsterPos.z + (dz), spd, dt);
@@ -1264,7 +1285,7 @@
             const bob = Math.sin(state.bobPhase) * (len > 0.05 ? 0.045 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM); updateVhsGrain(0.18 + df * 0.35); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM, state.monsterChasing); drawRadar(dM); updateVhsGrain(0.18 + df * 0.35); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level9') {
@@ -1303,7 +1324,7 @@
             const bob9 = Math.sin(state.bobPhase) * (len > 0.05 ? 0.05 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob9, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dW); updateVhsGrain(0.32 + df9 * 0.4); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dW, state.monsterChasing); drawRadar(dW); updateVhsGrain(0.32 + df9 * 0.4); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level10') {
@@ -1317,6 +1338,7 @@
             else if (l10Exit.unlocked && dEx10 < 3.8) { elInteractBtn.classList.add('visible'); elInteractLbl.textContent = "YERTO'LADAN CHIQISH (E)"; }
             else if (!window._nearExtraLoreNote) elInteractBtn.classList.remove('visible');
 
+            scene.fog.density = 0.022 + Math.sin(animT * 0.45) * 0.007;
             elHudObj.textContent = 'Level 10 • Radio minoralar: ' + state.l10RadiosDone + ' / 5' + (l10Exit.unlocked ? ' • LYUK OCHILDI!' : '');
             elDangerVig.style.opacity = '0';
             const bob10 = Math.sin(state.bobPhase) * (len > 0.05 ? 0.05 : 0.01);
@@ -1356,7 +1378,7 @@
             const bob11 = Math.sin(state.bobPhase) * (len > 0.05 ? 0.05 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bob11, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dM11); updateVhsGrain(0.18 + df11 * 0.3); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dM11, state.monsterChasing); drawRadar(dM11); updateVhsGrain(0.18 + df11 * 0.3); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'levelend') {
@@ -1393,7 +1415,7 @@
             const bobE = Math.sin(state.bobPhase) * (len > 0.05 ? 0.045 : 0.01);
             camera.position.set(state.pos.x, state.pos.y + bobE, state.pos.z);
             camera.rotation.order = 'YXZ'; camera.rotation.y = state.yaw; camera.rotation.x = state.pitch;
-            drawRadar(dME); updateVhsGrain(0.18); renderer.render(scene, camera); return;
+            tickMonsterAudio(dt, dME, state.monsterChasing); drawRadar(dME); updateVhsGrain(0.18); renderer.render(scene, camera); return;
           }
 
           if (state.zone === 'level61') {
@@ -2320,7 +2342,12 @@
           }
 
           // Caught check -> Launch terrifying 3D First-Person Kill Animation!
-          if (!state.hiding && dMon < 1.38) {
+          if (state._photoFreeze && state._photoMonsterPose) {
+            elDangerVig.style.opacity = '0.82';
+            if (obsArms && obsArms[0]) obsArms[0].rotation.x = -1.25;
+            if (obsArms && obsArms[1]) obsArms[1].rotation.x = -1.25;
+          }
+          if (!state._photoFreeze && !state.hiding && dMon < 1.38) {
             startKillAnimation();
           }
 
@@ -2362,6 +2389,11 @@
             return;
           }
 
+          if (state._photoFreeze && state._photoMonsterPose && monsterGroup) {
+            monsterGroup.visible = true;
+            monsterGroup.position.set(state.monsterPos.x, 0, state.monsterPos.z);
+            monsterGroup.rotation.y = Math.atan2(state.pos.x - state.monsterPos.x, state.pos.z - state.monsterPos.z);
+          }
           // Update First-Person Camera with subtle head-bob
           const bobY = state.hiding ? 0 : Math.sin(state.bobPhase) * (len > 0.05 ? (wantsSprint ? 0.075 : 0.042) : 0.012);
           camera.position.set(state.pos.x, state.pos.y + bobY, state.pos.z);

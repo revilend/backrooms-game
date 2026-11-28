@@ -18,7 +18,7 @@
         let sendTimer = 0;
         let peerJsLoaded = false;
 
-        const SKIN_LABELS_MAP = { businessman: 'Biznesmen', tvman: 'TV-Man', casual: 'Sayohatchi', man: 'Yigit', girl: 'Qiz', hazmat: 'Hazmat', survivor: 'Omon Qoluvchi' };
+        const SKIN_LABELS_MAP = { businessman: 'Sardor', tvman: 'Signal-09', casual: 'Timur', man: 'Jasur', girl: 'Madina', hazmat: 'Agent K-7', survivor: 'Bekzod', anime_boy: 'Ren', anime_girl: 'Kira', fashion_girl: 'Lola' };
 
         function broadcastCoop(payload) {
           Object.values(peers).forEach((p) => {
@@ -118,9 +118,13 @@
 
         function getMyName() {
           const inp = document.getElementById('coop-name');
-          const v = (inp && inp.value.trim()) ? inp.value.trim().slice(0, 16) : 'Sayohatchi';
-          try { LSset('zulmat_player_name', v); } catch (e) {}
-          return v;
+          const custom = (inp && inp.value.trim()) ? inp.value.trim().slice(0, 16) : '';
+          if (custom) {
+            try { LSset('zulmat_player_name', custom); } catch (e) {}
+            return custom;
+          }
+          const idx = isHost ? 1 : (Object.keys(peers || {}).length + 2);
+          return 'Player #' + idx;
         }
 
         function makeNameSprite(text) {
@@ -224,7 +228,10 @@
 
           const skinFiles = {
             businessman: 'player_businessman.glb', tvman: 'player_tvman.glb', casual: 'player_casual.glb',
-            man: 'player_man.glb', girl: 'player_girl.glb', hazmat: 'player_hazmat.glb', survivor: 'player_survivor.glb'
+            man: 'player_man.glb', girl: 'player_girl.glb', hazmat: 'player_hazmat.glb', survivor: 'player_survivor.glb',
+            anime_boy: 'player_anime_boy.glb',
+            anime_girl: 'player_anime_girl.glb',
+            fashion_girl: 'player_fashion_girl.glb'
           };
           const glbFile = skinFiles[skinKey] || 'player_businessman.glb';
           const avatarObj = { root, legL, legR, armL, beamCone, flashLight, label, speakSprite, mixer: null, walkAct: null, idleAct: null, isWalking: false };
@@ -772,7 +779,11 @@
         const nameInp = document.getElementById('coop-name');
         try {
           const savedName = LSget('zulmat_player_name');
-          if (savedName && nameInp) nameInp.value = savedName;
+          if (savedName === 'Murodjon' || savedName === 'Sayohatchi') {
+            LSset('zulmat_player_name', '');
+          } else if (savedName && nameInp) {
+            nameInp.value = savedName;
+          }
         } catch (e) {}
         const bOpen = document.getElementById('btn-start-coop');
         const bClose = document.getElementById('btn-close-coop');
@@ -780,18 +791,72 @@
         const bJoin = document.getElementById('btn-coop-join');
         const bMic = document.getElementById('btn-coop-mic');
         const cInp = document.getElementById('coop-code-input');
-        const SKIN_LABELS = { businessman: 'Biznesmen', tvman: 'TV-Man', casual: 'Sayohatchi', man: 'Yigit', girl: 'Qiz', hazmat: 'Hazmat', survivor: 'Omon Qoluvchi' };
+        const SKIN_LABELS = { businessman: 'Sardor', tvman: 'Signal-09', casual: 'Timur', man: 'Jasur', girl: 'Madina', hazmat: 'Agent K-7', survivor: 'Bekzod', anime_boy: 'Ren', anime_girl: 'Kira', fashion_girl: 'Lola' };
         window.__zulmatSyncCharSummary = () => {
           const el = document.getElementById('coop-char-summary');
           if (!el) return;
-          const nm = (nameInp && nameInp.value.trim()) ? nameInp.value.trim().slice(0, 16) : (LSget('zulmat_player_name') || 'Murodjon');
-          el.textContent = nm + ' • ' + (SKIN_LABELS[mySkin] || 'Biznesmen');
+          const _sn = LSget('zulmat_player_name');
+          const nm = (nameInp && nameInp.value.trim()) ? nameInp.value.trim().slice(0, 16) : ((_sn && _sn !== 'Murodjon' && _sn !== 'Sayohatchi') ? _sn : 'Player #1');
+          el.textContent = nm + ' • ' + (SKIN_LABELS[mySkin] || 'Sardor');
         };
-        if (nameInp) nameInp.addEventListener('input', () => {
-          const v = nameInp.value.trim().slice(0, 16);
-          if (v) try { LSset('zulmat_player_name', v); } catch (e) {}
+        let _devId = '';
+        try {
+          _devId = LSget('zulmat_device_id') || '';
+          if (!_devId) { _devId = 'zdev_' + Math.random().toString(36).slice(2) + Date.now().toString(36); LSset('zulmat_device_id', _devId); }
+        } catch (e) { _devId = 'zdev_mem'; }
+        let _lastValidNick = (nameInp && nameInp.value.trim()) ? nameInp.value.trim().slice(0, 16) : '';
+        let _nickCheckTimer = null;
+        async function verifyAndClaimNick(cand) {
+          const clean = (cand || '').trim().slice(0, 16);
+          // 1. Check active room peers immediately
+          if (clean) {
+            const low = clean.toLowerCase();
+            const dupPeer = Object.values(peers || {}).some((p) => p && p.name && p.name.toLowerCase() === low);
+            if (dupPeer) {
+              if (nameInp) { nameInp.value = _lastValidNick; nameInp.style.borderColor = '#ef4444'; }
+              try { LSset('zulmat_player_name', _lastValidNick); } catch (e) {}
+              window.__zulmatSyncCharSummary();
+              if (typeof showToast === 'function') showToast('Bu nik xonada band! Boshqa nik yozing.', true);
+              return;
+            }
+          }
+          // 2. Check global Redis database on Vercel
+          try {
+            const r = await fetch('https://backrooms-ai.vercel.app/api/dimension', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'claim_nick', nick: clean, oldNick: _lastValidNick, deviceId: _devId })
+            });
+            const d = await r.json();
+            if (d && d.taken) {
+              if (nameInp) { nameInp.value = _lastValidNick; nameInp.style.borderColor = '#ef4444'; }
+              try { LSset('zulmat_player_name', _lastValidNick); } catch (e) {}
+              window.__zulmatSyncCharSummary();
+              if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI();
+              if (typeof showToast === 'function') showToast('Bu nik allaqachon band! Boshqa nik tanlang.', true);
+              return;
+            }
+          } catch (e) {}
+          _lastValidNick = clean;
+          if (nameInp) nameInp.style.borderColor = 'rgba(250,204,21,0.32)';
+          try { LSset('zulmat_player_name', clean); } catch (e) {}
           window.__zulmatSyncCharSummary();
-        });
+          if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI();
+        }
+        if (nameInp) {
+          nameInp.addEventListener('input', () => {
+            const v = nameInp.value.trim().slice(0, 16);
+            nameInp.style.borderColor = 'rgba(250,204,21,0.32)';
+            window.__zulmatSyncCharSummary();
+            if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI();
+            clearTimeout(_nickCheckTimer);
+            _nickCheckTimer = setTimeout(() => verifyAndClaimNick(v), 700);
+          });
+          nameInp.addEventListener('blur', () => {
+            clearTimeout(_nickCheckTimer);
+            verifyAndClaimNick(nameInp.value.trim().slice(0, 16));
+          });
+        }
         const bCoopOpenSkins = document.getElementById('btn-coop-open-skins');
         if (bCoopOpenSkins) bCoopOpenSkins.addEventListener('click', () => {
           if (coopOv) coopOv.classList.add('hidden');
@@ -944,7 +1009,7 @@
             b.addEventListener('click', (e) => {
               e.stopPropagation();
               if (!chatRateOk()) return;
-              const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
+              const myN = getMyName();
               appendChat(myN, txt);
               broadcastCoop({ t: 'chat', name: myN, text: txt });
               closeChatDrawer();
@@ -1040,7 +1105,7 @@
           const txt = igInp.value.trim().slice(0, 200);
           if (!txt || !chatRateOk()) return;
           igInp.value = '';
-          const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
+          const myN = getMyName();
           appendChat(myN, txt);
           broadcastCoop({ t: 'chat', name: myN, text: txt });
           closeChatDrawer();
@@ -1052,7 +1117,7 @@
           const txt = chatInp.value.trim().slice(0, 200);
           if (!txt || !chatRateOk()) return;
           chatInp.value = '';
-          const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
+          const myN = getMyName();
           appendChat(myN, txt);
           broadcastCoop({ t: 'chat', name: myN, text: txt });
         }
@@ -1174,7 +1239,10 @@
             girl: 'player_girl.glb',
             hazmat: 'player_hazmat.glb',
             explorer: 'player_explorer.glb',
-            survivor: 'player_survivor.glb'
+            survivor: 'player_survivor.glb',
+            anime_boy: 'player_anime_boy.glb',
+            anime_girl: 'player_anime_girl.glb',
+            fashion_girl: 'player_fashion_girl.glb'
           };
           const skinFile = map[sid] || 'player_businessman.glb';
           gltfLoader.load(REPO_GLB_BASE + skinFile, (gltf) => {
@@ -1189,8 +1257,8 @@
                 if (o.isBone) {
                   const bn = o.name || '';
                   if (/head|neck/i.test(bn)) o.scale.setScalar(0.0001);
-                  if (!rHandBone && /(righthand|hand_r|wrist_r)/i.test(bn)) rHandBone = o;
-                  else if (!lHandBone && /(lefthand|hand_l|wrist_l)/i.test(bn)) lHandBone = o;
+                  if (!rHandBone && /(righthand|hand[._]r|wrist[._]r)/i.test(bn) && !/(thumb|index|middle|ring|pinky|finger)/i.test(bn)) rHandBone = o;
+                  else if (!lHandBone && /(lefthand|hand[._]l|wrist[._]l)/i.test(bn) && !/(thumb|index|middle|ring|pinky|finger)/i.test(bn)) lHandBone = o;
                   else if (!rForeBone && /(rightforearm|forearm_r|lowerarm_r)/i.test(bn)) rForeBone = o;
                   else if (!rArmBone && /(rightarm|upperarm_r|arm_r)/i.test(bn) && !/fore/i.test(bn)) rArmBone = o;
                 }
@@ -1211,7 +1279,7 @@
         function update(dt) {
           root.visible = state.started && !state.hiding && !state.ended && state.zone !== 'levelendless_hide';
           if (!root.visible) { hasPrev = false; return; }
-          if (!glbStarted) ensureGlbBody();
+          ensureGlbBody();
           const vx = hasPrev && dt > 0.0005 ? (state.pos.x - prevX) / dt : 0;
           const vz = hasPrev && dt > 0.0005 ? (state.pos.z - prevZ) / dt : 0;
           prevX = state.pos.x; prevZ = state.pos.z; hasPrev = true;
@@ -1576,7 +1644,6 @@
           active = true;
           t = 0;
           state._drinkingAlmond = true;
-          ensureFlashGlb();
           root.visible = true;
         }
         function update(dt) {
