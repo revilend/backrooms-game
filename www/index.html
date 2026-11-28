@@ -279,20 +279,23 @@
 
 
       </div>
-      <div class="start-glass-stack hidden" id="start-skins-panel" style="position:fixed;right:max(22px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);width:225px;gap:6px;background:rgba(6,10,18,0.74);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:12px;border-radius:12px;border:1px solid rgba(250,204,21,0.28);z-index:20;">
-        <input id="coop-name" type="text" maxlength="16" value="Murodjon" placeholder="Ismingiz..." style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid rgba(250,204,21,0.32);background:rgba(8,12,22,0.86);color:#f8fafc;font-size:12.5px;font-weight:700;outline:none;box-sizing:border-box;">
+      <div class="start-glass-stack hidden" id="start-skins-panel" style="position:fixed;right:max(22px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);width:230px;max-height:92vh;overflow-y:auto;gap:5px;background:rgba(6,10,18,0.74);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:12px;border-radius:12px;border:1px solid rgba(250,204,21,0.28);z-index:20;">
+        <input id="coop-name" type="text" maxlength="16" value="" placeholder="Player #1" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid rgba(250,204,21,0.32);background:rgba(8,12,22,0.86);color:#f8fafc;font-size:12.5px;font-weight:700;outline:none;box-sizing:border-box;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-          <div id="skin-preview-label" style="font-size:10px;font-weight:800;letter-spacing:0.04em;color:#fde047;opacity:0.92;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Biznesmen • Asosiy Qahramon</div>
+          <div id="skin-preview-label" style="font-size:10px;font-weight:800;letter-spacing:0.04em;color:#fde047;opacity:0.92;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Sardor • Ofis Xodimi</div>
           <span id="skins-coins-pill" style="font-size:10px;font-weight:900;color:#fde047;background:rgba(250,204,21,0.14);border:1px solid rgba(250,204,21,0.38);padding:2px 7px;border-radius:999px;white-space:nowrap;">250</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;">
-          <button class="diff-btn active" id="btn-skin-businessman" type="button" style="padding:7px 4px;font-size:10.5px;">Biznesmen</button>
-          <button class="diff-btn" id="btn-skin-tvman" type="button" style="padding:7px 4px;font-size:10.5px;">TV-Man</button>
-          <button class="diff-btn" id="btn-skin-casual" type="button" style="padding:7px 4px;font-size:10.5px;">Sayohatchi</button>
-          <button class="diff-btn" id="btn-skin-man" type="button" style="padding:7px 4px;font-size:10.5px;">Yigit</button>
-          <button class="diff-btn" id="btn-skin-girl" type="button" style="padding:7px 4px;font-size:10.5px;">Qiz</button>
-          <button class="diff-btn" id="btn-skin-hazmat" type="button" style="padding:7px 4px;font-size:10.5px;">Hazmat</button>
-          <button class="diff-btn" id="btn-skin-survivor" type="button" style="grid-column:span 2;padding:7px 4px;font-size:10.5px;">Omon Qoluvchi</button>
+          <button class="diff-btn active" id="btn-skin-businessman" type="button" style="padding:6px 4px;font-size:10.5px;">Sardor</button>
+          <button class="diff-btn" id="btn-skin-tvman" type="button" style="padding:6px 4px;font-size:10.5px;">Signal-09</button>
+          <button class="diff-btn" id="btn-skin-casual" type="button" style="padding:6px 4px;font-size:10.5px;">Timur</button>
+          <button class="diff-btn" id="btn-skin-man" type="button" style="padding:6px 4px;font-size:10.5px;">Jasur</button>
+          <button class="diff-btn" id="btn-skin-girl" type="button" style="padding:6px 4px;font-size:10.5px;">Madina</button>
+          <button class="diff-btn" id="btn-skin-hazmat" type="button" style="padding:6px 4px;font-size:10.5px;">Agent K-7</button>
+          <button class="diff-btn" id="btn-skin-survivor" type="button" style="padding:6px 4px;font-size:10.5px;">Bekzod</button>
+          <button class="diff-btn" id="btn-skin-anime_boy" type="button" style="padding:6px 4px;font-size:10.5px;">Ren</button>
+          <button class="diff-btn" id="btn-skin-anime_girl" type="button" style="padding:6px 4px;font-size:10.5px;">Kira</button>
+          <button class="diff-btn" id="btn-skin-fashion_girl" type="button" style="padding:6px 4px;font-size:10.5px;">Lola</button>
         </div>
         <button class="start-glass-link" id="btn-close-skins" type="button" style="opacity:0.86;border-top:1px solid rgba(255,255,255,0.12);margin-top:4px;padding-top:8px;font-size:11.5px;">&lt; SAQLASH VA ORQAGA</button>
       </div>
@@ -312,9 +315,9 @@
 
     <!-- Full-Screen Story Cutscene Video Overlay (Intro & Outro) -->
     <div id="story-video-overlay" class="hidden" style="position:fixed;inset:0;z-index:9999;background:#000;align-items:center;justify-content:center;">
-      <div id="story-video-sub" class="hidden" style="position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:min(720px,88vw);padding:8px 16px;border-radius:10px;background:rgba(4,6,12,0.78);border:1px solid rgba(250,204,21,0.32);color:#fef9c3;font-size:clamp(14px,2.2vw,18px);font-weight:700;text-align:center;line-height:1.35;z-index:9600;pointer-events:none;text-shadow:0 2px 6px rgba(0,0,0,0.9);"></div>
       <div id="story-video-status" style="position:absolute;color:#fef08a;font-size:12px;font-weight:800;letter-spacing:0.16em;pointer-events:none;">VIDEO YUKLANMOQDA...</div>
       <video id="story-video-el" playsinline webkit-playsinline preload="auto" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=" style="width:100%;height:100%;object-fit:cover;background:#000;"></video>
+      <div id="story-video-sub" class="hidden" style="position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:min(720px,88vw);padding:8px 16px;border-radius:10px;background:rgba(4,6,12,0.82);border:1px solid rgba(250,204,21,0.38);color:#fef9c3;font-size:clamp(14px,2.2vw,18px);font-weight:700;text-align:center;line-height:1.35;z-index:10001;pointer-events:none;text-shadow:0 2px 6px rgba(0,0,0,0.95);"></div>
       <button id="btn-skip-story-video" type="button" onclick="var o=document.getElementById('story-video-overlay');if(o)o.classList.add('hidden');" style="position:absolute;right:20px;bottom:20px;z-index:10000;padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,0.28);background:rgba(9,11,15,0.78);color:#f8fafc;font-size:13px;font-weight:700;letter-spacing:0.6px;cursor:pointer;">
         O'TKAZIB YUBORISH &gt;&gt;
       </button>
@@ -424,6 +427,19 @@
           <button class="diff-btn" id="btn-settings-sound" type="button" style="padding:10px;">Ovoz: YONIQ</button>
           <button class="diff-btn" id="btn-settings-restart" type="button" style="padding:10px;border-color:rgba(248,113,113,0.45);color:#fca5a5;">Qayta Boshlash</button>
         </div>
+        <div id="ss-studio-box" class="hidden" style="width:100%;margin-bottom:8px;padding:8px 10px;border-radius:10px;background:rgba(15,23,42,0.72);border:1px solid rgba(56,189,248,0.28);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#7dd3fc;">SKRINSHOT SAHNALARI</span>
+            <button class="diff-btn" id="btn-ss-clean-hud" type="button" style="width:auto;padding:4px 9px;font-size:10.5px;">HUD: Ko'rinsin</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;">
+            <button class="diff-btn ss-scene-btn" data-ss="metro" type="button" style="padding:7px 4px;font-size:10.5px;">Metro</button>
+            <button class="diff-btn ss-scene-btn" data-ss="lvl0" type="button" style="padding:7px 4px;font-size:10.5px;">Level 0</button>
+            <button class="diff-btn ss-scene-btn" data-ss="lvl37" type="button" style="padding:7px 4px;font-size:10.5px;">Pool</button>
+            <button class="diff-btn ss-scene-btn" data-ss="monster" type="button" style="padding:7px 4px;font-size:10.5px;">Maxluq</button>
+            <button class="diff-btn ss-scene-btn" data-ss="online" type="button" style="padding:7px 4px;font-size:10.5px;">Onlayn</button>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr;gap:8px;width:100%;">
           <button class="diff-btn" id="btn-open-credits" type="button" style="display:none;">Mualliflar (Credits)</button>
           <button class="primary-btn" id="btn-close-settings" type="button" style="width:100%;">Davom etish</button>
@@ -446,6 +462,9 @@
           • Flashlight — <em>MAR.COS.</em><br>
           • Characters — <em>manoeldarochadeoliveira, dartp, ardhanaputra, RiverofCreative, TheDirector</em><br>
           • Doors, Battery, Cabinet &amp; Tower — <em>adventurer, BlackCube, cirno, 99.Miles</em><br>
+          • Airplane &amp; Bench — <em>CityJet Training, YouniqueĪdeaStudio</em><br>
+          • The Human Deer — <em>ceeleste</em><br>
+          • Anime &amp; Fashion Characters — <em>suzuart, DanlyVostok, florah</em><br>
           • Boshqa modellar — <em>Sketchfab / Poly Pizza CC-BY ijodkorlari</em><br>
           <strong>Ovoz aktyorlari (Kasetalar &amp; Qahramonlar):</strong><br>
           • Murodjon (REVILEND) — Qahramon va 13 ta kaseta<br>
@@ -493,6 +512,9 @@
         <div class="ec-item">TV Man — TheDirector</div>
         <div class="ec-item">Doors — adventurer • Battery — BlackCube</div>
         <div class="ec-item">Cabinet A — cirno • Skyscraper — 99.Miles</div>
+        <div class="ec-item">Airplane — CityJet Training • Bench — YouniqueĪdeaStudio</div>
+        <div class="ec-item">The Human Deer — ceeleste (CC-BY)</div>
+        <div class="ec-item">Anime &amp; Fashion Skins — suzuart, DanlyVostok, florah</div>
         <div class="ec-item">Boshqa modellar — Sketchfab &amp; Poly Pizza CC-BY / CC0</div>
 
         <div class="ec-footer" id="ec-footer">ZULMATDAN CHIQISH MUVAFFAQIYATLI YAKUNLANDI</div>
@@ -515,7 +537,7 @@
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 11px;border-radius:10px;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.12);">
             <div style="font-size:12px;color:#e2e8f0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-              <span id="coop-char-lbl" style="color:#94a3b8;">Personaj:</span> <span id="coop-char-summary" style="color:#fde047;">Murodjon • Biznesmen</span>
+              <span id="coop-char-lbl" style="color:#94a3b8;">Personaj:</span> <span id="coop-char-summary" style="color:#fde047;">Player #1 • Sardor</span>
             </div>
             <button class="diff-btn" id="btn-coop-open-skins" type="button" style="width:auto;padding:5px 10px;font-size:11px;white-space:nowrap;">O'zgartirish</button>
           </div>
