@@ -291,7 +291,7 @@ jobs:
           KEY_PASS: ${{ secrets.ZULMAT_KEY_PASS }}
         run: |
           cd android
-          python3 -c 'import glob; m="maven { url \"https://maven-central.storage-download.googleapis.com/maven2\" }\n        mavenCentral()"; [open(p,"w",encoding="utf-8").write(open(p,encoding="utf-8").read().replace("mavenCentral()", m)) for p in glob.glob("**/*.gradle", recursive=True) if "mavenCentral()" in open(p,encoding="utf-8").read() and "maven-central.storage-download.googleapis.com" not in open(p,encoding="utf-8").read()]'
+          python3 -c 'import glob; m="maven { url \"https://maven-central.storage-download.googleapis.com/maven2\" }\n        mavenCentral()"; [((s := open(p,encoding="utf-8").read()), ("mavenCentral()" in s and "maven-central.storage-download.googleapis.com" not in s and open(p,"w",encoding="utf-8").write(s.replace("mavenCentral()", m)))) for p in glob.glob("**/*.gradle", recursive=True)]'
           chmod +x gradlew
           KS_B64=$(printf '%s' "$KS_B64" | tr -cd 'A-Za-z0-9+/=')
           KS_PASS=$(python3 -c 'import os; print("".join(c for c in os.environ.get("KS_PASS","") if 33 <= ord(c) <= 126))')
