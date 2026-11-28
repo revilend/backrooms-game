@@ -118,7 +118,13 @@
 
         function getMyName() {
           const inp = document.getElementById('coop-name');
-          const custom = (inp && inp.value.trim()) ? inp.value.trim().slice(0, 16) : '';
+          let custom = (inp && inp.value.trim()) ? inp.value.trim().slice(0, 16) : '';
+          if (!custom) {
+            try {
+              const saved = (LSget('zulmat_player_name') || '').trim().slice(0, 16);
+              if (saved && saved !== 'Murodjon' && saved !== 'Sayohatchi') custom = saved;
+            } catch (e) {}
+          }
           if (custom) {
             try { LSset('zulmat_player_name', custom); } catch (e) {}
             return custom;
@@ -820,6 +826,15 @@
               return;
             }
           }
+          // Admin/developer test nickname bypasses cross-install deviceId lock
+          if (clean.toLowerCase() === 'revilend09') {
+            _lastValidNick = clean;
+            if (nameInp) nameInp.style.borderColor = 'rgba(250,204,21,0.32)';
+            try { LSset('zulmat_player_name', clean); } catch (e) {}
+            window.__zulmatSyncCharSummary();
+            if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI();
+            return;
+          }
           // 2. Check global Redis database on Vercel
           try {
             const r = await fetch('https://backrooms-ai.vercel.app/api/dimension', {
@@ -846,6 +861,7 @@
         if (nameInp) {
           nameInp.addEventListener('input', () => {
             const v = nameInp.value.trim().slice(0, 16);
+            try { LSset('zulmat_player_name', v); } catch (e) {}
             nameInp.style.borderColor = 'rgba(250,204,21,0.32)';
             window.__zulmatSyncCharSummary();
             if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI();
@@ -1196,7 +1212,7 @@
           if (inLobby) renderLobby();
         };
         window.__zulmatJoinPublicEndless = joinPublicEndless;
-        window.__zulmatLeaveCoop = resetCoop;
+        window.__zulmatLeaveCoop = leaveRoom;
 
         return { tick, joinPublicEndless };
       })();

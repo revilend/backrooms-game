@@ -1005,3 +1005,5 @@
       });
 
       // Helper for crisp station sign plaques
+
+      if (window._pendingRepoProps && window._pendingRepoProps.length) { window._pendingRepoProps.forEach((a) => spawnRepoProp(...a)); window._pendingRepoProps.length = 0; }

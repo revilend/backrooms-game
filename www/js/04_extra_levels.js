@@ -2228,6 +2228,10 @@
           parentGroup.add(obj);
         }, undefined, () => {});
       }
+      if (window._pendingGltfProps && window._pendingGltfProps.length) {
+        window._pendingGltfProps.forEach((a) => spawnGltfProp(...a));
+        window._pendingGltfProps.length = 0;
+      }
 
       // ============================================================
       // LEVEL 9 — DARKENED SUBURBS (180m MIDNIGHT NEIGHBORHOOD)

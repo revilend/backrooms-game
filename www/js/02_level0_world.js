@@ -1,3 +1,4 @@
+      const walkPlatforms = [];
       const metroLobbyGroup = new THREE.Group();
       metroLobbyGroup.visible = false;
       scene.add(metroLobbyGroup);
@@ -552,7 +553,7 @@
               level0Group.add(eLight);
               exitInfo.doorMesh = door;
               exitInfo.doorPivot = doorPivot;
-              spawnRepoProp(doorPivot, 'double_door.glb', 1.05, 0, 0, 2.86, 0, { centerXZ: true, flatZ: true, hideOldChildren: true });
+              (window._pendingRepoProps = window._pendingRepoProps || []).push([doorPivot, 'double_door.glb', 1.05, 0, 0, 2.86, 0, { centerXZ: true, flatZ: true, hideOldChildren: true }]);
               exitInfo.signMat = signMat;
               exitInfo.portalMat = portalMat;
               exitInfo.light = eLight;
@@ -594,8 +595,8 @@
           desk.position.set(dp.x, 0.44, dp.z);
           level0Group.add(desk);
           wallBoxes.push({ x: dp.x, z: dp.z, halfX: 1.15, halfZ: 0.6, isProp: true });
-          spawnRepoProp(level0Group, 'crt_pc.glb', dp.x, 0.88, dp.z, 0.65, idx * 1.57, { centerXZ: true });
-          spawnGltfProp(level0Group, 'SheenChair/glTF-Binary/SheenChair.glb', dp.x, 0, dp.z + 1.0, 0.95, Math.PI);
+          (window._pendingRepoProps = window._pendingRepoProps || []).push([level0Group, 'crt_pc.glb', dp.x, 0.88, dp.z, 0.65, idx * 1.57, { centerXZ: true }]);
+          (window._pendingGltfProps = window._pendingGltfProps || []).push([level0Group, 'SheenChair/glTF-Binary/SheenChair.glb', dp.x, 0, dp.z + 1.0, 0.95, Math.PI]);
         });
 
         // Zone C: Grand Central High-Ceiling Atrium (r: 21..31, c: 21..33)
@@ -1171,7 +1172,6 @@
       level0Group.add(lampInst);
 
 
-      const walkPlatforms = [];
       function spawnVentDuct(parentGrp, boxes, x, z, len = 6.5, rotY = 0) {
         const vg = new THREE.Group();
         vg.position.set(x, 0, z);
@@ -1381,7 +1381,7 @@
           ];
           for (const d of dirs) {
             const nr = c.r + d.dr, nc = c.c + d.dc;
-            if (nr >= 0 && nr < GRID_ROWS && nc >= 0 && nc < GRID_COLS && MAZE[nr] && MAZE[nr][nc] === 1) {
+            if (nr >= 0 && nr < GRID_ROWS && nc >= 0 && nc < GRID_COLS && MAZE_MAP[nr] && MAZE_MAP[nr][nc] === '#') {
               const dm = new THREE.Mesh(decalGeo, decalMats[placed % decalMats.length]);
               dm.position.set(c.x + d.ox, 1.58, c.z + d.oz);
               dm.rotation.y = d.ry;

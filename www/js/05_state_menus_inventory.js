@@ -3398,6 +3398,112 @@
         Sound.init();
       });
 
+      
+      window.__zulmatSelfTest = function () {
+        const errs = Array.isArray(window.__zulmatErrors) ? window.__zulmatErrors : [];
+        const lvlCount = (typeof CAMPAIGN_ORDER !== 'undefined' && Array.isArray(CAMPAIGN_ORDER)) ? CAMPAIGN_ORDER.length : 0;
+        const heroOk = !!(window.__zulmatMenuHero && window.__zulmatMenuHero.ready);
+        const expOk = typeof renderer !== 'undefined' && !Number.isNaN(renderer.toneMappingExposure);
+        const posOk = typeof state !== 'undefined' && state.pos && !Number.isNaN(state.pos.x) && !Number.isNaN(state.pos.y) && !Number.isNaN(state.pos.z);
+        const lines = [
+          'ZULMAT SELF-TEST REPORT',
+          'Zone: ' + (state && state.zone) + ' | Started: ' + !!(state && state.started),
+          'Levels: ' + lvlCount + '/31 | MenuHero: ' + (heroOk ? 'OK' : 'LOADING'),
+          'Renderer: ' + (expOk ? 'OK' : 'NaN') + ' | Pos: ' + (posOk ? (state.pos.x.toFixed(1) + ',' + state.pos.z.toFixed(1)) : 'NaN'),
+          'Nick: ' + (LSget('zulmat_player_name') || '-') + ' | Skin: ' + (LSget('zulmat_player_skin') || 'businessman'),
+          'JS Errors (' + errs.length + '): ' + (errs.length ? errs.slice(-5).join(' | ') : 'NONE')
+        ];
+        return lines.join('\n');
+      };
+      const _bDiag = document.getElementById('btn-ss-diag');
+      const _oDiag = document.getElementById('ss-diag-out');
+      
+      window.__zulmatBot = {
+        running: false,
+        stop: function () {
+          this.running = false;
+          if (typeof keys !== 'undefined') { keys.KeyW = false; keys.KeyD = false; }
+        },
+        run: async function (levelsToTest) {
+          if (this.running) return 'Bot allaqachon ishlayapti';
+          this.running = true;
+          const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+          const list = Array.isArray(levelsToTest) && levelsToTest.length ? levelsToTest : [0, 37, 11];
+          const log = [];
+          try {
+            if (elSetOv) elSetOv.classList.add('hidden');
+            if (elPauseOv) elPauseOv.classList.add('hidden');
+            if (elStartOv) elStartOv.classList.add('hidden');
+            document.body.classList.add('game-started');
+            state.started = true;
+            state.paused = false;
+
+            // 1. Test Metro Lobby movement
+            enterMetroLobby(false);
+            state.started = true; state.paused = false;
+            await wait(350);
+            const m0 = state.pos.clone();
+            keys.KeyW = true;
+            await wait(550);
+            keys.KeyW = false;
+            const mDist = m0.distanceTo(state.pos);
+            log.push('Metro: ' + (mDist > 0.1 ? 'OK (' + mDist.toFixed(1) + 'm)' : 'QOTGAN'));
+
+            // 2. Test requested levels with real walking + camera turn
+            for (const lvl of list) {
+              if (!this.running) break;
+              resetGame(lvl);
+              state.started = true; state.paused = false;
+              await wait(450);
+              const p0 = state.pos.clone();
+              keys.KeyW = true;
+              for (let s = 0; s < 5; s++) { state.yaw += 0.14; await wait(120); }
+              keys.KeyW = false;
+              const dist = p0.distanceTo(state.pos);
+              log.push('Level ' + lvl + ': ' + (dist > 0.05 ? 'OK (' + dist.toFixed(1) + 'm)' : 'QOTGAN'));
+            }
+
+            // 3. Test Endless 50K
+            if (this.running && window.__zulmatStartEndless) {
+              window.__zulmatStartEndless();
+              state.started = true; state.paused = false;
+              await wait(450);
+              const e0 = state.pos.clone();
+              keys.KeyW = true;
+              await wait(500);
+              keys.KeyW = false;
+              const eDist = e0.distanceTo(state.pos);
+              log.push('Endless: ' + (eDist > 0.1 ? 'OK (' + eDist.toFixed(1) + 'm)' : 'QOTGAN'));
+            }
+          } catch (err) {
+            log.push('ERR: ' + (err && err.message ? err.message : String(err)));
+          } finally {
+            this.stop();
+          }
+          const errs = Array.isArray(window.__zulmatErrors) ? window.__zulmatErrors.length : 0;
+          const summary = 'AI BOT NATIJA (' + errs + ' xato):\n' + log.join('\n');
+          if (typeof showToast === 'function') showToast('AI Bot tugatdi! Xatolar: ' + errs);
+          if (_oDiag) { _oDiag.textContent = summary; _oDiag.classList.remove('hidden'); }
+          if (elSetOv) elSetOv.classList.remove('hidden');
+          return summary;
+        }
+      };
+      const _bBot = document.getElementById('btn-ss-bot');
+      if (_bBot) {
+        _bBot.addEventListener('click', () => {
+          Sound.click();
+          window.__zulmatBot.run([0, 37, 11]);
+        });
+      }
+
+      if (_bDiag && _oDiag) {
+        _bDiag.addEventListener('click', () => {
+          Sound.click();
+          _oDiag.textContent = window.__zulmatSelfTest();
+          _oDiag.classList.remove('hidden');
+        });
+      }
+
       const elPauseOv = document.getElementById('pause-overlay');
       document.getElementById('btn-settings').addEventListener('click', () => {
         if (!state.started || state.ended) return;
@@ -3405,7 +3511,7 @@
         if (Sound.activeZoneBgm) { try { Sound.activeZoneBgm.volume = 0.12; } catch (e) {} }
         Sound.syncMute();
         if (elPauseOv) elPauseOv.classList.remove('hidden');
-        else if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI(); elSetOv.classList.remove('hidden');
+        else { if (window.__zulmatSyncAdminUI) window.__zulmatSyncAdminUI(); elSetOv.classList.remove('hidden'); }
       });
       const bPH = document.getElementById('btn-pause-home');
       const bPO = document.getElementById('btn-pause-opts');
