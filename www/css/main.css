@@ -1550,3 +1550,25 @@
       .ec-sec { font-size: 11px; letter-spacing: 0.22em; color: #64748b; font-weight: 800; margin: 26px 0 8px; text-transform: uppercase; }
       .ec-item { font-size: clamp(14px, 2.2vw, 17px); color: #e2e8f0; line-height: 1.65; font-weight: 600; }
       .ec-footer { margin-top: 48px; font-size: 13px; letter-spacing: 0.18em; color: #86efac; font-weight: 800; }
+
+      body.ss-clean-hud #hud-top,
+      body.ss-clean-hud #hud-bottom,
+      body.ss-clean-hud #mobile-controls,
+      body.ss-clean-hud #touch-controls,
+      body.ss-clean-hud #btn-settings,
+      body.ss-clean-hud #btn-flashlight,
+      body.ss-clean-hud #btn-flash-stun,
+      body.ss-clean-hud #btn-sprint,
+      body.ss-clean-hud #btn-crouch,
+      body.ss-clean-hud #btn-jump,
+      body.ss-clean-hud #inventory-bar,
+      body.ss-clean-hud #crosshair,
+      body.ss-clean-hud #toast,
+      body.ss-clean-hud #ingame-chat-wrap,
+      body.ss-clean-hud #btn-ingame-chat-toggle,
+      body.ss-clean-hud #btn-ingame-mic,
+      body.ss-clean-hud #btn-metro-board,
+      body.ss-clean-hud #joystick-zone {
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
