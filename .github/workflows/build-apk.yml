@@ -34,6 +34,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-zulmat-v1-${{ hashFiles('package.json') }}
+          restore-keys: gradle-zulmat-v1-
+
       - name: Bundle local 3D models, audio, Three.js & Draco decoders offline into www/
         run: |
           mkdir -p www/vendor/draco www/models www/audio www/video
@@ -282,6 +291,7 @@ jobs:
           KEY_PASS: ${{ secrets.ZULMAT_KEY_PASS }}
         run: |
           cd android
+          python3 -c 'import glob; m="maven { url \"https://maven-central.storage-download.googleapis.com/maven2\" }\n        mavenCentral()"; [open(p,"w",encoding="utf-8").write(open(p,encoding="utf-8").read().replace("mavenCentral()", m)) for p in glob.glob("**/*.gradle", recursive=True) if "mavenCentral()" in open(p,encoding="utf-8").read() and "maven-central.storage-download.googleapis.com" not in open(p,encoding="utf-8").read()]'
           chmod +x gradlew
           KS_B64=$(printf '%s' "$KS_B64" | tr -cd 'A-Za-z0-9+/=')
           KS_PASS=$(python3 -c 'import os; print("".join(c for c in os.environ.get("KS_PASS","") if 33 <= ord(c) <= 126))')
