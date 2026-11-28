@@ -178,11 +178,38 @@
 
     <!-- Start Overlay (Clean Static Hallway + Translucent Glass Buttons) -->
     <!-- In-Game Co-op Chat Overlay (visible when connected in Co-op) -->
-    <div id="ingame-chat-wrap" class="hidden" style="position:fixed;left:14px;bottom:146px;z-index:45;width:min(270px,62vw);pointer-events:auto;">
-      <div id="ingame-chat-msgs" style="max-height:84px;overflow-y:auto;background:rgba(4,7,14,0.62);border:1px solid rgba(56,189,248,0.28);border-radius:8px;padding:5px 8px;font-size:11px;color:#e2e8f0;line-height:1.35;margin-bottom:4px;"></div>
-      <div style="display:flex;gap:4px;">
-        <input id="ingame-chat-inp" type="text" maxlength="100" placeholder="Do'stlarga yozish..." style="flex:1;padding:6px 8px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:rgba(10,14,22,0.82);color:#f8fafc;font-size:11.5px;outline:none;">
-        <button id="btn-ingame-chat-send" type="button" style="padding:6px 10px;border-radius:7px;border:1px solid rgba(56,189,248,0.45);background:rgba(14,116,144,0.75);color:#e0f2fe;font-size:11px;font-weight:800;cursor:pointer;">OK</button>
+    <div id="ingame-chat-wrap" class="hidden" style="position:fixed;inset:0;z-index:48;pointer-events:none;">
+      <!-- Left-side auto-fading live message feed (old spot) -->
+      <div id="ingame-chat-msgs" class="hidden" style="position:fixed;left:14px;bottom:146px;width:min(265px,54vw);max-height:86px;overflow:hidden;background:rgba(4,7,14,0.58);border:1px solid rgba(56,189,248,0.24);border-radius:8px;padding:5px 8px;font-size:11px;color:#e2e8f0;line-height:1.38;pointer-events:none;transition:opacity 0.35s ease;"></div>
+      <!-- Right-edge floating Chat Icon Button -->
+      <button id="btn-ingame-chat-toggle" type="button" aria-label="Chat" style="position:fixed;right:12px;top:20%;width:42px;height:42px;border-radius:11px;border:1px solid rgba(56,189,248,0.45);background:rgba(8,14,26,0.74);color:#e0f2fe;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,0.45);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/></svg>
+        <span id="ingame-chat-dot" class="hidden" style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#38bdf8;box-shadow:0 0 6px #38bdf8;"></span>
+      </button>
+      <!-- Right-side Drawer Panel (Quick Chat + Clock History + Input) -->
+      <div id="ingame-chat-box" class="hidden" style="position:fixed;right:10px;top:12%;width:min(315px,72vw);height:min(250px,68vh);display:flex;background:rgba(7,12,22,0.86);border:1px solid rgba(56,189,248,0.34);border-radius:12px;overflow:hidden;pointer-events:auto;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 28px rgba(0,0,0,0.6);">
+        <!-- Vertical Icon Tab Rail -->
+        <div style="width:40px;flex-shrink:0;background:rgba(3,6,14,0.78);border-right:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:6px;">
+          <button id="btn-chat-tab-quick" type="button" title="Tezkor chat" style="width:32px;height:34px;border-radius:8px;border:none;background:rgba(56,189,248,0.22);color:#7dd3fc;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <button id="btn-chat-tab-hist" type="button" title="Eski xabarlar" style="width:32px;height:34px;border-radius:8px;border:none;background:transparent;color:#94a3b8;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+          </button>
+          <button id="btn-chat-drawer-close" type="button" title="Yopish" style="margin-top:auto;width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:#cbd5e1;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <!-- Main Drawer Body -->
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;padding:8px;gap:6px;">
+          <div id="ingame-chat-tab-title" style="font-size:10px;font-weight:800;letter-spacing:0.08em;color:#7dd3fc;text-transform:uppercase;">TEZKOR XABARLAR</div>
+          <div id="ingame-chat-quick" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
+          <div id="ingame-chat-history" class="hidden" style="flex:1;overflow-y:auto;font-size:11px;color:#e2e8f0;line-height:1.4;display:flex;flex-direction:column;gap:3px;"></div>
+          <div style="display:flex;gap:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.08);">
+            <input id="ingame-chat-inp" type="text" maxlength="100" placeholder="Xabar yozing..." style="flex:1;min-width:0;padding:6px 8px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:rgba(10,14,22,0.88);color:#f8fafc;font-size:11.5px;outline:none;">
+            <button id="btn-ingame-chat-send" type="button" style="padding:6px 10px;border-radius:7px;border:1px solid rgba(56,189,248,0.45);background:rgba(14,116,144,0.82);color:#e0f2fe;font-size:11px;font-weight:800;cursor:pointer;">OK</button>
+          </div>
+        </div>
       </div>
     </div>
     <!-- Level Loading Screen (waits for GLB models, shaders & SFX before gameplay) -->
@@ -242,7 +269,6 @@
           <button class="start-glass-link" id="btn-ss-gfx" type="button">GRAFIKA: O'RTA</button>
           <button class="start-glass-link" id="btn-ss-vhs" type="button">VHS: O'CHIQ</button>
           <button class="start-glass-link" id="btn-ss-sound" type="button">OVOZ: YONIQ</button>
-          <button class="start-glass-link" id="btn-ss-orient" type="button">EKRAN: GORIZONTAL</button>
           <button class="start-glass-link" id="btn-close-start-settings" type="button" style="opacity:0.76;border-top:1px solid rgba(255,255,255,0.12);margin-top:4px;padding-top:10px;">&lt; ORQAGA</button>
         </div>
 
@@ -281,6 +307,7 @@
 
     <!-- Full-Screen Story Cutscene Video Overlay (Intro & Outro) -->
     <div id="story-video-overlay" class="hidden" style="position:fixed;inset:0;z-index:9999;background:#000;align-items:center;justify-content:center;">
+      <div id="story-video-sub" class="hidden" style="position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:min(720px,88vw);padding:8px 16px;border-radius:10px;background:rgba(4,6,12,0.78);border:1px solid rgba(250,204,21,0.32);color:#fef9c3;font-size:clamp(14px,2.2vw,18px);font-weight:700;text-align:center;line-height:1.35;z-index:9600;pointer-events:none;text-shadow:0 2px 6px rgba(0,0,0,0.9);"></div>
       <div id="story-video-status" style="position:absolute;color:#fef08a;font-size:12px;font-weight:800;letter-spacing:0.16em;pointer-events:none;">VIDEO YUKLANMOQDA...</div>
       <video id="story-video-el" playsinline webkit-playsinline preload="auto" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=" style="width:100%;height:100%;object-fit:cover;background:#000;"></video>
       <button id="btn-skip-story-video" type="button" onclick="var o=document.getElementById('story-video-overlay');if(o)o.classList.add('hidden');" style="position:absolute;right:20px;bottom:20px;z-index:10000;padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,0.28);background:rgba(9,11,15,0.78);color:#f8fafc;font-size:13px;font-weight:700;letter-spacing:0.6px;cursor:pointer;">
