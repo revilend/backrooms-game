@@ -199,14 +199,35 @@
           root.add(beamCone, flashLight);
 
           const label = makeNameSprite(playerName || 'Do\'st');
-          root.add(label);
+          const spCv = document.createElement('canvas');
+          spCv.width = 128; spCv.height = 64;
+          const spCx = spCv.getContext('2d');
+          spCx.fillStyle = 'rgba(6, 20, 14, 0.82)';
+          if (spCx.roundRect) spCx.roundRect(14, 8, 100, 48, 22); else spCx.rect(14, 8, 100, 48);
+          spCx.fill();
+          spCx.strokeStyle = '#4ade80';
+          spCx.lineWidth = 3;
+          spCx.stroke();
+          spCx.fillStyle = '#4ade80';
+          spCx.fillRect(36, 24, 10, 16);
+          spCx.beginPath(); spCx.moveTo(46, 24); spCx.lineTo(62, 14); spCx.lineTo(62, 50); spCx.lineTo(46, 40); spCx.closePath(); spCx.fill();
+          spCx.strokeStyle = '#86efac'; spCx.lineWidth = 3.5;
+          spCx.beginPath(); spCx.arc(66, 32, 12, -0.7, 0.7); spCx.stroke();
+          spCx.beginPath(); spCx.arc(68, 32, 20, -0.7, 0.7); spCx.stroke();
+          const spTex = new THREE.CanvasTexture(spCv);
+          const speakSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: spTex, transparent: true, depthTest: false, fog: false }));
+          speakSprite.position.set(0, 2.66, 0);
+          speakSprite.scale.set(0.55, 0.28, 1);
+          speakSprite.renderOrder = 1000;
+          speakSprite.visible = false;
+          root.add(label, speakSprite);
 
           const skinFiles = {
             businessman: 'player_businessman.glb', tvman: 'player_tvman.glb', casual: 'player_casual.glb',
             man: 'player_man.glb', girl: 'player_girl.glb', hazmat: 'player_hazmat.glb', survivor: 'player_survivor.glb'
           };
           const glbFile = skinFiles[skinKey] || 'player_businessman.glb';
-          const avatarObj = { root, legL, legR, armL, beamCone, flashLight, label, mixer: null, walkAct: null, idleAct: null, isWalking: false };
+          const avatarObj = { root, legL, legR, armL, beamCone, flashLight, label, speakSprite, mixer: null, walkAct: null, idleAct: null, isWalking: false };
           if (typeof gltfLoader !== 'undefined' && gltfLoader && typeof REPO_GLB_BASE !== 'undefined') {
             gltfLoader.load(REPO_GLB_BASE + glbFile, (gltf) => {
               try {
@@ -339,7 +360,7 @@
               p.targetPos.set(d.x || 0, (d.y || 1.65) - 1.65, d.zz || 0);
               p.targetYaw = d.yaw || 0;
               p.flashOn = !!d.fl;
-              p.walking = !!d.wk;
+              p.walking = !!d.wk; p.speaking = !!d.spk;
               // Relay to other peers if host
               if (isHost) {
                 Object.keys(peers).forEach((otherId) => {
@@ -568,22 +589,52 @@
           });
         }
 
+        let micAnalyser = null, micData = null, micCtx = null, localSpeaking = false;
+        function syncInGameMicUi() {
+          const bIg = document.getElementById('btn-ingame-mic');
+          const iOff = document.getElementById('ig-mic-icon-off');
+          const iOn = document.getElementById('ig-mic-icon-on');
+          if (bIg) {
+            bIg.style.borderColor = micEnabled ? 'rgba(74, 222, 128, 0.72)' : 'rgba(248, 113, 113, 0.48)';
+            bIg.style.color = micEnabled ? '#4ade80' : '#fca5a5';
+            bIg.style.boxShadow = micEnabled ? '0 0 14px rgba(74, 222, 128, 0.35)' : '0 4px 14px rgba(0,0,0,0.45)';
+          }
+          if (iOff) iOff.classList.toggle('hidden', !!micEnabled);
+          if (iOn) iOn.classList.toggle('hidden', !micEnabled);
+        }
         function toggleMic() {
           const btn = document.getElementById('btn-coop-mic');
           if (micEnabled) {
             micEnabled = false;
+            localSpeaking = false;
+            micAnalyser = null; micData = null;
+            if (micCtx) { try { micCtx.close(); } catch (e) {} micCtx = null; }
             if (localStream) { localStream.getTracks().forEach((t) => t.stop()); localStream = null; }
             const _lg = window.__zulmatLang || "uz"; if (btn) btn.textContent = _lg === "en" ? "MIC: OFF" : (_lg === "ru" ? "МИК: ВЫКЛ" : "MIK: O'CHIQ");
+            syncInGameMicUi();
             return;
           }
           if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (typeof showToast === 'function') showToast("Mikrofon ruxsati mavjud emas.", true);
             setStatus("Brauzerda mikrofon ruxsati mavjud emas.", "#f87171");
             return;
           }
           navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((stream) => {
             localStream = stream;
             micEnabled = true;
+            try {
+              const AC = window.AudioContext || window.webkitAudioContext;
+              if (AC) {
+                micCtx = new AC();
+                const src = micCtx.createMediaStreamSource(stream);
+                micAnalyser = micCtx.createAnalyser();
+                micAnalyser.fftSize = 256;
+                src.connect(micAnalyser);
+                micData = new Uint8Array(micAnalyser.frequencyBinCount);
+              }
+            } catch (e) {}
             const _lg = window.__zulmatLang || "uz"; if (btn) btn.textContent = _lg === "en" ? "MIC: ON" : (_lg === "ru" ? "МИК: ВКЛ" : "MIK: YONIQ");
+            syncInGameMicUi();
             if (peer) {
               Object.keys(peers).forEach((pid) => {
                 if (peers[pid].conn && peers[pid].conn.open) {
@@ -591,14 +642,32 @@
                 }
               });
             }
-          }).catch(() => setStatus("Mikrofon ruxsati berilmadi.", "#f87171"));
+          }).catch(() => {
+            if (typeof showToast === 'function') showToast("Mikrofon ruxsati berilmadi.", true);
+            setStatus("Mikrofon ruxsati berilmadi.", "#f87171");
+          });
         }
+        const _bIgMic = document.getElementById('btn-ingame-mic');
+        if (_bIgMic) _bIgMic.addEventListener('click', (e) => { e.stopPropagation(); toggleMic(); });
 
         function tick(dt) {
           const _igW = document.getElementById('ingame-chat-wrap');
           if (_igW) {
             const _showChat = state.started && !state.ended && (!!roomCode || Object.keys(peers).length > 0);
             _igW.classList.toggle('hidden', !_showChat);
+          }
+          if (micEnabled && micAnalyser && micData) {
+            try {
+              micAnalyser.getByteTimeDomainData(micData);
+              let sum = 0;
+              for (let i = 0; i < micData.length; i++) {
+                const v = (micData[i] - 128) / 128;
+                sum += v * v;
+              }
+              localSpeaking = Math.sqrt(sum / micData.length) > 0.025;
+            } catch (e) { localSpeaking = false; }
+          } else {
+            localSpeaking = false;
           }
           if (!peer) return;
           sendTimer += dt;
@@ -612,7 +681,8 @@
               zz: Number(state.pos.z.toFixed(2)),
               yaw: Number(state.yaw.toFixed(2)),
               fl: !!state.flashlightOn,
-              wk: Math.hypot(state.vel ? state.vel.x : 0, state.vel ? state.vel.z : 0) > 0.25
+              wk: Math.hypot(state.vel ? state.vel.x : 0, state.vel ? state.vel.z : 0) > 0.25,
+              spk: localSpeaking ? 1 : 0
             };
             if (isHost && state.monsterPos) {
               pkt.mx = Number(state.monsterPos.x.toFixed(2));
@@ -649,6 +719,17 @@
                   const scF = Math.min(3.8, Math.max(1.0, dPeer * 0.085));
                   p.avatar.label.scale.set(1.35 * scF, 0.34 * scF, 1);
                   p.avatar.label.visible = true;
+                }
+              }
+              if (p.avatar.speakSprite) {
+                const showSpk = !!p.speaking && (!p.avatar.label || p.avatar.label.visible);
+                p.avatar.speakSprite.visible = showSpk;
+                if (showSpk) {
+                  const tNow = performance.now() * 0.001;
+                  const pulse = 1 + Math.abs(Math.sin(tNow * 10)) * 0.26;
+                  const scF = (roomCode === 'ENDLESSPUBLIC') ? 1.0 : Math.min(3.4, Math.max(1.0, Math.hypot(state.pos.x - p.targetPos.x, state.pos.z - p.targetPos.z) * 0.08));
+                  p.avatar.speakSprite.scale.set(0.55 * scF * pulse, 0.28 * scF * pulse, 1);
+                  p.avatar.speakSprite.position.y = 2.66 + Math.sin(tNow * 11) * 0.05;
                 }
               }
               if (p.avatar.mixer) {
@@ -877,11 +958,13 @@
           setChatDrawerTab(_activeChatTab);
           if (igBox) igBox.classList.remove('hidden');
           if (igToggle) igToggle.classList.add('hidden');
+          const _bm0 = document.getElementById('btn-ingame-mic'); if (_bm0) _bm0.classList.add('hidden');
           if (igDot) igDot.classList.add('hidden');
         }
         function closeChatDrawer() {
           if (igBox) igBox.classList.add('hidden');
           if (igToggle) igToggle.classList.remove('hidden');
+          const _bm1 = document.getElementById('btn-ingame-mic'); if (_bm1) _bm1.classList.remove('hidden');
           if (igInp) igInp.blur();
         }
         function showLiveFeedBriefly() {

@@ -36,6 +36,7 @@
         }
         ZLV.mult += (target - ZLV.mult) * Math.min(1, dt * 1.8);
         ZLV.applied = ZLV.base * ZLV.mult;
+        if (!isFinite(ZLV.applied) || ZLV.applied < 0.1) ZLV.applied = 0.95;
         renderer.toneMappingExposure = ZLV.applied;
       }
 
@@ -94,6 +95,9 @@
           hemiLight.groundColor.setHex(0x2d3748);
           hemiLight.intensity = 0.78;
           ambientLight.intensity = 0.34;
+          dirLight.intensity = 0.75;
+          dirLight.position.set(-2.5, 6.0, 6.5);
+          dirLight.target.position.set(-1.0, 1.0, 1.5);
           flashLight.intensity = 0.0;
           if (!window.__zulmatNormalizeRigged) {
             window.__zulmatNormalizeRigged = function(m, targetH) {
@@ -130,11 +134,9 @@
             const hg = window.__zulmatMenuHero.group;
             hg.position.set(-1.35, 0, 1.85);
             hg.rotation.y = 0.25;
-            const rimL = new THREE.PointLight(0xfef9c3, 3.2, 12);
+            const rimL = new THREE.PointLight(0xfef9c3, 2.6, 12);
             rimL.position.set(0.2, 2.2, 2.2);
-            const fillL = new THREE.PointLight(0x93c5fd, 1.8, 10);
-            fillL.position.set(-1.2, 1.5, 2.0);
-            hg.add(rimL, fillL, window.__zulmatMenuHero.holder);
+            hg.add(rimL, window.__zulmatMenuHero.holder);
             if (typeof metroLobbyGroup !== 'undefined' && metroLobbyGroup) metroLobbyGroup.add(hg);
             else level0Group.add(hg);
             const SKIN_FILES = {

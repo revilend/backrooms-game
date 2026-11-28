@@ -910,10 +910,16 @@
           state.paused = true;
           Sound.stopAllClips();
           window.__zulmatPlayStoryVideo('outro.mp4', () => {
-            const cr = document.getElementById('credits-overlay');
-            if (cr) cr.classList.remove('hidden');
-            state.paused = false;
             Sound.playZoneBgm('metro_lobby');
+            if (window.__zulmatShowEndingCredits) {
+              window.__zulmatShowEndingCredits(() => {
+                state.paused = false;
+              });
+            } else {
+              const cr = document.getElementById('credits-overlay');
+              if (cr) cr.classList.remove('hidden');
+              state.paused = false;
+            }
           });
         } else if (fromVictory && state.currentLevel === 3999) {
           setTimeout(() => Sound.playVoice('vox_win', 0.95, 10000), 500);
@@ -2977,6 +2983,63 @@
       if (btnOpenCred && elCredOv) btnOpenCred.addEventListener('click', () => { elCredOv.classList.remove('hidden'); });
       const btnCloseCred = document.getElementById('btn-close-credits');
       if (btnCloseCred && elCredOv) btnCloseCred.addEventListener('click', () => { elCredOv.classList.add('hidden'); });
+      window.__zulmatShowEndingCredits = function(onDone) {
+        const ov = document.getElementById('ending-credits-overlay');
+        const tr = document.getElementById('ending-credits-track');
+        const sk = document.getElementById('btn-skip-ending-credits');
+        if (!ov || !tr) { if (onDone) onDone(); return; }
+        const lang = window.__zulmatLang || 'uz';
+        const copy = {
+          uz: {
+            kicker: 'REVILEND STUDIO TAQDIM ETADI',
+            thanks: "O'YNAGANINGIZ UCHUN RAHMAT!",
+            sStudio: 'ISHLAB CHIQARUVCHI', sTech: 'DVIGATEL VA TEXNOLOGIYA',
+            sCast: 'OVOZ AKTYORLARI', sAudio: 'OVOZ VA MUSIQA',
+            sModels: '3D MODELLAR VA LITSENZIYA',
+            footer: 'ZULMATDAN CHIQISH MUVAFFAQIYATLI YAKUNLANDI',
+            skip: "O'TKAZIB YUBORISH >>"
+          },
+          en: {
+            kicker: 'PRESENTED BY REVILEND STUDIO',
+            thanks: 'THANK YOU FOR PLAYING!',
+            sStudio: 'DEVELOPER', sTech: 'ENGINE & TECHNOLOGY',
+            sCast: 'VOICE CAST', sAudio: 'AUDIO & MUSIC',
+            sModels: '3D MODELS & LICENSES',
+            footer: 'YOU ESCAPED THE BACKROOMS',
+            skip: 'SKIP >>'
+          },
+          ru: {
+            kicker: 'REVILEND STUDIO ПРЕДСТАВЛЯЕТ',
+            thanks: 'СПАСИБО ЗА ИГРУ!',
+            sStudio: 'РАЗРАБОТЧИК', sTech: 'ДВИЖОК И ТЕХНОЛОГИИ',
+            sCast: 'АКТЁРЫ ОЗВУЧКИ', sAudio: 'ЗВУК И МУЗЫКА',
+            sModels: '3D-МОДЕЛИ И ЛИЦЕНЗИИ',
+            footer: 'ВЫ ВЫБРАЛИСЬ ИЗ ЗАКУЛИСЬЯ',
+            skip: 'ПРОПУСТИТЬ >>'
+          }
+        }[lang] || {};
+        const setEc = (id, v) => { const e = document.getElementById(id); if (e && v) e.textContent = v; };
+        setEc('ec-kicker', copy.kicker); setEc('ec-thanks', copy.thanks);
+        setEc('ec-sec-studio', copy.sStudio); setEc('ec-sec-tech', copy.sTech);
+        setEc('ec-sec-cast', copy.sCast); setEc('ec-sec-audio', copy.sAudio);
+        setEc('ec-sec-models', copy.sModels); setEc('ec-footer', copy.footer);
+        if (sk && copy.skip) sk.textContent = copy.skip;
+        ov.classList.remove('hidden');
+        tr.classList.remove('rolling');
+        void tr.offsetWidth;
+        tr.classList.add('rolling');
+        let finished = false;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          ov.classList.add('hidden');
+          tr.classList.remove('rolling');
+          clearTimeout(timer);
+          if (onDone) onDone();
+        };
+        const timer = setTimeout(finish, 32200);
+        if (sk) sk.onclick = finish;
+      };
 
       document.getElementById('btn-end-reallife').addEventListener('click', () => {
         document.getElementById('end-terminal-overlay').classList.add('hidden');
@@ -3429,16 +3492,19 @@
         if (state.gfxQuality === 'low') {
           renderer.setPixelRatio(1);
           renderer.shadowMap.enabled = false;
+          if (typeof dirLight !== 'undefined' && dirLight) dirLight.castShadow = false;
           renderer.toneMappingExposure = 0.90;
           if (gfxLbl) gfxLbl.textContent = 'Past (Tez FPS)';
         } else if (state.gfxQuality === 'high') {
           renderer.setPixelRatio(Math.min(dpr, 2));
           renderer.shadowMap.enabled = true;
+          if (typeof dirLight !== 'undefined' && dirLight) dirLight.castShadow = true;
           renderer.toneMappingExposure = 1.0;
           if (gfxLbl) gfxLbl.textContent = 'Yuqori (HD)';
         } else {
           renderer.setPixelRatio(Math.min(dpr, 1.5));
           renderer.shadowMap.enabled = true;
+          if (typeof dirLight !== 'undefined' && dirLight) dirLight.castShadow = true;
           renderer.toneMappingExposure = 0.95;
           if (gfxLbl) gfxLbl.textContent = "O'rta (Balans)";
         }

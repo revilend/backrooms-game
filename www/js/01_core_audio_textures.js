@@ -1387,22 +1387,7 @@
         return m;
       }
 
-      const flashLight = new THREE.SpotLight(0xfff6d1, 2.85, 32, Math.PI / 4.2, 0.48, 1.45);
-      (function applyFlashlightGobo() {
-        const fc = document.createElement('canvas');
-        fc.width = 128; fc.height = 128;
-        const fg = fc.getContext('2d');
-        const gr = fg.createRadialGradient(64, 64, 4, 64, 64, 62);
-        gr.addColorStop(0.0, 'rgba(255,255,255,1)');
-        gr.addColorStop(0.28, 'rgba(255,250,232,0.92)');
-        gr.addColorStop(0.55, 'rgba(255,244,210,0.42)');
-        gr.addColorStop(0.76, 'rgba(255,248,225,0.22)');
-        gr.addColorStop(0.84, 'rgba(255,248,225,0.34)');
-        gr.addColorStop(1.0, 'rgba(0,0,0,0)');
-        fg.fillStyle = gr; fg.fillRect(0, 0, 128, 128);
-        const fTex = new THREE.CanvasTexture(fc);
-        flashLight.map = fTex;
-      })();
+      const flashLight = new THREE.SpotLight(0xfff6d1, 2.85, 32, Math.PI / 4.2, 0.55, 1.45);
 
       // Atmospheric floating dust motes around player
       const dustMotes = (function () {
