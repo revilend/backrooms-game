@@ -74,6 +74,8 @@
         }
 
         if (!state.started) {
+          const _igChat = document.getElementById('ingame-chat-wrap');
+          if (_igChat && !_igChat.classList.contains('hidden')) _igChat.classList.add('hidden');
           [
             level0Group, level1Group, level2Group, level37Group, levelRunGroup,
             levelFunGroup, level94Group, level922Group, level9Group, level10Group,
@@ -115,8 +117,10 @@
               m.updateMatrixWorld(true);
               const b2 = new THREE.Box3().setFromObject(m);
               const ctr = b2.getCenter(new THREE.Vector3());
-              if (isFinite(ctr.x) && isFinite(b2.min.y) && isFinite(ctr.z)) {
+              if (isFinite(ctr.x) && isFinite(b2.min.y) && isFinite(ctr.z) && Math.abs(ctr.x) < 12 && Math.abs(b2.min.y) < 12 && Math.abs(ctr.z) < 12) {
                 m.position.set(-ctr.x, -b2.min.y, -ctr.z);
+              } else {
+                m.position.set(0, 0, 0);
               }
             };
           }
@@ -157,7 +161,8 @@
                 const ml = new THREE.GLTFLoader();
                 if (typeof dracoLoader !== 'undefined') ml.setDRACOLoader(dracoLoader);
                 const fname = SKIN_FILES[k];
-                ml.load('https://cdn.jsdelivr.net/gh/revilend/backrooms-game@main/models/' + fname, (gltf) => {
+                const base = (typeof REPO_GLB_BASE === 'string') ? REPO_GLB_BASE : 'models/';
+                ml.load(base + fname, (gltf) => {
                   mh.cache[k] = gltf; mount(gltf);
                 }, undefined, () => {
                   ml.load('https://raw.githubusercontent.com/revilend/backrooms-game/main/models/' + fname, (gltf) => {
@@ -341,6 +346,10 @@
           const wantsSprint = (state.sprinting || keys['ShiftLeft'] || keys['ShiftRight']) && len > 0.15 && state.stamina > 3;
           if (wantsSprint) {
             state.stamina = Math.max(0, state.stamina - 24 * dt);
+            if (state.stamina <= 3) {
+              state.sprinting = false;
+              if (typeof btnSprint !== 'undefined' && btnSprint) btnSprint.classList.remove('on');
+            }
           } else {
             state.stamina = Math.min(100, state.stamina + 15 * dt);
           }
@@ -491,7 +500,27 @@
             state.radarOn = false;
           }
           updatePsychologicalHorror(dt, animT); if (typeof CoopSystem !== 'undefined') CoopSystem.tick(dt); if (typeof fpBody !== 'undefined') fpBody.update(dt); if (typeof handheldRadar !== 'undefined') handheldRadar.update(dt, animT); if (typeof almondDrinkAnim !== 'undefined') almondDrinkAnim.update(dt); if (typeof fpFlashlight !== 'undefined') fpFlashlight.update(dt); if (typeof poltergeistChair !== 'undefined') poltergeistChair.update(dt);
-          if (state.zone === 'levelendless') { Endless50K.tick(dt, animT, cfg); renderer.render(scene, camera); return; }
+          if (state.zone === 'levelendless') {
+            Endless50K.tick(dt, animT, cfg);
+            if (state._fallingPit) {
+              state._fallPitT = (state._fallPitT || 0) + dt;
+              state.pos.y -= (6.0 + state._fallPitT * 22.0) * dt;
+              camera.position.set(state.pos.x, state.pos.y, state.pos.z);
+              camera.rotation.order = 'YXZ';
+              camera.rotation.y = state.yaw;
+              camera.rotation.x = Math.min(1.2, state.pitch + state._fallPitT * 1.4);
+              camera.rotation.z = Math.sin(state._fallPitT * 14) * 0.22;
+              if (state._fallPitT >= 0.85) { state._fallingPit = false; finishGame(false); }
+            } else {
+              const bobYE = Math.sin(state.bobPhase) * (len > 0.05 ? (wantsSprint ? 0.068 : 0.038) : 0.01);
+              camera.position.set(state.pos.x, state.pos.y + bobYE, state.pos.z);
+              camera.rotation.order = 'YXZ';
+              camera.rotation.y = state.yaw;
+              camera.rotation.x = state.pitch;
+            }
+            renderer.render(scene, camera);
+            return;
+          }
           for (let bi = 0; bi < bonusPickups.length; bi++) {
             const bp = bonusPickups[bi];
             if (bp.taken || bp.zone !== state.zone) continue;
@@ -499,7 +528,12 @@
             if (Math.abs((state.pos.y - 1.65) - (bp.y || 0)) < 2.2 && Math.hypot(state.pos.x - bp.x, state.pos.z - bp.z) < 2.2) {
               bp.taken = true;
               bp.mesh.visible = false;
-              if (bp.type === 'almond') {
+              if (bp.type === 'radar') {
+                state.invRadar = (state.invRadar || 0) + 1;
+                Sound.pickup();
+                if (window.__zulmatSyncInv) window.__zulmatSyncInv();
+                showToast("Radar topildi! Ishlatish uchun pastdagi radar ikonkasini bosing (R).");
+              } else if (bp.type === 'almond') {
                 state.invAlmond = (state.invAlmond || 0) + 1;
                 Sound.pickup();
                 if (window.__zulmatSyncInv) window.__zulmatSyncInv();
@@ -539,9 +573,10 @@
             // Moving Metro Train Animation State Machine (Arriving -> Doors Open -> Departing Ride!)
             if (state.trainAnim === 'arriving') {
               state.trainTimer += dt;
-              const p = Math.min(1, state.trainTimer / 2.6);
+              const tArr = Math.max(0, state.trainTimer);
+              const p = Math.min(1, tArr / 4.2);
               const easeOut = 1 - Math.pow(1 - p, 3);
-              if (metroTrain.group) metroTrain.group.position.x = -26 * (1 - easeOut);
+              if (metroTrain.group) metroTrain.group.position.x = -58 * (1 - easeOut);
               if (p >= 1) {
                 state.trainAnim = 'parked';
                 Sound.trainDoor();

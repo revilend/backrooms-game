@@ -20,7 +20,32 @@
         const vid = document.getElementById('story-video-el');
         const skipBtn = document.getElementById('btn-skip-story-video');
         const stLbl = document.getElementById('story-video-status');
+        const subEl = document.getElementById('story-video-sub');
         if (!ov || !vid) { if (onDone) onDone(); return; }
+        const VIDEO_SUBS = {
+          'intro.mp4': [
+            { s: 0.8, e: 5.5, uz: "Har kun bir xil... ish, muammolar, charchoq...", en: "Every day is the same... work, problems, exhaustion...", ru: "Каждый день одно и то же... работа, проблемы, усталость..." },
+            { s: 6.0, e: 9.0, uz: "Hech narsaga ulgurmayapman.", en: "I can't keep up with anything.", ru: "Я никуда не успеваю." },
+            { s: 9.2, e: 13.3, uz: "Qaniydi bir zumga hamma narsadan uzoqlashib, tinch joyga ketib qolsam...", en: "If only I could get away from everything for a moment, somewhere quiet...", ru: "Хоть бы на миг уйти от всего этого в тихое место..." },
+            { s: 13.5, e: 18.2, uz: "To'xta! Men qayoqqa burildim? Orqamdagi yo'l qani?!", en: "Wait! Where did I turn? Where is the road behind me?!", ru: "Постой! Куда я свернул? Где дорога позади меня?!" }
+          ],
+          'outro.mp4': [
+            { s: 3.6, e: 8.5, uz: "Uddaladim... Nihoyat bu dahshatdan qutuldim.", en: "I made it... Finally, I'm free from this nightmare.", ru: "Я справился... Наконец-то я выбрался из этого кошмара." }
+          ]
+        };
+        const cues = VIDEO_SUBS[filename] || [];
+        const updateVidSub = () => {
+          if (!subEl) return;
+          const t = vid.currentTime || 0;
+          const lg = window.__zulmatLang || 'uz';
+          const cue = cues.find((c) => t >= c.s && t <= c.e);
+          if (cue) {
+            subEl.textContent = cue[lg] || cue.uz;
+            subEl.classList.remove('hidden');
+          } else {
+            subEl.classList.add('hidden');
+          }
+        };
         if (window.__zulmatStopStartMenuBgm) window.__zulmatStopStartMenuBgm();
         let finished = false;
         let loadTimer = null;
@@ -33,6 +58,8 @@
           if (finished) return;
           finished = true;
           if (loadTimer) { clearTimeout(loadTimer); loadTimer = null; }
+          vid.ontimeupdate = null;
+          if (subEl) { subEl.classList.add('hidden'); subEl.textContent = ''; }
           try { vid.pause(); vid.removeAttribute('src'); vid.load(); } catch (e) {}
           ov.classList.add('hidden');
           if (onDone) onDone();
@@ -53,6 +80,7 @@
           }
         };
         if (skipBtn) skipBtn.onclick = finish;
+        vid.ontimeupdate = updateVidSub;
         vid.onended = finish;
         vid.onerror = () => {
           if (!triedFallback) { triedFallback = true; tryUrl(1); }

@@ -280,10 +280,10 @@
         trainGroup.add(roofArch);
         // High-detail 3D Metro Station split into 3 parts (<20MB each for GitHub upload) with raw GitHub fallback
         const RAW_GLB_BASE = 'https://raw.githubusercontent.com/revilend/backrooms-game/main/models/';
-        const loadGlbWithFallback = (fname, onOk) => {
-          if (typeof gltfLoader === 'undefined') return;
+        const loadGlbWithFallback = (fname, onOk, onErr) => {
+          if (typeof gltfLoader === 'undefined') { if (onErr) onErr(); return; }
           gltfLoader.load(REPO_GLB_BASE + fname, onOk, undefined, () => {
-            gltfLoader.load(RAW_GLB_BASE + fname, onOk, undefined, () => {});
+            gltfLoader.load(RAW_GLB_BASE + fname, onOk, undefined, () => { if (onErr) onErr(); });
           });
         };
         if (typeof gltfLoader !== 'undefined') {
@@ -293,21 +293,28 @@
           stRoot.position.set(0, -0.50, -7.70);
           metroLobbyGroup.add(stRoot);
           let stPartsLoaded = 0;
+          let stPartsFailed = 0;
+          const onStationGlb = (gltf) => {
+            try {
+              const st = gltf.scene;
+              if (typeof stripGltfLights === 'function') stripGltfLights(st);
+              stRoot.add(st);
+              stPartsLoaded++;
+              if (stPartsLoaded >= 1) procStationGroup.visible = false;
+              if (stPartsLoaded >= 1) {
+                window.__zulmatMetroGlbReady = true;
+                const stOvEl = document.getElementById('start-overlay');
+                if (stOvEl) stOvEl.classList.add('glb-ready');
+              }
+              if (trainGroup && trainGroup.position.y < -0.6) trainGroup.position.y = -0.48;
+            } catch (e) {}
+          };
           ['metro_station_1.glb', 'metro_station_2.glb', 'metro_station_3.glb'].forEach((fname) => {
-            loadGlbWithFallback(fname, (gltf) => {
-              try {
-                const st = gltf.scene;
-                if (typeof stripGltfLights === 'function') stripGltfLights(st);
-                stRoot.add(st);
-                stPartsLoaded++;
-                if (stPartsLoaded >= 1) procStationGroup.visible = false;
-                if (stPartsLoaded >= 2) {
-                  window.__zulmatMetroGlbReady = true;
-                  const stOvEl = document.getElementById('start-overlay');
-                  if (stOvEl) stOvEl.classList.add('glb-ready');
-                }
-                if (trainGroup && trainGroup.position.y < -0.6) trainGroup.position.y = -0.48;
-              } catch (e) {}
+            loadGlbWithFallback(fname, onStationGlb, () => {
+              stPartsFailed++;
+              if (stPartsFailed === 3 && stPartsLoaded === 0) {
+                loadGlbWithFallback('metro_station.glb', onStationGlb);
+              }
             });
           });
         }
@@ -4164,7 +4171,21 @@
         const g = new THREE.Group();
         const restY = (zoneName === 'level7' || zoneName === 'level37' || zoneName === 'level922') ? 0.02 : 0.92;
         g.position.set(x, restY, z);
-        if (type === 'almond') {
+        if (type === 'radar') {
+          const box = new THREE.Mesh(
+            new THREE.BoxGeometry(0.24, 0.30, 0.08),
+            new THREE.MeshBasicMaterial({ color: 0x22c55e })
+          );
+          const pt = new THREE.PointLight(0x4ade80, 0.95, 6);
+          g.add(box, pt);
+          if (typeof loadGlbIntoGroup === 'function') {
+            loadGlbIntoGroup('radar.glb', g, { x: 0, y: 0, z: 0, rotY: 0, targetH: 0.34 });
+            box.visible = false;
+          }
+          group.add(g);
+          bonusPickups.push({ zone: zoneName, x, z, type: 'radar', mesh: g, taken: false });
+          return;
+        } else if (type === 'almond') {
           const bottle = new THREE.Mesh(
             new THREE.CylinderGeometry(0.14, 0.16, 0.45, 10),
             new THREE.MeshBasicMaterial({ color: 0x67e8f9 })
@@ -4200,6 +4221,28 @@
         bonusPickups.push({ zone: zoneName, x, z, type, mesh: g, taken: false });
       }
       // Spawn Almond Water & 1 Unique Lore Cassette in EVERY ONE of the 31 Levels!
+      // Spawn Radar pickups across levels so players can find them in-world
+      try {
+        [
+          [level0Group, 'level0', 16, 0, -14],
+          [level1Group, 'level1', -18, 0, 12],
+          [level2Group, 'level2', 12, 0, -24],
+          [level3Group, 'level3', -14, 0, -16],
+          [level4Group, 'level4', 18, 0, 18],
+          [level5Group, 'level5', -16, 0, 14],
+          [level7Group, 'level7', 10, 0, -18],
+          [level14Group, 'level14', -14, 0, -14],
+          [level15Group, 'level15', 14, 0, -14],
+          [level33Group, 'level33', -16, 0, 16],
+          [level36Group, 'level36', 16, 0, -12],
+          [level37Group, 'level37', 8, 0, -28],
+          [levelFunGroup, 'levelfun', -14, 0, -18],
+          [levelRunGroup, 'levelrun', 0, 0, -22]
+        ].forEach(([grp, zn, rx, ry, rz]) => {
+          if (grp) spawnBonusItem(grp, zn, rx, ry, rz, 'radar');
+        });
+      } catch (e) {}
+
       const ZONE_CASSETTE_KEY = {
         level0: 'cas_0', levelmanila: 'cas_manila', level1: 'cas_1', level2: 'cas_2',
         level3: 'cas_3', level4: 'cas_4', level5: 'cas_5', level6: 'cas_6',

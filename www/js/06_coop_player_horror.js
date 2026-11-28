@@ -104,6 +104,14 @@
           setLobbyView(false);
           const igW = document.getElementById('ingame-chat-wrap');
           if (igW) igW.classList.add('hidden');
+          const igM = document.getElementById('ingame-chat-msgs');
+          if (igM) { igM.innerHTML = ''; igM.classList.add('hidden'); }
+          const igH = document.getElementById('ingame-chat-history');
+          if (igH) igH.innerHTML = '';
+          const igB = document.getElementById('ingame-chat-box');
+          if (igB) igB.classList.add('hidden');
+          const igT = document.getElementById('btn-ingame-chat-toggle');
+          if (igT) igT.classList.remove('hidden');
           if (msg) setStatus(msg, color || '#94a3b8');
           else setStatus("Oflayn. Xona yarating yoki kod bilan kiring.", "#94a3b8");
         }
@@ -587,6 +595,11 @@
         }
 
         function tick(dt) {
+          const _igW = document.getElementById('ingame-chat-wrap');
+          if (_igW) {
+            const _showChat = state.started && !state.ended && (!!roomCode || Object.keys(peers).length > 0);
+            _igW.classList.toggle('hidden', !_showChat);
+          }
           if (!peer) return;
           sendTimer += dt;
           if (sendTimer >= 0.065) {
@@ -794,18 +807,118 @@
           });
         }
         const igWrap = document.getElementById('ingame-chat-wrap');
+        const igBox = document.getElementById('ingame-chat-box');
+        const igToggle = document.getElementById('btn-ingame-chat-toggle');
+        const igDot = document.getElementById('ingame-chat-dot');
         const igMsgs = document.getElementById('ingame-chat-msgs');
+        const igHist = document.getElementById('ingame-chat-history');
+        const igQuick = document.getElementById('ingame-chat-quick');
+        const igTabQuick = document.getElementById('btn-chat-tab-quick');
+        const igTabHist = document.getElementById('btn-chat-tab-hist');
+        const igTabTitle = document.getElementById('ingame-chat-tab-title');
+        const igClose = document.getElementById('btn-chat-drawer-close');
         const igInp = document.getElementById('ingame-chat-inp');
         const igBtn = document.getElementById('btn-ingame-chat-send');
         let _lastChatT = 0;
+        let _liveFeedTid = null;
+        let _activeChatTab = 'quick';
+
+        const QUICK_PHRASES = {
+          uz: ["Yordam bering!", "Bu yoqqa keling!", "Maxluq yaqinlashyapti!", "Chiqishni topdim!", "Meni kuting!", "Orqaga chekin!"],
+          en: ["Help me!", "Come here!", "Monster nearby!", "Found the exit!", "Wait for me!", "Fall back!"],
+          ru: ["Помогите!", "Идите сюда!", "Монстр рядом!", "Нашёл выход!", "Подождите меня!", "Отступаем!"]
+        };
+
+        function setChatDrawerTab(tab) {
+          _activeChatTab = tab;
+          const lg = window.__zulmatLang || 'uz';
+          if (igQuick) igQuick.classList.toggle('hidden', tab !== 'quick');
+          if (igHist) igHist.classList.toggle('hidden', tab !== 'hist');
+          if (igTabQuick) {
+            igTabQuick.style.background = tab === 'quick' ? 'rgba(56,189,248,0.22)' : 'transparent';
+            igTabQuick.style.color = tab === 'quick' ? '#7dd3fc' : '#94a3b8';
+          }
+          if (igTabHist) {
+            igTabHist.style.background = tab === 'hist' ? 'rgba(56,189,248,0.22)' : 'transparent';
+            igTabHist.style.color = tab === 'hist' ? '#7dd3fc' : '#94a3b8';
+          }
+          if (igTabTitle) {
+            igTabTitle.textContent = tab === 'quick'
+              ? (lg === 'en' ? 'QUICK CHAT' : (lg === 'ru' ? 'БЫСТРЫЙ ЧАТ' : 'TEZKOR XABARLAR'))
+              : (lg === 'en' ? 'CHAT HISTORY' : (lg === 'ru' ? 'ИСТОРИЯ ЧАТА' : 'ESKI XABARLAR'));
+          }
+          if (tab === 'hist' && igHist) igHist.scrollTop = igHist.scrollHeight;
+        }
+
+        function renderQuickPhrases() {
+          if (!igQuick) return;
+          const lg = window.__zulmatLang || 'uz';
+          const list = QUICK_PHRASES[lg] || QUICK_PHRASES.uz;
+          igQuick.innerHTML = '';
+          list.forEach((txt) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = txt;
+            b.style.cssText = 'text-align:left;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.09);background:rgba(15,23,42,0.62);color:#e2e8f0;font-size:11px;cursor:pointer;';
+            b.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (!chatRateOk()) return;
+              const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
+              appendChat(myN, txt);
+              broadcastCoop({ t: 'chat', name: myN, text: txt });
+              closeChatDrawer();
+            });
+            igQuick.appendChild(b);
+          });
+        }
+
+        function openChatDrawer() {
+          renderQuickPhrases();
+          setChatDrawerTab(_activeChatTab);
+          if (igBox) igBox.classList.remove('hidden');
+          if (igToggle) igToggle.classList.add('hidden');
+          if (igDot) igDot.classList.add('hidden');
+        }
+        function closeChatDrawer() {
+          if (igBox) igBox.classList.add('hidden');
+          if (igToggle) igToggle.classList.remove('hidden');
+          if (igInp) igInp.blur();
+        }
+        function showLiveFeedBriefly() {
+          if (!igMsgs) return;
+          igMsgs.classList.remove('hidden');
+          igMsgs.style.opacity = '1';
+          if (_liveFeedTid) clearTimeout(_liveFeedTid);
+          _liveFeedTid = setTimeout(() => {
+            igMsgs.style.opacity = '0';
+            setTimeout(() => { if (igMsgs.style.opacity === '0') igMsgs.classList.add('hidden'); }, 380);
+          }, 6500);
+        }
+        function scheduleChatHide() {
+          // Drawer starts collapsed; live feed auto-hides after 6.5s
+          closeChatDrawer();
+        }
+        if (igToggle) igToggle.addEventListener('click', (e) => { e.stopPropagation(); openChatDrawer(); });
+        if (igClose) igClose.addEventListener('click', (e) => { e.stopPropagation(); closeChatDrawer(); });
+        if (igTabQuick) igTabQuick.addEventListener('click', (e) => { e.stopPropagation(); setChatDrawerTab('quick'); });
+        if (igTabHist) igTabHist.addEventListener('click', (e) => { e.stopPropagation(); setChatDrawerTab('hist'); });
+        if (igBox) igBox.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+        renderQuickPhrases();
+
         function chatRateOk() {
           const n = Date.now();
           if (n - _lastChatT < 700) return false;
           _lastChatT = n;
           return true;
         }
-        function mkChatRow(sender, text, color) {
+        function mkChatRow(sender, text, color, timeStr) {
           const row = document.createElement('div');
+          if (timeStr) {
+            const tm = document.createElement('span');
+            tm.style.cssText = 'color:#64748b;font-size:9.5px;margin-right:4px;';
+            tm.textContent = '[' + timeStr + ']';
+            row.appendChild(tm);
+          }
           const st = document.createElement('strong');
           st.style.color = color;
           st.textContent = String(sender).slice(0, 24) + ':';
@@ -815,13 +928,28 @@
         }
         function appendChat(sender, text) {
           if (!chatLog || !text) return;
+          const now = new Date();
+          const hh = String(now.getHours()).padStart(2, '0');
+          const mm = String(now.getMinutes()).padStart(2, '0');
+          const tStr = hh + ':' + mm;
           chatLog.appendChild(mkChatRow(sender, text, '#fde047'));
           while (chatLog.children.length > 60) chatLog.removeChild(chatLog.firstChild);
           chatLog.scrollTop = chatLog.scrollHeight;
+          // 1. Always save to Clock History tab inside right drawer
+          if (igHist) {
+            igHist.appendChild(mkChatRow(sender, text, '#7dd3fc', tStr));
+            while (igHist.children.length > 80) igHist.removeChild(igHist.firstChild);
+            igHist.scrollTop = igHist.scrollHeight;
+          }
+          // 2. Pop up briefly on the left side (old spot) and auto-fade after 6.5s
           if (igMsgs) {
             igMsgs.appendChild(mkChatRow(sender, text, '#7dd3fc'));
-            while (igMsgs.children.length > 60) igMsgs.removeChild(igMsgs.firstChild);
+            while (igMsgs.children.length > 4) igMsgs.removeChild(igMsgs.firstChild);
             igMsgs.scrollTop = igMsgs.scrollHeight;
+            showLiveFeedBriefly();
+          }
+          if (igBox && igBox.classList.contains('hidden') && igDot) {
+            igDot.classList.remove('hidden');
           }
         }
         function sendInGameChat() {
@@ -832,6 +960,7 @@
           const myN = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || 'Men';
           appendChat(myN, txt);
           broadcastCoop({ t: 'chat', name: myN, text: txt });
+          closeChatDrawer();
         }
         if (igBtn) igBtn.addEventListener('click', sendInGameChat);
         if (igInp) igInp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') sendInGameChat(); });
@@ -883,7 +1012,7 @@
               const conn = peer.connect(pubId, { reliable: false });
               setupConn(conn);
               const cw = document.getElementById('ingame-chat-wrap');
-              if (cw) cw.classList.remove('hidden');
+              if (cw) { cw.classList.remove('hidden'); scheduleChatHide(); }
             });
             peer.on('call', (call) => {
               call.answer(localStream || undefined);
@@ -897,7 +1026,7 @@
                 peer = new window.Peer(pubId, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }] } });
                 peer.on('open', () => {
                   const cw = document.getElementById('ingame-chat-wrap');
-                  if (cw) cw.classList.remove('hidden');
+                  if (cw) { cw.classList.remove('hidden'); scheduleChatHide(); }
                   if (typeof showToast === 'function') showToast("Onlayn Cheksiz server yaratildi — boshqa o'yinchilar ulanishi mumkin!");
                 });
                 peer.on('connection', (conn) => {
@@ -919,6 +1048,7 @@
           if (inLobby) renderLobby();
         };
         window.__zulmatJoinPublicEndless = joinPublicEndless;
+        window.__zulmatLeaveCoop = resetCoop;
 
         return { tick, joinPublicEndless };
       })();
@@ -931,7 +1061,7 @@
         const root = new THREE.Group();
         const glbWrap = new THREE.Group();
         // Shift slightly behind camera eye (+Z in local Three.js space) so forward view stays 100% clear
-        glbWrap.position.set(0, 0, 0.24);
+        glbWrap.position.set(0, 0, 0.14);
         glbWrap.rotation.y = Math.PI;
         glbWrap.visible = false;
         const fpShadow = makeContactShadow(0.56, 0.56);
@@ -941,8 +1071,9 @@
         scene.add(root);
 
         let mixer = null, walkAct = null, glbLoaded = false, loadedSkinId = null;
-        let rArmBone = null, rForeBone = null, rHandBone = null;
+        let rArmBone = null, rForeBone = null, rHandBone = null, lHandBone = null;
         window.__zulmatGetGlbHand = () => rHandBone ? { hand: rHandBone, arm: rArmBone, fore: rForeBone } : null;
+        window.__zulmatGetGlbLeftHand = () => lHandBone ? { hand: lHandBone } : null;
         function ensureGlbBody() {
           if (typeof gltfLoader === 'undefined' || typeof REPO_GLB_BASE === 'undefined') return;
           let sid = 'businessman';
@@ -976,6 +1107,7 @@
                   const bn = o.name || '';
                   if (/head|neck/i.test(bn)) o.scale.setScalar(0.0001);
                   if (!rHandBone && /(righthand|hand_r|wrist_r)/i.test(bn)) rHandBone = o;
+                  else if (!lHandBone && /(lefthand|hand_l|wrist_l)/i.test(bn)) lHandBone = o;
                   else if (!rForeBone && /(rightforearm|forearm_r|lowerarm_r)/i.test(bn)) rForeBone = o;
                   else if (!rArmBone && /(rightarm|upperarm_r|arm_r)/i.test(bn) && !/fore/i.test(bn)) rArmBone = o;
                 }
@@ -1437,7 +1569,8 @@
         root.add(sleeve, glove, procFlash);
         camera.add(root);
 
-        let glbTried = false;
+        let glbTried = false, attachedLeftHand = false;
+        const _flWs = new THREE.Vector3();
         function ensureFlashGlb() {
           if (glbTried || typeof gltfLoader === 'undefined' || typeof REPO_GLB_BASE === 'undefined') return;
           glbTried = true;
@@ -1468,11 +1601,28 @@
             root.visible = false;
             return;
           }
+          ensureFlashGlb();
+          if (!attachedLeftHand && window.__zulmatGetGlbLeftHand) {
+            const lh = window.__zulmatGetGlbLeftHand();
+            if (lh && lh.hand) {
+              attachedLeftHand = true;
+              lh.hand.updateMatrixWorld(true);
+              lh.hand.getWorldScale(_flWs);
+              const invS = 1 / Math.max(0.001, _flWs.y);
+              root.scale.setScalar(invS);
+              root.position.set(0, 0.03 * invS, 0.04 * invS);
+              root.rotation.set(0.15, 0, 0);
+              sleeve.visible = false; glove.visible = false;
+              lh.hand.add(root);
+            }
+          }
           root.visible = true;
-          const swayX = Math.cos(state.bobPhase * 0.5) * 0.009;
-          const swayY = Math.sin(state.bobPhase) * 0.011;
-          root.position.set(-0.23 + swayX, -0.19 + swayY, -0.34);
-          root.rotation.set(0.04 + swayY * 0.6, 0.08 - swayX * 0.8, 0.08);
+          if (!attachedLeftHand) {
+            const swayX = Math.cos(state.bobPhase * 0.5) * 0.009;
+            const swayY = Math.sin(state.bobPhase) * 0.011;
+            root.position.set(-0.23 + swayX, -0.19 + swayY, -0.34);
+            root.rotation.set(0.04 + swayY * 0.6, 0.08 - swayX * 0.8, 0.08);
+          }
           lensMat.color.setHex((state.flashOn && state.battery > 0) ? 0xfef9c3 : 0x1e293b);
         }
         return { update };

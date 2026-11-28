@@ -359,24 +359,90 @@
           };
         }
         if (!window.__zulmatAiEndpoint) window.__zulmatAiEndpoint = 'https://backrooms-ai.vercel.app/api/dimension';
+        window.__zulmatGetSavedAiDims = function() {
+          try {
+            const raw = LSget('zulmat_saved_ai_dims');
+            const arr = raw ? JSON.parse(raw) : [];
+            return Array.isArray(arr) ? arr : [];
+          } catch (e) { return []; }
+        };
+        window.__zulmatSaveAiDim = function(d) {
+          if (!d || !d.name || typeof d.wall !== 'number') return;
+          try {
+            const list = window.__zulmatGetSavedAiDims();
+            if (list.some((x) => x && x.name === d.name)) return;
+            const mLvl = (typeof d.monsterLvl === 'number')
+              ? d.monsterLvl
+              : ((d.monster && MONSTER_NAME_TO_LVL[d.monster] !== undefined) ? MONSTER_NAME_TO_LVL[d.monster] : 0);
+            const entry = {
+              id: d.id || ('ai_' + Date.now().toString(36) + '_' + Math.floor(Math.random() * 999)),
+              name: String(d.name).slice(0, 64),
+              lore: String(d.lore || '').slice(0, 180),
+              layout: d.layout || 'mixed',
+              arch: d.arch || 'pillars_classic',
+              lightStyle: d.lightStyle || 'fluorescent',
+              ceilHeight: typeof d.ceilHeight === 'number' ? d.ceilHeight : 3.2,
+              anomaly: d.anomaly || 'none',
+              monsterLvl: mLvl,
+              floor: d.floor, wall: d.wall, ceil: d.ceil, accent: d.accent,
+              fogDens: typeof d.fogDens === 'number' ? d.fogDens : 0.028,
+              discoveredBy: d.discoveredBy || ''
+            };
+            list.unshift(entry);
+            if (list.length > 50) list.length = 50;
+            LSset('zulmat_saved_ai_dims', JSON.stringify(list));
+            if (window.__zulmatRefreshStationThumbs) window.__zulmatRefreshStationThumbs(); if (window.__zulmatSyncGlobalAiDims) window.__zulmatSyncGlobalAiDims();
+          } catch (e) {}
+        };
+        window.__zulmatSyncGlobalAiDims = function() {
+          try {
+            const ep = LSget('zulmat_ai_url') || window.__zulmatAiEndpoint || '';
+            if (!ep || typeof fetch !== 'function') return;
+            fetch(ep, { method: 'GET' })
+              .then((r) => r.json())
+              .then((data) => {
+                if (!data || !Array.isArray(data.dimensions) || !data.dimensions.length) return;
+                const local = window.__zulmatGetSavedAiDims();
+                const byName = new Map();
+                data.dimensions.forEach((d) => {
+                  if (d && d.name && typeof d.wall === 'number') {
+                    const mLvl = (typeof d.monsterLvl === 'number')
+                      ? d.monsterLvl
+                      : ((d.monster && MONSTER_NAME_TO_LVL[d.monster] !== undefined) ? MONSTER_NAME_TO_LVL[d.monster] : 0);
+                    byName.set(d.name, Object.assign({}, d, { monsterLvl: mLvl }));
+                  }
+                });
+                local.forEach((d) => { if (d && d.name && !byName.has(d.name)) byName.set(d.name, d); });
+                const merged = Array.from(byName.values()).slice(0, 50);
+                LSset('zulmat_saved_ai_dims', JSON.stringify(merged));
+                if (window.__zulmatRefreshStationThumbs) window.__zulmatRefreshStationThumbs();
+              }).catch(() => {});
+          } catch (e) {}
+        };
+        setTimeout(() => { if (window.__zulmatSyncGlobalAiDims) window.__zulmatSyncGlobalAiDims(); }, 1800);
+        window.__zulmatSetActiveAiDim = function(d) {
+          if (d) activeAiDimension = d;
+        };
         window.__zulmatGenerateAiDimension = function(streak) {
           activeAiDimension = synthOfflineDimension((streak || 0) + Date.now());
           try {
             const ep = LSget('zulmat_ai_url') || window.__zulmatAiEndpoint || '';
             if (ep && typeof fetch === 'function') {
-              fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ streak: streak || 0, lang: window.__zulmatLang || 'uz' }) })
+              const pName = (document.getElementById('coop-name') && document.getElementById('coop-name').value.trim()) || '';
+              fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ streak: streak || 0, lang: window.__zulmatLang || 'uz', player: pName }) })
                 .then((r) => r.json())
                 .then((d) => {
                   if (d && d.name && typeof d.wall === 'number') {
                     if (d.monster && MONSTER_NAME_TO_LVL[d.monster] !== undefined) d.monsterLvl = MONSTER_NAME_TO_LVL[d.monster];
                     activeAiDimension = d;
+                    window.__zulmatSaveAiDim(d);
                     if (typeof setMonsterVariant === 'function' && d.monsterLvl !== undefined && state.zone === 'levelendless') {
                       setMonsterVariant(d.monsterLvl);
                     }
                     if (state.zone === 'levelendless' && typeof Endless50K !== 'undefined' && Endless50K.rebuildActiveChunks) {
                       Endless50K.rebuildActiveChunks();
                     }
-                    showToast('AI Dimension: ' + d.name);
+                    showToast('AI Dimension: ' + d.name + ' (Bekatlarga saqlandi!)');
                   }
                 }).catch(() => {});
             }
@@ -741,7 +807,7 @@
         return { spawnRandomRun, tick, rebuildActiveChunks, getActivePits: () => activeEndlessPits };
       })();
 
-      window.__zulmatStartEndless = function() {
+      window.__zulmatStartEndless = function(fixedDim) {
         window.__zulmatGameMode = 'endless';
         window.__zulmatEndlessStreak = 0;
         const stOv = document.getElementById('start-overlay');
@@ -786,11 +852,18 @@
         Sound.stopAllClips();
         Sound.playZoneBgm('level922_void');
         Sound.playSfx('no_clip_glitch', 0.85);
-        const aiDim = window.__zulmatGenerateAiDimension ? window.__zulmatGenerateAiDimension(window.__zulmatEndlessStreak || 0) : null;
+        let aiDim = null;
+        if (fixedDim && fixedDim.name) {
+          if (window.__zulmatSetActiveAiDim) window.__zulmatSetActiveAiDim(fixedDim);
+          if (typeof setMonsterVariant === 'function' && fixedDim.monsterLvl !== undefined) setMonsterVariant(fixedDim.monsterLvl);
+          aiDim = fixedDim;
+        } else {
+          aiDim = window.__zulmatGenerateAiDimension ? window.__zulmatGenerateAiDimension(window.__zulmatEndlessStreak || 0) : null;
+        }
         Endless50K.spawnRandomRun();
-        if (window.__zulmatJoinPublicEndless) window.__zulmatJoinPublicEndless();
-        if (aiDim) showToast("AI O'lcham: " + aiDim.name);
-        if (typeof showToast === 'function') {
+        if (!fixedDim && window.__zulmatJoinPublicEndless) window.__zulmatJoinPublicEndless();
+        if (aiDim) showToast((fixedDim ? "Saqlangan AI Bekat: " : "AI O'lcham: ") + aiDim.name, 4800);
+        else if (typeof showToast === 'function') {
           showToast("50,000m x 50,000m CHEKSIZ DUNYO! Barcha biomlar aralash — yashil chiqish portalini toping!", 5200);
         }
       };
@@ -906,9 +979,9 @@
 
         // Roll the metro train dramatically into the station from the left dark tunnel!
         state.trainAnim = 'arriving';
-        state.trainTimer = 0;
+        state.trainTimer = -0.45;
         metroTrain.openAmt = 0;
-        if (metroTrain.group) metroTrain.group.position.x = -26;
+        if (metroTrain.group) metroTrain.group.position.x = -58;
         if (metroTrain.doorL) metroTrain.doorL.position.x = -0.4;
         if (metroTrain.doorR) metroTrain.doorR.position.x = 0.4;
 
@@ -2093,11 +2166,14 @@
         if (e.code === 'KeyC' || e.code === 'ControlLeft') toggleCrouch();
       });
 
-      btnSprint.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); state.sprinting = true; btnSprint.classList.add('on'); }, { passive: false });
-      btnSprint.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); state.sprinting = false; btnSprint.classList.remove('on'); }, { passive: false });
-      btnSprint.addEventListener('touchcancel', (e) => { e.preventDefault(); e.stopPropagation(); state.sprinting = false; btnSprint.classList.remove('on'); }, { passive: false });
-      btnSprint.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); state.sprinting = true; btnSprint.classList.add('on'); });
-      window.addEventListener('mouseup', () => { state.sprinting = false; btnSprint.classList.remove('on'); });
+      function toggleSprint() {
+        if (!state.started || state.paused || state.ended) return;
+        if (!state.sprinting && state.stamina <= 5) { showToast("Kuch tugagan, biroz dam oling!"); return; }
+        state.sprinting = !state.sprinting;
+        btnSprint.classList.toggle('on', state.sprinting);
+      }
+      btnSprint.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); toggleSprint(); }, { passive: false });
+      btnSprint.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); toggleSprint(); });
 
       elInteractBtn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); triggerInteract(); }, { passive: false });
       elInteractBtn.addEventListener('click', (e) => { e.stopPropagation(); triggerInteract(); });
@@ -2116,7 +2192,7 @@
         const dy = e.clientY - lastMY;
         lastMX = e.clientX; lastMY = e.clientY;
         state.yaw -= dx * 0.0052 * state.camSens;
-        state.pitch = Math.max(-0.65, Math.min(0.65, state.pitch - dy * 0.0042 * state.camSens));
+        state.pitch = Math.max(-1.18, Math.min(0.85, state.pitch - dy * 0.0042 * state.camSens));
       });
       window.addEventListener('mouseup', () => { isMouseDrag = false; });
 
@@ -2143,7 +2219,7 @@
             const dx = isForcedLandscape ? rdy : rdx;
             const dy = isForcedLandscape ? -rdx : rdy;
             state.yaw -= dx * 0.0068 * state.camSens;
-            state.pitch = Math.max(-0.65, Math.min(0.65, state.pitch - dy * 0.0046 * state.camSens));
+            state.pitch = Math.max(-1.18, Math.min(0.85, state.pitch - dy * 0.0046 * state.camSens));
           }
         }
       }, { passive: true });
@@ -2171,7 +2247,7 @@
         joyZone.style.left = (clX - 59) + 'px';
         joyZone.style.top = (clY - 59) + 'px';
         joyZone.style.bottom = 'auto';
-        joyZone.style.opacity = '1';
+        joyZone.classList.add('active');
       }
 
       function updateJoy(cx, cy) {
@@ -2216,7 +2292,7 @@
             joyZone.style.left = '24px';
             joyZone.style.top = 'auto';
             joyZone.style.bottom = '24px';
-            joyZone.style.opacity = '0.78';
+            joyZone.classList.remove('active');
           }
         }
       };
@@ -2584,12 +2660,16 @@
         const dangerEl = document.getElementById('st-selected-danger');
         const pillEl = document.getElementById('st-selected-lvl-pill');
 
-        function selectCard(btn, key) {
+        let selectedAiDim = null;
+        function selectCard(btn, key, aiDimObj) {
           selectedKey = key;
-          btns.forEach((b) => b.classList.toggle('st-selected', b === btn));
+          selectedAiDim = aiDimObj || null;
+          Array.from(list.querySelectorAll('button')).forEach((b) => b.classList.toggle('st-selected', b === btn));
           const title = btn.dataset.stTitle || 'Bekat';
           const desc = btn.dataset.stDesc || '';
-          const dInfo = DANGER_MAP[key] || ["XAVF: O'RTA", '#f59e0b', 'rgba(245,158,11,0.18)'];
+          const dInfo = aiDimObj
+            ? ["AI O'LCHAM", '#c084fc', 'rgba(192,132,252,0.22)']
+            : (DANGER_MAP[key] || ["XAVF: O'RTA", '#f59e0b', 'rgba(245,158,11,0.18)']);
           if (infoEl) infoEl.textContent = desc || title;
           if (pillEl) pillEl.textContent = title.toUpperCase();
           if (dangerEl) { dangerEl.textContent = dInfo[0]; dangerEl.style.color = dInfo[1]; }
@@ -2642,6 +2722,67 @@
           }, true);
         });
 
+        function drawAiThumb(cv, d) {
+          const ctx = cv.getContext('2d');
+          const w = cv.width, h = cv.height;
+          const wallC = hexStr(d.wall, '#6366f1');
+          const floorC = hexStr(d.floor, '#1e1b4b');
+          const ceilC = hexStr(d.ceil, '#0f172a');
+          const accC = hexStr(d.accent, '#38bdf8');
+          const bg = ctx.createLinearGradient(0, 0, 0, h);
+          bg.addColorStop(0, ceilC); bg.addColorStop(0.55, wallC); bg.addColorStop(1, floorC);
+          ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+          ctx.fillStyle = 'rgba(0,0,0,0.32)';
+          ctx.fillRect(w * 0.16, h * 0.14, 14, h * 0.72);
+          ctx.fillRect(w * 0.74, h * 0.14, 14, h * 0.72);
+          ctx.fillStyle = accC;
+          ctx.fillRect(w * 0.36, 10, w * 0.28, 4);
+          ctx.fillStyle = 'rgba(0,0,0,0.18)';
+          for (let y = 0; y < h; y += 3) ctx.fillRect(0, y, w, 1);
+        }
+        function renderSavedAiCards() {
+          Array.from(list.querySelectorAll('.st-ai-saved-card')).forEach((el) => el.remove());
+          const saved = window.__zulmatGetSavedAiDims ? window.__zulmatGetSavedAiDims() : [];
+          const stBtnMenu = document.getElementById('btn-start-stations');
+          if (stBtnMenu) {
+            const lg = window.__zulmatLang || 'uz';
+            const baseLbl = lg === 'en' ? 'STATIONS' : (lg === 'ru' ? 'СТАНЦИИ' : 'BEKATLAR');
+            stBtnMenu.textContent = saved.length > 0 ? (baseLbl + ' (31 + ' + saved.length + ' AI)') : (baseLbl + ' (31)');
+          }
+          saved.forEach((d) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'station-card st-ai-saved-card';
+            b.dataset.stTitle = d.name;
+            b.dataset.stDesc = (d.lore || "AI kashf qilgan o'lcham") + (d.discoveredBy ? (' • Kashf etdi: ' + d.discoveredBy) : '');
+            const cv = document.createElement('canvas');
+            cv.className = 'st-thumb-canvas';
+            cv.width = 160; cv.height = 92;
+            drawAiThumb(cv, d);
+            const tDiv = document.createElement('div');
+            tDiv.className = 'st-card-title';
+            tDiv.textContent = d.name;
+            const dDiv = document.createElement('div');
+            dDiv.className = 'st-danger-bar';
+            dDiv.textContent = "AI O'LCHAM";
+            dDiv.style.color = '#c084fc';
+            dDiv.style.background = 'rgba(192,132,252,0.22)';
+            b.appendChild(cv);
+            b.appendChild(tDiv);
+            b.appendChild(dDiv);
+            b.addEventListener('click', (e) => {
+              e.stopPropagation();
+              Sound.click();
+              if (!b.classList.contains('st-selected')) {
+                selectCard(b, d.id, d);
+              } else {
+                if (elStationOv) elStationOv.classList.add('hidden');
+                if (window.__zulmatStartEndless) window.__zulmatStartEndless(d);
+              }
+            });
+            list.appendChild(b);
+          });
+        }
         window.__zulmatRefreshStationThumbs = function() {
           btns.forEach((b) => {
             const rk = b.id.replace('st-btn-', '');
@@ -2649,7 +2790,9 @@
             const cv = b.querySelector('.st-thumb-canvas');
             if (cv) drawThumb(cv, k);
           });
+          renderSavedAiCards();
         };
+        renderSavedAiCards();
         if (btns[0]) selectCard(btns[0], 0);
         const stDiffSel = document.getElementById('st-diff-select');
         const stDiffPills = Array.from(document.querySelectorAll('#st-diff-seg [data-st-diff]'));
@@ -2681,7 +2824,17 @@
           btnMetroBoard.addEventListener('click', openFromTrain);
           btnMetroBoard.addEventListener('touchend', (e) => { if (e && e.cancelable) e.preventDefault(); openFromTrain(e); });
         }
-        if (btnGo) btnGo.addEventListener('click', () => { if (window.__zulmatIsLevelUnlocked && !window.__zulmatIsLevelUnlocked(selectedKey)) { startTrainDeparture(selectedKey); return; } if (elStationOv) elStationOv.classList.add('hidden'); if (window.__zulmatOpenShop) window.__zulmatOpenShop(() => startTrainDeparture(selectedKey)); else startTrainDeparture(selectedKey); });
+        if (btnGo) btnGo.addEventListener('click', () => {
+          if (selectedAiDim) {
+            const dimToLaunch = selectedAiDim;
+            if (elStationOv) elStationOv.classList.add('hidden');
+            if (window.__zulmatStartEndless) window.__zulmatStartEndless(dimToLaunch);
+            return;
+          }
+          if (window.__zulmatIsLevelUnlocked && !window.__zulmatIsLevelUnlocked(selectedKey)) { startTrainDeparture(selectedKey); return; }
+          if (elStationOv) elStationOv.classList.add('hidden');
+          if (window.__zulmatOpenShop) window.__zulmatOpenShop(() => startTrainDeparture(selectedKey)); else startTrainDeparture(selectedKey);
+        });
         const prev = document.getElementById('st-nav-prev');
         const next = document.getElementById('st-nav-next');
         if (prev) prev.addEventListener('click', () => { list.scrollBy({ left: -320, behavior: 'smooth' }); });
@@ -3474,7 +3627,6 @@
         const bGfx = document.getElementById('btn-ss-gfx');
         const bVhs = document.getElementById('btn-ss-vhs');
         const bSnd = document.getElementById('btn-ss-sound');
-        const bOri = document.getElementById('btn-ss-orient');
 
         function syncStartSettings() {
           const lang = window.__zulmatLang || 'uz';
@@ -3491,7 +3643,6 @@
           }
           if (bVhs) bVhs.textContent = 'VHS: ' + (state.vhsOn ? (lang === 'en' ? 'ON' : (lang === 'ru' ? 'ВКЛ' : 'YONIQ')) : (lang === 'en' ? 'OFF' : (lang === 'ru' ? 'ВЫКЛ' : "O'CHIQ")));
           if (bSnd) bSnd.textContent = (lang === 'en' ? 'SOUND: ' : (lang === 'ru' ? 'ЗВУК: ' : 'OVOZ: ')) + (Sound.muted ? (lang === 'en' ? 'OFF' : (lang === 'ru' ? 'ВЫКЛ' : "O'CHIQ")) : (lang === 'en' ? 'ON' : (lang === 'ru' ? 'ВКЛ' : 'YONIQ')));
-          if (bOri) bOri.textContent = (lang === 'en' ? 'SCREEN: ' : (lang === 'ru' ? 'ЭКРАН: ' : 'EKRAN: ')) + (state.orientMode === 'portrait' ? (lang === 'en' ? 'PORTRAIT' : (lang === 'ru' ? 'ВЕРТ.' : 'VERTIKAL')) : (lang === 'en' ? 'LANDSCAPE' : (lang === 'ru' ? 'ГОРИЗ.' : 'GORIZONTAL')));
           if (bCls) bCls.textContent = '< ' + (lang === 'en' ? 'BACK' : (lang === 'ru' ? 'НАЗАД' : 'ORQAGA'));
         }
         window.__zulmatSyncStartSettings = syncStartSettings;
@@ -3516,7 +3667,6 @@
         if (bGfx) bGfx.addEventListener('click', () => { const el = document.getElementById('btn-gfx'); if (el) el.click(); syncStartSettings(); });
         if (bVhs) bVhs.addEventListener('click', () => { const el = document.getElementById('btn-vhs'); if (el) el.click(); syncStartSettings(); });
         if (bSnd) bSnd.addEventListener('click', () => { const el = document.getElementById('btn-settings-sound'); if (el) el.click(); syncStartSettings(); });
-        if (bOri) bOri.addEventListener('click', () => { const el = document.getElementById('btn-orient'); if (el) el.click(); syncStartSettings(); });
         setTimeout(syncStartSettings, 120);
       })();
 
@@ -4092,10 +4242,16 @@
             if (window.__zulmatStartEndless) window.__zulmatStartEndless();
           });
         }
-        ['btn-start', 'btn-continue', 'btn-start-stations', 'btn-start-coop'].forEach((id) => {
+        ['btn-start', 'btn-continue', 'btn-start-stations'].forEach((id) => {
           const el = document.getElementById(id);
-          if (el) el.addEventListener('click', showMain);
+          if (el) el.addEventListener('click', () => {
+            showMain();
+            window.__zulmatGameMode = 'story';
+            if (window.__zulmatLeaveCoop) window.__zulmatLeaveCoop();
+          });
         });
+        const _bCoopMenu = document.getElementById('btn-start-coop');
+        if (_bCoopMenu) _bCoopMenu.addEventListener('click', showMain);
 
         const I18N = {
           uz: {
